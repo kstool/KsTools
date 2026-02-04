@@ -16,6 +16,19 @@
 // ==/UserScript==
 (function () {
     'use strict';
+    /*
+    ✅ :white_check_mark: (Yeşil onay kutusu)
+    ✔️ &#10004; (Kalın onay işareti)
+    ❌ &#10060; (Kırmızı çarpı kutusu)
+    ✖️ &#10006; (Siyah ince çarpı)
+    🔘 &#128280; (Radyo butonu simgesi)
+    🟢 &#128994; (Yeşil daire - Tamam/Var)
+    🔴 &#128308; (Kırmızı daire - Hata/Yok)
+    🟠 &#128992; (Turuncu daire - Uyarı)
+    🟡 &#128993; (Sarı daire - Beklemede/Eksik)
+    🔵 &#128309; (Mavi daire - Bilgi/İşlemde)
+    ⚪ &#9898; (Beyaz daire)
+    ⚫ &#9899; (Siyah daire) */
     // Status Paneli
     const domainRegex = /otohasar|sahibinden|sigorta|sbm|whatsapp/;
     if (!domainRegex.test(window.location.hostname)) return;
@@ -440,20 +453,6 @@
             let generatedUrl = "";
             /* ===== 4. PANEL GÜNCELLEME ===== */
             function updatePanel() {
-                /*✅ :white_check_mark: (Yeşil onay kutusu)
-                ✔️ &#10004; (Kalın onay işareti)
-                ❌ &#10060; (Kırmızı çarpı kutusu)
-                ✖️ &#10006; (Siyah ince çarpı)
-                🔘 &#128280; (Radyo butonu simgesi)
-                2. Yuvarlak Daireler (Renk Belirtmek İçin)
-                Özellikle durum (status) belirtirken metnin yanına çok yakışır.
-                🟢 &#128994; (Yeşil daire - Tamam/Var)
-                🔴 &#128308; (Kırmızı daire - Hata/Yok)
-                🟡 &#128993; (Sarı daire - Beklemede/Eksik)
-                🔵 &#128309; (Mavi daire - Bilgi/İşlemde)
-                🟠 &#128992; (Turuncu daire - Uyarı)
-                ⚪ &#9898; (Beyaz daire)
-                ⚫ &#9899; (Siyah daire) */
                 let html = '<table style="width:100%; border-collapse:collapse; font-size:13px; color:white;">';
                 const hasar = getDate('HASAR_TARIHI');
                 const bas = getDate('SB_POLICE_BAS');
@@ -503,16 +502,16 @@
                 const rucuVar = document.getElementById('RUCU1')?.checked;
                 const rucuYok = document.getElementById('RUCU0')?.checked;
 
-                // 2. Renk ve Metin Belirleme
+                // 2. Renk ve Metin Belirleme🔘🟢🔴🟠
                 let rucuStatus = "";
 
                 if (rucuVar) {
-                    rucuStatus = `<span style="color:#e74c3c; font-weight:bold; font-size:13px;">Var</span>`; // Yeşil
+                    rucuStatus = `<span style="color:#e74c3c; font-weight:bold; font-size:13px;">Var 🔴</span>`; // Yeşil
                 } else if (rucuYok) {
-                    rucuStatus = `<span style="color:#2ecc71; font-weight:bold;">Yok</span>`; // Kırmızı
+                    rucuStatus = `<span style="color:#2ecc71; font-weight:bold;">Yok 🟢</span>`; // Kırmızı
                 } else {
                     // İkisi de seçili değilse
-                    rucuStatus = `<span style="color:#ff9500; font-weight:bold;">Seçili Değil</span>`; // Turuncu/İtalik
+                    rucuStatus = `<span style="color:#ff9500; font-weight:bold;">Seçili Değil 🔘</span>`; // Turuncu/İtalik
                 }
 
                 // 3. Panele Ekleme
