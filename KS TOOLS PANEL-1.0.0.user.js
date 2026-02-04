@@ -891,7 +891,7 @@
 
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
-            contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Excel için Referanslar kopyala butonu ile kopyalanabilir. Excel'den yapıştır ile sıralı şekilde yapıştırılabilir.</div>`;
+            contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Excel için Referanslar kopyala butonu ile kopyalanabilir.<br>Excel'den kopyalanan satırlar yapıştır ile sıralı şekilde yapıştırılabilir.</div>`;
             contentArea.style.display = "flex";
             contentArea.style.gap = "5px";
 
@@ -903,17 +903,42 @@
                 try {
                     const text = await navigator.clipboard.readText();
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
+
+                    // Sayfadaki mevcut input kutularını sayalım (YP_AD_1, YP_AD_2... şeklinde gidenler)
+                    let availableFields = [];
+                    for (let j = 1; j <= 20; j++) { // Maksimum 20 kutu kontrolü
+                        const field = document.all(`YP_AD_${j}`);
+                        if (field) {
+                            availableFields.push(field);
+                        }
+                    }
+
+                    const inputCount = availableFields.length;
+                    const lineCount = lines.length;
+
+                    // --- UYARI MEKANİZMASI ---
+                    if (lineCount !== inputCount) {
+                        const confirmAction = confirm(`Dikkat: Sayı Uyuşmazlığı!\n\nExcel'den gelen satır: ${lineCount}\nSayfadaki kutu sayısı: ${inputCount}\n\nYine de devam etmek istiyor musunuz?`);
+                        if (!confirmAction) return; // Kullanıcı iptal ederse işlemi durdur
+                    }
+
+                    // --- DOLDURMA İŞLEMİ ---
                     lines.forEach((line, i) => {
-                        if (i < 20) {
-                            const inputName = `YP_AD_${i + 1}`;
-                            const field = document.all(inputName);
-                            if (field) field.value = line;
+                        if (i < inputCount) {
+                            availableFields[i].value = line;
                         }
                     });
+
                     btnPaste.innerText = "✔️ OK";
-                    setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
+                    btnPaste.style.backgroundColor = "#28a745"; // Başarılı renk
+                    setTimeout(() => {
+                        btnPaste.innerText = "📋 YAPIŞTIR";
+                        btnPaste.style.backgroundColor = ""; // Eski rengine dön
+                    }, 2000);
+
                 } catch (err) {
-                    alert("Pano erişim hatası!");
+                    alert("Pano erişim hatası veya kutular bulunamadı!");
+                    console.error(err);
                 }
             };
 
