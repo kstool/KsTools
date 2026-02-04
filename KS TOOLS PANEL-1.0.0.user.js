@@ -11,6 +11,8 @@
 // @grant        GM_xmlhttpRequest
 // @connect      sahibinden.com
 // @connect      www.sahibinden.com
+// @updateURL    https://raw.githubusercontent.com/sayginkizilkaya/Ks-Tools/main/KS%20TOOLS%20PANEL-1.0.0.user.js
+// @downloadURL  https://raw.githubusercontent.com/sayginkizilkaya/Ks-Tools/main/KS%20TOOLS%20PANEL-1.0.0.user.js
 // ==/UserScript==
 (function () {
     'use strict';
