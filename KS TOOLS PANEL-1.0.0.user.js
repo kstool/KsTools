@@ -1138,26 +1138,57 @@
                 }
             };
             /* ===== 4. CORE ACTIONS ===== */
-            const MainFields = () => {
+           const MainFields = () => {
+                // Kontrol edilecek zorunlu alanlar (Adet ve ID hariç)
+                const zorunluAlanlar = [
+                    { ref: refs.kod, label: "Parça Kodu" },
+                    { ref: refs.ad, label: "Adı" },
+                    { ref: refs.fiyat, label: "Fiyat" }
+                ];
+
+                // Eksik alan kontrolü
+                const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
+
+                if (eksikAlan) {
+                    alert(`Lütfen eksik alanları doldurun: ${eksikAlan.label}`);
+                    return; // İşlemi durdurur, giriş yapmaz
+                }
+
+                // Eğer tüm alanlar doluysa atama işlemlerine geçer:
                 if ($("PARCA_KODU")) $("PARCA_KODU").value = refs.kod.value;
                 if ($("ADET")) $("ADET").value = refs.adet.value;
                 if ($("ADI")) $("ADI").value = refs.ad.value.toUpperCase();
+
                 const fiyat = refs.fiyat.value.replace(",", ".");
                 if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
                 if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
+
+                console.log("Giriş başarılı!");
             };
-            const SideFields = async (dom, dam) => {
+            const SideFields = async (dom, dem) => {
                 await selectValue("GRUP_ID", dom);
-                await selectValue("ANA_GRUP", dom);
+                await selectValue("ANA_GRUP", dem);
                 await selectValue("SISTEM_NOTU_ID", "2");
                 if ($("NOTLAR")) $("NOTLAR").value = "KODSUZ PARÇA";
-                await selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
+                selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
             }
-            const submitForm = () => {
-                if (typeof window.sbmt_frm === "function" && window.sbmt_frm()) {
-                    if (document.yedparforhasar){ document.yedparforhasar.submit(); }
-                }
-            };
+           const submitForm = () => {
+               // HTML'deki orijinal submit mantığı
+               if (typeof window.sbmt_frm === "function" && window.sbmt_frm()) {
+                   if (typeof window.doraSiparisSecenek === "function") {
+                       if (window.doraSiparisSecenek()) {
+                           if (document.yedparforhasar) {
+                               document.yedparforhasar.submit();
+                           }
+                       }
+                   } else {
+                       if (document.yedparforhasar) {
+                           document.yedparforhasar.submit();
+                       }
+                   }
+               }
+           };
+
             /* ===== 5. EVENT HANDLERS ===== */
             // Yeni Butonu & Temizleme
             refs.bYeni.onclick = () => {
@@ -1178,49 +1209,54 @@
                 submitForm();*/
             // Kaporta ön
             $("b0").onclick = async () => {
-                MainFields();
-                SideFields("10","777");
                 degisonar();
+                await MainFields();
+                await SideFields("10","777");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // Kaporta yan
             $("b1").onclick = async () => {
-                MainFields();
-                SideFields("11","852");
                 degisonar();
+                await MainFields();
+                await SideFields("11","852");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // Mekanik
             $("b2").onclick = async () => {
-                MainFields();
-                SideFields("2","645");
                 degisonar();
+                await MainFields();
+                await SideFields("2","645");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // Elektrik
             $("b3").onclick = async () => {
-                MainFields();
-                SideFields("4","686");
                 degisonar();
+                await MainFields();
+                await SideFields("4","686");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // Cam
             $("b4").onclick = async () => {
-                MainFields();
-                SideFields("17","934");
                 degisonar();
+                await MainFields();
+                await SideFields("17","934");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // MOTORSİKLET
             $("b6").onclick = async () => {
-                MainFields();
-                SideFields("10","777");
                 degisonar();
+                await MainFields();
+                await SideFields("10","777");
                 submitForm();
+                setTimeout(() => { submitForm(); }, 400);
             };
             // Genel Onarım********************************************/////
             $("b5").onclick = async () => {
-                MainFields();
                 await selectValue("GRUP_ID", "6");
                 await selectValue("ANA_GRUP", "495");
                 submitForm();
@@ -2097,76 +2133,221 @@
     // Türkiye Sigorta
     if (location.href.includes("hasaroto.turkiyesigorta.com.tr")) {
         function applyModernStyles() {
-            //injectStyles(); initPanel();
             if (document.getElementById('ts-modern-styles')) return;
             const style = document.createElement('style');
             style.id = 'ts-modern-styles';
             style.innerHTML = `
-            /* Tab Header Konteynırı */
+            /* Ana Konteynır - Soft Gri ve Ortalı */
             .tab-header {
                 display: flex !important;
-                background-color: #f1f3f5 !important; /* Açık gri arka plan */
-                padding: 6px !important;
-                border-radius: 12px !important;
-                gap: 4px !important;
-                border: none !important;
-                margin-bottom: 15px !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 8px !important;
+                background: #f8fafc !important;
+                border-radius: 16px !important;
                 width: fit-content !important;
-                box-shadow: inset 0 1px 3px rgba(0,0,0,0.05) !important;
+                margin: 0 auto 20px auto !important;
+                border: 1px solid #e2e8f0 !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
             }
 
-            /* Butonların Genel Yapısı */
-            .tab-header .tab-button {
-                border: none !important;
+            /* Butonlar - Modern ve Dengeli */
+            .tab-header .tab-button,
+            .osem-tab-btn {
+                border: 1px solid transparent !important;
                 background: transparent !important;
-                color: #495057 !important; /* Göz yormayan koyu gri yazı */
-                padding: 8px 18px !important;
-                font-size: 14px !important;
-                font-weight: 600 !important;
-                border-radius: 8px !important;
+                color: #64748b !important; /* Slate gri */
+                padding: 12px 24px !important;
+                font-size: 13px !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
                 cursor: pointer !important;
-                transition: all 0.2s ease !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 text-transform: uppercase !important;
-                letter-spacing: 0.3px !important;
+                letter-spacing: 0.5px !important;
+                margin: 0 !important;
                 outline: none !important;
-                position: relative !important;
+                white-space: nowrap !important;
             }
 
-            /* Hover Durumu */
-            .tab-header .tab-button:hover:not(.active) {
-                background-color: rgba(0,0,0,0.05) !important;
-                color: #212529 !important;
+            /* Hover - Hafif Aydınlanma */
+            .tab-header .tab-button:hover:not(.active),
+            .osem-tab-btn:hover:not(.active) {
+                background-color: #ffffff !important;
+                color: #334155 !important;
+                border-color: #e2e8f0 !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
             }
 
-            /* Aktif Buton (Seçili Sekme) */
-            .tab-header .tab-button.active {
-                background-color: #ffffff !important; /* Beyaz kart efekti */
-                color: #0052cc !important; /* Türkiye Sigorta mavisine yakın soft bir ton */
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05) !important;
+            /* AKTİF SEKME - Derinlikli Beyaz */
+            .tab-header .tab-button.active,
+            .osem-tab-btn.active {
+                background: #ffffff !important;
+                color: #0f172a !important; /* Koyu lacivert/siyah yazı */
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
                 transform: translateY(-1px) !important;
             }
 
-            /* Alt çizgileri veya orijinal kaba efektleri kaldır */
+            /* Alt Çizgi Yerine Modern Vurgu */
+            .tab-header .tab-button.active::after,
+            .osem-tab-btn.active::after {
+                content: '';
+                position: absolute;
+                bottom: 6px;
+                left: 35%;
+                right: 35%;
+                height: 3px;
+                background: #64748b;
+                border-radius: 20px;
+                opacity: 0.4;
+            }
+
+            /* Site kalıntılarını temizle */
             .tab-header .tab-button::after,
             .tab-header .tab-button::before {
                 display: none !important;
             }
         `;
-            document.head.appendChild(style);
+        document.head.appendChild(style);
         }
-        // Sayfa dinamik yüklenebileceği için kontrol mekanizması
+
+        // TELEFON DOLDURMA FONKSİYONU
+       function fillPhoneField(input) {
+            // 1. Odaklan ve imleci parantezin ilk hanesine (pozisyon 3) taşı
+            // Format: 0 ( _ _ _ ) -> '0', ' ', '(' karakterlerinden sonra 3. indeks
+            input.focus();
+
+            // 2. Önce alanı temizle
+            input.value = "";
+
+            // 3. İmleci parantez içine sabitle
+            setTimeout(() => {
+                input.setSelectionRange(3, 3); // 0 ( kısmını atla, direkt parantez içine git
+
+                // 4. 10 haneli veriyi gönder
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text', '1111111111');
+
+                const pasteEvent = new ClipboardEvent('paste', {
+                    clipboardData: dataTransfer,
+                    bubbles: true,
+                    cancelable: true
+                });
+
+                input.dispatchEvent(pasteEvent);
+
+                // 5. Kaydetme tetikleyicileri
+                setTimeout(() => {
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }, 10);
+            }, 10);
+        }
+
+        // Observer içindeki imleç dostu kısım
         const observer = new MutationObserver(() => {
-            if (document.querySelector('.tab-header')) {
+            // Sayfadaki tüm dx-inputları bul
+            const allInputs = document.querySelectorAll('input.dx-texteditor-input');
+
+            allInputs.forEach(input => {
+                if (!input.dataset.handlerAdded) {
+                    input.addEventListener('mousedown', (e) => {
+                        const target = e.target;
+
+                        // Kapsamı genişletildi: Hem Phone hem de Gsm kelimelerini kontrol eder
+                        const isPhoneField = target.name?.toLowerCase().includes('phone') ||
+                                             target.id?.toLowerCase().includes('phone') ||
+                                             target.name?.toLowerCase().includes('gsm') ||
+                                             target.id?.toLowerCase().includes('gsm') ||
+                                             target.outerHTML.toLowerCase().includes('phone') ||
+                                             target.outerHTML.toLowerCase().includes('gsm');
+
+                        if (isPhoneField && (target.value.includes('_') || target.value.trim() === "")) {
+                            fillPhoneField(target);
+                        }
+                    });
+                    input.dataset.handlerAdded = "true";
+                }
+            });
+        });
+
+        // Sadece 'childList' dinlemek imleç kaymasını büyük oranda engeller
+        observer.observe(document.body, { childList: true, subtree: true });
+        setInterval(() => {
+            applyModernStyles();
+        if (document.querySelector('.osem-tab-btn') && !document.getElementById('ts-modern-styles')) {
                 applyModernStyles();
             }
-        });
-        observer.observe(document.body,
-            {
-                childList: true,
-                subtree: true
-            });
-        // İlk yükleme için
-        applyModernStyles();
+        }, 1000);
+
+
+        function fixSaveButton() {
+
+            // Eğer buton zaten doğru şekilde sabitlenmişse (ID kontrolü), tekrar işlem yapma
+            if (document.getElementById("main-fixed-save-button")) return;
+
+            // Sayfadaki tüm "Tümünü Kaydet" butonlarını bul
+            const allSaveButtons = Array.from(document.querySelectorAll('.dx-button-success'));
+
+            // Sadece "Tümünü Kaydet" yazanları filtrele
+            const mainSaveButton = allSaveButtons.find(btn =>
+                btn.innerText.includes("Tümünü Kaydet") ||
+                btn.getAttribute('aria-label')?.includes("Tümünü Kaydet")
+            );
+
+            if (mainSaveButton) {
+                // Sadece bu spesifik butonun stilini değiştir
+                // 1. Animasyonu CSS olarak sayfaya ekle (Sadece bir kez)
+                if (!document.getElementById('save-button-animation')) {
+                    const animStyle = document.createElement('style');
+                    animStyle.id = 'save-button-animation';
+                    animStyle.innerHTML = `
+                        @keyframes pulse-animation {
+                            0% { transform: translateX(-50%) scale(1); box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.5); }
+                            50% { transform: translateX(-50%) scale(1.08); box-shadow: 0 15px 30px -5px rgba(34, 197, 94, 0.7); }
+                            100% { transform: translateX(-50%) scale(1); box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.5); }
+                        }
+                    `;
+                    document.head.appendChild(animStyle);
+                }
+
+                // 2. fixSaveButton içindeki stil kısmına animasyonu ekle
+                mainSaveButton.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+                mainSaveButton.style.position = "fixed";
+                mainSaveButton.style.top = "65px";
+                mainSaveButton.style.left = "52%";
+                mainSaveButton.style.transform = "translateX(-50%)"; // Merkezleme
+                mainSaveButton.style.zIndex = "9999";
+                mainSaveButton.style.borderRadius = "5px";
+                mainSaveButton.style.padding = "4px 15px"; // Biraz daha dolgun durması için artırdım
+                mainSaveButton.style.color = "#ffffff";
+                mainSaveButton.style.fontSize = "14px";
+                mainSaveButton.style.cursor = "pointer";
+                mainSaveButton.style.border = "1px solid rgba(255,255,255,0.2)";
+
+                // SÜREKLİ ANİMASYON BURADA:
+                mainSaveButton.style.animation = "pulse-animation 2s infinite ease-in-out";
+
+                // Hover (Üzerine gelince) efekti için
+                mainSaveButton.onmouseenter = () => {
+                    mainSaveButton.style.transform = "scale(1.1) translateY(-3px)";
+                    mainSaveButton.style.boxShadow = "0 20px 30px -10px rgba(34, 197, 94, 0.6)";
+                };
+
+                mainSaveButton.onmouseleave = () => {
+                    mainSaveButton.style.transform = "scale(1) translateY(0)";
+                    mainSaveButton.style.boxShadow = "0 10px 25px -5px rgba(34, 197, 94, 0.5)";
+                };
+
+                // Butonun diğerlerinden ayrılması için özel bir ID verelim ki CSS'le çakışmasın
+                mainSaveButton.id = "main-fixed-save-button";
+            }
+        }
+
+        // Sayfa değiştikçe butonun orada olduğundan emin olalım
+        setInterval(fixSaveButton, 1000);
     }
     // Sayfa bildirim öldürücü
     if (location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
