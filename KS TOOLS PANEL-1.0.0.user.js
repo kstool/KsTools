@@ -1908,47 +1908,88 @@
                 childList: true,
                 subtree: true
             });
-        /*
-        https://online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm?randQ=94b8386c067592d6f106f287b592157e&ajaxRequest=blank#
-        <img id="tutanak" alt="Tutanak Resimleri" src="listShowTutanakResimleri.sbm?randQ=94b8386c067592d6f106f287b592157e" oncontextmenu="return false;" height="728" width="970" style="transform: rotate(0deg) scale(1, 1); position: relative; top: -8.73e-05px; left: 0.0001089px;">
-        */
     }
-    // WhatsApp Resim İndirici (Alt + Tıklama Versiyonu)
-    /*if (location.href.includes("web.whatsapp.com")) {
+    // SBM Resim indirme
+    if (location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+        // AYARLAR
+        const MIN_WIDTH = 300; // Sadece bu genişlikten büyük resimleri indirir (Thumbnail'leri eler)
 
-        function downloadBlobImage(imgSrc) {
-            const now = new Date();
-            const fileName = `WA_Download_${now.getHours()}${now.getMinutes()}${now.getSeconds()}.jpg`;
+        function initSbmDownloadPanel() {
+        if (document.getElementById('sbm-download-mini-panel')) return;
 
-            fetch(imgSrc)
-                .then(res => res.blob())
-                .then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    a.remove();
-                }).catch(err => console.error("KS Tools: İndirme hatası", err));
-        }
+        const panel = document.createElement('div');
+        panel.id = 'sbm-download-mini-panel';
+        Object.assign(panel.style, {
+            position: 'fixed', top: '5px', right: '5px',
+            background: 'rgba(0,0,0,0.9)', borderRadius: '4px',
+            padding: '5px', zIndex: '2147483647',
+            display: 'flex', flexDirection: 'column',
+            gap: '4px', width: '110px', border: '1px solid #555'
+        });
 
-        // "click" olayını yakalıyoruz
-        document.addEventListener('click', function (e) {
-            // Alt tuşu basılı mı ve tıklanan resim bizim hedef resim mi?
-            if (e.altKey && e.target.tagName === 'IMG' && e.target.classList.contains('_ao3e')) {
+        const mainBtn = document.createElement('button');
+        mainBtn.innerText = 'RESİMLERİ İNDİR';
+        Object.assign(mainBtn.style, {
+            background: '#27ae60', border: '0', borderRadius: '2px',
+            color: "white", cursor: 'pointer', fontWeight: "bold",
+            padding: '6px 2px', fontSize: '10px', width: '100%'
+        });
 
-                // WhatsApp'ın kapatma işlemini engelle
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
+        mainBtn.onclick = async () => {
+            const images = document.querySelectorAll('img');
+            let count = 0;
 
-                downloadBlobImage(e.target.src);
-                console.log("KS Tools: Alt + Tıklama ile resim indiriliyor.");
+            for (const img of images) {
+                // Sadece büyük boyutlu olanları al
+                if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
+                    const url = img.src;
+                    if (!url || url.startsWith('data:')) continue;
+
+                    count++;
+
+                    // Orijinal ismi URL parametrelerinden veya sıradan oluştur
+                    // SBM genellikle parametre kullandığı için temiz bir isim üretelim
+                    let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
+
+                    // URL içinde anlamlı bir ID varsa onu çekmeye çalışalım
+                    const urlParams = new URLSearchParams(url.split('?')[1]);
+                    if(urlParams.has('id')) {
+                        fileName = `tutanak_${urlParams.get('id')}.jpg`;
+                    } else if (url.includes('filename=')) {
+                        fileName = url.split('filename=')[1].split('&')[0] + ".jpg";
+                    }
+
+                    await forceDownload(url, fileName);
+                }
             }
-        }, true);
-    }*/
+            mainBtn.innerText = `BİTTİ (${count})`;
+            setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
+        };
+
+        panel.appendChild(mainBtn);
+        document.body.appendChild(panel);
+    }
+
+    // Blob yöntemiyle indirme (Daha güvenli ve etkili)
+    async function forceDownload(url, fileName) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error("Resim indirilemedi:", url, error);
+        }
+    }
+
+    window.addEventListener('load', initSbmDownloadPanel);
+    setTimeout(initSbmDownloadPanel, 2000);
+    }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (location.href.includes("sahibinden.com")) {
         injectStyles();
