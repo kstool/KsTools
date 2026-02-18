@@ -631,22 +631,51 @@
                 const hasar = getDate('HASAR_TARIHI');
                 const bas = getDate('SB_POLICE_BAS');
                 const bitis = getDate('SB_POLICE_BITIS');
+
                 if (hasar && bas && bitis) {
                     hasar.setHours(0, 0, 0, 0);
                     bas.setHours(0, 0, 0, 0);
                     bitis.setHours(0, 0, 0, 0);
-                    html += `<tr><td colspan="2" style="text-align:center; padding-bottom:5px; color:white;">`;
+
+                    html += `<tr><td colspan="2" style="text-align:center; padding:10px; border-radius:5px;">`;
+
+                    // 1. DURUM: POLİÇE VADESİ İÇİNDE
                     if (hasar >= bas && hasar <= bitis) {
                         const diffBas = Math.floor((hasar - bas) / 86400000);
                         const diffBit = Math.floor((bitis - hasar) / 86400000);
-                        html += `<b style="color:${SUCCESS_COLOR}">✔️ Poliçe İçinde</b>`;
-                        if (diffBas <= 7) html += `<br><small style="color:turquoise">✅ Başlangıca yakın (${diffBas} gün)</small>`;
-                        if (diffBit <= 7) html += `<br><small style="color:#ffcc00">⚠️ Bitime yakın (${diffBit} gün)</small>`;
+
+                        // --- RİSK ANALİZİ ---
+                        if (diffBas <= 3) {
+                            // KRİTİK: İlk 3 gün (Suistimal Riski)
+                            html += `<b style="color:#ff4444; font-size:15px;">🚨 KRİTİK: YENİ POLİÇE HASARI</b><br>`;
+                            html += `<span style="color:#ff4444;">Poliçe başladıktan sadece <b>${diffBas} gün</b> sonra kaza gerçekleşmiş!</span>`;
+                        }
+                        else if (diffBas <= 7) {
+                            // UYARI: İlk hafta
+                            html += `<b style="color:${SUCCESS_COLOR}">✔️ Poliçe İçinde</b><br>`;
+                            html += `<span style="color:#ffcc00">⚠️ Dikkat: İlk hafta içinde hasar (${diffBas}. gün)</span>`;
+                        }
+                        else if (diffBit <= 7) {
+                            // UYARI: Son hafta
+                            html += `<b style="color:${SUCCESS_COLOR}">✔️ Poliçe İçinde</b><br>`;
+                            html += `<span style="color:#ffcc00">⚠️ Dikkat: Poliçe bitimine yakın (${diffBit} gün kaldı)</span>`;
+                        }
+                        else {
+                            // NORMAL: Güvenli bölge
+                            html += `<b style="color:${SUCCESS_COLOR}; font-size:15px;">✅ Poliçe İçinde (Sorunsuz)</b>`;
+                        }
                     }
+                    // 2. DURUM: POLİÇE VADESİ DIŞINDA
                     else {
                         let diff = hasar < bas ? Math.floor((bas - hasar) / 86400000) : Math.floor((hasar - bitis) / 86400000);
-                        html += `<b style="color:red">❌ Poliçe Dışı (${diff} gün ${hasar < bas ? 'ÖNCE' : 'SONRA'})</b>`;
+                        let yon = hasar < bas ? 'ÖNCE' : 'SONRA';
+
+                        html += `<b style="color:#ff0000; font-size:16px;">❌ POLİÇE DIŞI HASAR</b><br>`;
+                        html += `<span style="background:red; color:white; padding:2px 5px; border-radius:3px;">`;
+                        html += `Vade ${yon} ${diff} gün fark var!`;
+                        html += `</span>`;
                     }
+
                     html += `</td></tr>`;
                 }
                 html += `<tr><td colspan="2"><hr style="border:0; border-top:1px solid #444; margin:2px 0;"></td></tr>`;
