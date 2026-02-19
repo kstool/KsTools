@@ -44,7 +44,7 @@
         isCollapsed: false
     };
     // 2. STİL ENJEKSİYONU
-     const injectStyles = () => {
+    const injectStyles = () => {
         const style = document.createElement('style');
         style.id = 'ks-dynamic-styles';
         style.innerHTML = `
@@ -133,11 +133,11 @@
                }
                 /* İçerik Alanı */
                 .ks-content {
-                    padding: 10px;
+                    padding: 5px;
+                    gap: 5px;
                     display: flex;
                     flex-direction: column;
                     color: ${config.Color};
-                    gap: 10px;
                     transition: opacity 0.2s;
                 }
 
@@ -547,6 +547,14 @@
                     </div>
                 </div>
             </div>
+            <div id="custom-page-notes-container" style="width: 100%; dashed #444; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                <div style="color: #bbb; font-size: 11px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>NOT</span>
+                    <span id="note-status" style="font-size: 10px; opacity: 0.6;">Otomatik Kaydediliyor...</span>
+                </div>
+                <textarea id="page-note-input" style="width: 100%; height: 40px; background: #252525; color: #efefef; border: 1px solid #333; border-radius: 4px; padding: 8px; font-size: 13px; line-height: 1.4; resize: vertical; outline: none; box-sizing: border-box; display: block;"
+                    placeholder="Buraya notunu bırakabilirsin..."></textarea>
+            </div>
             `;
 
             /* ===== 2. YARDIMCI FONKSİYONLAR ===== */
@@ -561,6 +569,46 @@
                 if (!g || !a || !y) return null;
                 return new Date(y, a - 1, g);
             };
+
+            // --- Not Sistemi Ayarları ---
+            const storageKey = "page_note_" + window.location.href;
+            const textarea = document.getElementById('page-note-input');
+            const status = document.getElementById('note-status');
+
+            // Notu Kaydetme Fonksiyonu
+            function savePageNote() {
+                if (textarea) {
+                    localStorage.setItem(storageKey, textarea.value);
+                    if (status) {
+                        status.innerText = "Not Kaydedildi ✔";
+                        setTimeout(() => { status.innerText = "Otomatik Kaydediliyor..."; }, 2000);
+                    }
+                }
+            }
+
+            // Sayfa açıldığında eski notu yükle
+            if (textarea) {
+                const savedNote = localStorage.getItem(storageKey);
+                if (savedNote) {
+                    textarea.value = savedNote;
+                }
+
+                // Otomatik Kayıt (Yazarken)
+                let saveTimeout;
+                textarea.addEventListener('input', () => {
+                    if (status) status.innerText = "Yazılıyor...";
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(savePageNote, 1000);
+                });
+            }
+
+            // Butona ekleme yapıyoruz
+            const kaydetButonu = document.getElementById('btnKaydetYeni');
+            if (kaydetButonu) {
+                kaydetButonu.addEventListener('click', () => {
+                    savePageNote(); // Bizim notu kaydet
+                });
+            }
             /* ===== 3. KONTROL VE HIGHLIGHT ===== */
             function highlightFields() {
                 // 1. Tahmini Hasar değerini güvenli bir şekilde alalım
