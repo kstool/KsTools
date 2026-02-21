@@ -2,7 +2,7 @@
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
 // @version      1.0.0
-// @description  OtoHasar Form Panel // Parça - Manuel ve Çoklu ekleme //  Donanim Panel // SBM Tramer no ayırma // Whatsapp indirici
+// @description  OtoHasar Form Panel // Parça - Manuel ve Çoklu ekleme //  Donanim Panel // SBM Tramer no ayırma ve resim indirme
 // @match        *://*/*
 // @run-at       document-end
 // @grant        none
@@ -32,7 +32,7 @@
     const url = window.location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|sbm/;
     if (hedefSiteler.test(url)) {;}
-    if (url.includes("dosya_ihbar_yazdir")) { return; }
+    if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") ) { return; }
 
     // 1. PANEL AYARLARI (Boyutlar ve Durum)
     let config = {
@@ -2172,7 +2172,7 @@
     // Sbm 3lü sayı bölme
     //https://online.sbm.org.tr/trm-ktt/giris/sonuc.sbm?randQ=8fa87a8f371f5aec4ee3afe2edc34fa2  GİRİŞ ADRES
     //https://online.sbm.org.tr/trm-ktt/sirket/listView.sbm?randQ=23b5dd697aa33580675278a280940a3f  SONUÇ ADRES
-    if (location.href.includes("online.sbm.org.tr/trm-ktt/giris")) {
+    if (location.href.includes("online.sbm.org.tr/trm-ktt/giris") ){//|| location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listView.sbm")) {
         let lastFormattedNumber = "";
         // --- BÜYÜK SAYI VE TARİH PANELİ OLUŞTURMA ---
         const createNumberPanel = () => {
