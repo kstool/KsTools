@@ -33,7 +33,11 @@
     const url = window.location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|sbm/;
     if (hedefSiteler.test(url)) { ; }
-    if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") || url.includes("print")) { return; }
+    //if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") || url.includes("print")) { return; }
+    const blockedGroups = [
+    "yazdir", "print", "etiket", "rapor", "ihbar", "talep", "basvuru", "dilekce", "fatura",
+    "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart" ];
+    if (blockedGroups.some(word => url.includes(word))) { return; }
 
     // 1. PANEL AYARLARI (Boyutlar ve Durum)
     let config = {
@@ -41,8 +45,9 @@
         right: '0px',
         width: '270px',
         collapsedWidth: '270px',
-        themeColor: '#1ccd5a',
+        themeColor: '#1cb2cd',
         Color: 'white',
+        hoverBg: 'rgba(0, 255, 136, 0.2)', // Hafif şeffaf yeşil arka plan
         isCollapsed: false
     };
 
@@ -93,18 +98,152 @@
             border: none ;
         }
 
-        .hosgeldin {
-            display: inline-block ;
-            font-size: 14px ;
-            font-weight: 800 ;
-            color: var(--primary) ;
-            padding: 6px 12px ;
-            margin: 10px ;
-            border-left: 4px solid var(--primary) ;
-            background: linear-gradient(90deg, var(--primary-light) 0%, transparent 100%) ;
-            text-transform: uppercase ;
-        }
+       .hosgeldin {
+           display: inline-flex; /* Panel gibi tüm satırı kaplamaması için */
+           padding: 5px 0;
+           margin: 15px;
+           position: relative;
+           cursor: default;
 
+           /* Tipografi */
+           color: var(--themeColor); /* Başlangıçta biraz şeffaf */
+           font-family: var(--font);
+           font-size: 15px;
+           font-weight: 600;
+           letter-spacing: 2px;
+           text-transform: uppercase;
+
+           /* Yumuşak Geçiş */
+           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+       }
+
+       /* Mouse ile üzerine gelince Yazı Değişimi */
+       .hosgeldin:hover {
+           color: #fff; /* Yazı canlansın */
+           letter-spacing: 4px; /* Yazı hafifçe genişlesin */
+           transform: translateX(10px); /* Hafif sağa kayma */
+           text-shadow: 0 0 15px var(--primary); /* Yazının kendisi parlasın */
+       }
+
+       /* Alt Çizgi Efekti (Panel kenarlığı yerine) */
+       .hosgeldin::after {
+           content: '';
+           position: absolute;
+           bottom: 0;
+           left: 0;
+           width: 0%;
+           height: 2px;
+           background: var(--primary);
+           transition: width 0.4s ease;
+           box-shadow: 0 0 10px var(--primary);
+       }
+
+       .hosgeldin:hover::after {
+           width: 100%; /* Yazının altını boydan boya çizer */
+       }
+
+       /* Panel Kapsayıcısı - Geliştirilmiş Cam Efekti */
+       .modern-nav-container {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 30px; /* Boşluğu biraz artırdık */
+           padding: 15px 40px;
+           /* Sol tarafa ekstra boşluk ekledik */
+           margin: 20px 0 20px 20px;
+
+           background: rgba(255, 255, 255, 0.4);
+           backdrop-filter: blur(15px);
+           -webkit-backdrop-filter: blur(15px);
+
+           border: 1px solid rgba(255, 255, 255, 0.6);
+           border-bottom: 2px solid var(--border-soft);
+           justify-content: center;
+           align-items: center;
+           border-radius: 16px; /* Daha yumuşak köşeler */
+
+           /* Derinlik hissi veren çok katmanlı gölge */
+           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05),
+                       inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+
+           /* Giriş animasyonu: Panel yüklenirken hafifçe kayar */
+           animation: slideInSoft 0.8s ease-out;
+       }
+
+       /* Yazı Efekti - Daha Akıcı */
+       .modern-link {
+           text-decoration: none !important;
+           color: var(--texto) !important;
+           font-family: var(--font);
+           font-size: var(--fontsize);
+           font-weight: 700;
+           letter-spacing: 0.5px;
+           text-transform: uppercase;
+           position: relative;
+           padding: 10px 8px;
+           cursor: pointer;
+
+           /* Geçiş efektini daha profesyonel bir bezier eğrisine çektik */
+           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+           display: inline-block;
+       }
+
+       /* Mouse Üzerine Gelince (Hover) - Dinamik Hareket */
+       .modern-link:hover {
+           color: var(--primary) !important;
+           letter-spacing: 1.5px;
+           /* Hafif yukarı zıplama ve ölçeklenme */
+           transform: translateY(-4px) scale(1.05);
+           text-shadow: 0 4px 12px rgba(0,0,0,0.08);
+       }
+
+       /* Alt Çizgi Efekti - Genişleyen ve Parlayan */
+       .modern-link::after {
+           content: '';
+           position: absolute;
+           bottom: -2px;
+           left: 50%;
+           transform: translateX(-50%);
+           width: 0%;
+           height: 3px;
+           background: var(--primary);
+           border-radius: 10px;
+           /* Çizgiye neon bir parlama ekledik */
+           box-shadow: 0 0 10px var(--primary);
+           transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+           opacity: 0;
+       }
+
+       .modern-link:hover::after {
+           width: 70%;
+           opacity: 1;
+       }
+
+       /* Çıkış butonu - Özel Renk Geçişi */
+       .modern-link[href*="logout"] {
+           color: var(--reddo) !important;
+       }
+
+       .modern-link[href*="logout"]:hover {
+           color: var(--reddo-dark) !important;
+           transform: translateY(-4px) scale(1.05) rotate(-2deg); /* Logout için hafif eğilme efekti */
+       }
+
+       .modern-link[href*="logout"]::after {
+           background: var(--reddo);
+           box-shadow: 0 0 10px var(--reddo);
+       }
+
+       /* Panel için Giriş Animasyonu */
+       @keyframes slideInSoft {
+           from {
+               opacity: 0;
+               transform: translateX(-20px);
+           }
+           to {
+               opacity: 1;
+               transform: translateX(0);
+           }
+       }
         /* 9. ÖNEMLİ BİLGİ METNİ (.yazi) */
         .yazi {
             font-size: 14px !important;
@@ -371,7 +510,7 @@
         /* 2. VERİ HÜCRELERİ (SABİT GÖRÜNÜM) */
         .koyu, .koyu_yangin, .koyu01, .koyu_text, .acik_cam {
             background-color: color-mix(in srgb, var(--maim), var(--texto) 4%) !important;
-            color: var(--text-dark) !important;
+            color: var(--text-dark);
             font-size: 11px !important;
             font-weight: 700 !important;
             padding: 6px !important;
@@ -380,8 +519,8 @@
 
         .acik, .acik_yangin, .acik_text, .beyaz_liste, .yazi, .yazi1 {
             background-color: var(--maim) !important;
-            color: var(--text-dark) !important;
-            font-size: 11px !important;
+            color: var(--text-dark);
+            font-size: 10px !important;
             border-bottom: 1px solid #e2e8f0 !important;
         }
 
@@ -658,7 +797,32 @@
             }
         });
     };
+    const map = document.querySelector('map[name="linkmap"]');
+    if (map) {
+        const areas = map.querySelectorAll('area');
+        const nav = document.createElement('nav');
+        nav.className = 'modern-nav-container';
 
+        areas.forEach(area => {
+            const link = document.createElement('a');
+            link.className = 'modern-link';
+            link.innerText = area.alt;
+            link.href = area.href;
+
+            if (area.onclick) link.setAttribute('onclick', area.getAttribute('onclick'));
+
+            nav.appendChild(link);
+        });
+
+        // Eski resmi bul ve yeni panelle değiştir
+        const oldImg = document.querySelector('img[usemap="#linkmap"]');
+        if (oldImg) {
+            oldImg.parentNode.replaceChild(nav, oldImg);
+        } else {
+            map.parentNode.insertBefore(nav, map);
+        }
+        map.remove();
+    }
     // 2. STİL ENJEKSİYONU
     const injectStyles = () => {
         const style = document.createElement('style');
@@ -1068,68 +1232,96 @@
 
     const WARNING_COLOR = '#ff7e7e';
     const SUCCESS_COLOR = '#00ff88';
-    // Aktiflik kontrolü
     const PANEL_ID = 'ks-global-status-indicator';
-    // Stil Tanımı (Sayfada bir kez olması yeterli)
+    // 1. Stil Tanımı (Gelişmiş Animasyonlar)
     if (!document.getElementById(PANEL_ID + '-style')) {
         const style = document.createElement("style");
         style.id = PANEL_ID + '-style';
         style.innerText = `
             #${PANEL_ID} {
-                animation: ks-glow 2s infinite ease-in-out;
                 position: fixed !important;
                 bottom: 0px !important;
                 right: 0px !important;
-                padding: 3px 12px !important;
-                background-color: rgba(20, 20, 20, 0.8) !important;
-                backdrop-filter: blur(8px) !important;
-                color: #00ff88 !important;
+                padding: 3px 3px !important;
+                background: rgba(15, 15, 15, 0.7) !important;
+                backdrop-filter: blur(12px) saturate(180%) !important;
+                -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+                color: ${config.themeColor} !important;
                 font-size: 11px !important;
-                font-weight: bold !important;
-                font-family: monospace !important;
+                font-weight: 700 !important;
+                font-family: var(--font);
                 z-index: 3169999 !important;
-                border-top: 2px solid rgba(0, 255, 136, 0.6) !important;
-                border-left: 2px solid rgba(0, 255, 136, 0.6) !important;
-                pointer-events: auto !important;
-                cursor: default !important;
-                transition: background 0.3s !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-right: 4px solid ${config.themeColor} !important;
+                border-radius: 8px 0 0 8px !important;
+                cursor: pointer !important;
+
+                /* Animasyon Ayarları */
+                animation: ks-pulse 2s infinite;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+                overflow: hidden !important;
+                white-space: nowrap !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+                opacity: 0.9;
             }
-            @keyframes ks-glow { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+
+            #${PANEL_ID}:hover {
+                opacity: 1 !important;
+                background: rgba(0, 0, 0, 0.85) !important;
+                border-right-width: 8px !important;
+                transform: translateX(-5px) scale(1.02) !important;
+                box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2) !important;
+            }
+
+            /* Nabız Efekti */
+            @keyframes ks-pulse {
+                0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+                70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+            }
         `;
         document.head.appendChild(style);
     }
+
     let currentIP = "IP Alınıyor...";
-    const scriptVersion = (typeof GM_info !== 'undefined') ? " v" + GM_info.script.version : "";
-    // IP'yi bir kez çek
-    fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => {
-        currentIP = data.ip;
-    }).catch(() => {
-        currentIP = "IP Kontrolü Engellendi";
-    });
-    // Paneli oluşturma ve ekleme fonksiyonu
+    const scriptVersion = (typeof GM_info !== 'undefined') ? "v" + GM_info.script.version : "v1.0";
+
+    fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => { currentIP = data.ip; })
+        .catch(() => { currentIP = "Gizli Bağlantı"; });
+
     const injectPanel = () => {
         let kstatus = document.getElementById(PANEL_ID);
-        // Eğer panel yoksa veya silindiyse tekrar oluştur
+
         if (!kstatus) {
             kstatus = document.createElement('div');
             kstatus.id = PANEL_ID;
+            kstatus.className = 'ks-active-pulse';
             document.body.appendChild(kstatus);
+
+            kstatus.onmouseenter = () => {
+                kstatus.setAttribute('data-hover', 'true');
+                kstatus.style.color = '#fff';
+                kstatus.innerHTML = `<span style="color:${config.themeColor}">●</span> ${currentIP} <span style="opacity:0.5; margin:0 5px;">|</span> ${scriptVersion} <span style="opacity:0.5; margin:0 5px;">|</span> <span style="letter-spacing:1px">AKTİF</span>`;
+            };
+
+            kstatus.onmouseleave = () => {
+                kstatus.removeAttribute('data-hover');
+                kstatus.style.color = config.themeColor;
+                kstatus.innerHTML = `KS TOOLS AKTİF`;
+            };
         }
-        kstatus.innerText = "KS TOOLS AKTİF";
-        kstatus.onmouseover = () => {
-            kstatus.innerText = `${currentIP} | ${scriptVersion} | AKTİF`;
-            kstatus.style.backgroundColor = 'rgba(0, 255, 136, 0.9)';
-            kstatus.style.color = '#000';
-        };
-        kstatus.onmouseout = () => {
-            kstatus.innerText = "KS TOOLS AKTİF";
-            kstatus.style.backgroundColor = 'rgba(20, 20, 20, 0.7)';
-            kstatus.style.color = '#00ff88';
-        };
+
+        // setInterval çalıştığında eğer mouse üzerindeyse içeriği bozma
+        if (!kstatus.hasAttribute('data-hover')) {
+            kstatus.innerHTML = `KS TOOLS AKTİF`;
+        }
     };
-    // İŞTE ÇÖZÜM: 3 Saniyede bir kontrol et, yoksa geri getir
-    setInterval(injectPanel, 3000);
+
+    setInterval(injectPanel, 2000);
     injectPanel();
+
     if (location.href.includes("otohasar")) { GM_addStyle(oceanicTheme); if (location.href.includes("eks_hasar_yp_list")) { setTimeout(formatTedarikciler, 500); } }
     // Hızlı ve Panel takipli Ön giriş
     if (location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
