@@ -30,7 +30,7 @@
     🔵 &#128309; (Mavi daire - Bilgi/İşlemde)
     ⚪ &#9898; (Beyaz daire)
     ⚫ &#9899; (Siyah daire) */
-    const url = window.location.href.toLowerCase();
+    const url = unsafeWindow.location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|sbm/;
     if (hedefSiteler.test(url)) { ; }
     //if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") || url.includes("print")) { return; }
@@ -1210,7 +1210,7 @@
 
             // Sol/Sağ taşma kontrolü
             if (left < 10) left = 10;
-            if (left + tw > window.innerWidth - 10) left = window.innerWidth - tw - 10;
+            if (left + tw > unsafeWindow.innerWidth - 10) left = unsafeWindow.innerWidth - tw - 10;
 
             // Üst taşma kontrolü (Eğer üstte yer yoksa altına açılır)
             if (top < 10) {
@@ -1407,7 +1407,7 @@
             };
 
             // --- Not Sistemi Ayarları ---
-            const storageKey = "page_note_" + window.location.href;
+            const storageKey = "page_note_" + unsafeWindow.location.href;
             const textarea = document.getElementById('page-note-input');
             const status = document.getElementById('note-status');
 
@@ -1925,7 +1925,7 @@
 
                         if (targetUrl) {
                             if (resBox) resBox.innerHTML = `🔗 <small>${targetUrl}</small>`;
-                            window.open(targetUrl, '_blank');
+                            unsafeWindow.open(targetUrl, '_blank');
                         } else {
                             if (resBox) resBox.innerHTML = "❌ Model adı çekilemedi!";
                         }
@@ -2090,7 +2090,7 @@
             };
 
             // --- Not Sistemi Ayarları ---
-            const storageKey = "page_note_" + window.location.href;
+            const storageKey = "page_note_" + unsafeWindow.location.href;
             const textarea = document.getElementById('page-note-input');
             const status = document.getElementById('note-status');
 
@@ -2342,7 +2342,7 @@
 
                         if (targetUrl) {
                             if (resBox) resBox.innerHTML = `🔗 <small>${targetUrl}</small>`;
-                            window.open(targetUrl, '_blank');
+                            unsafeWindow.open(targetUrl, '_blank');
                         } else {
                             if (resBox) resBox.innerHTML = "❌ Model adı çekilemedi!";
                         }
@@ -2906,9 +2906,9 @@
             }
             const submitForm = () => {
                 // HTML'deki orijinal submit mantığı
-                if (typeof window.sbmt_frm === "function" && window.sbmt_frm()) {
-                    if (typeof window.doraSiparisSecenek === "function") {
-                        if (window.doraSiparisSecenek()) {
+                if (typeof unsafeWindow.sbmt_frm === "function" && unsafeWindow.sbmt_frm()) {
+                    if (typeof unsafeWindow.doraSiparisSecenek === "function") {
+                        if (unsafeWindow.doraSiparisSecenek()) {
                             if (document.yedparforhasar) {
                                 document.yedparforhasar.submit();
                             }
@@ -2925,7 +2925,7 @@
             // Yeni Butonu & Temizleme
             refs.bYeni.onclick = () => {
                 // 1. Orijinal fonksiyonu çağır
-                if (typeof window.yeni_kayit === "function") window.yeni_kayit('');
+                if (typeof unsafeWindow.yeni_kayit === "function") unsafeWindow.yeni_kayit('');
                 // 2. Elemanları döngüye almadan önce filtrele (null olanları ele)
                 [refs.kod, refs.ad, refs.fiyat].filter(input => input !== null && input !== undefined).forEach(input => {
                     input.value = "";
@@ -3006,7 +3006,7 @@
             initPanel();
         }
         else {
-            window.addEventListener('load', initPanel);
+            unsafeWindow.addEventListener('load', initPanel);
         }
     }
     // Hızlı Çoklu Parça girişi
@@ -3030,8 +3030,8 @@
         const panel = document.createElement('div');
         panel.id = 'multi-action-panel';
         panel.innerHTML = `
-        <button id="btnAmblem">💎 GRUP → AMBLEM SEÇ</button>
-        <button id="btnAnaGrup">🏷️ ANA GRUP → ETİKET (1632)</button>
+        <button id="btnAmblem">💎 GRUP → Kaporta Ön (10)</button>
+        <button id="btnAnaGrup">🏷️ ANA GRUP → Diger (777)</button>
         <button id="btnExcelCopy">📋 EXCEL İÇİN KOPYALA (TÜMÜ)</button>
     `;
         document.body.appendChild(panel);
@@ -3061,10 +3061,10 @@
         }
         /* ===== 3. EVENT LISTENERS ===== */
         document.getElementById('btnAmblem').addEventListener('click', () => {
-            bulkSelect('GRUP_ID', (text) => text.includes('AMBLEM'));
+            bulkSelect('GRUP_ID', '10');
         });
         document.getElementById('btnAnaGrup').addEventListener('click', () => {
-            bulkSelect('ANA_GRUP', '1632');
+            bulkSelect('ANA_GRUP', '777');
         });
         /* ===== KOPYALAMA FONKSİYONU (NAME/ID DESTEKLİ) ===== */
         document.getElementById('btnExcelCopy').addEventListener('click', () => {
@@ -3504,7 +3504,7 @@
         }
         // Başlatma
         if (document.readyState === 'complete') initPanel();
-        else window.addEventListener('load', initPanel);
+        else unsafeWindow.addEventListener('load', initPanel);
         // Dinamik yüklemeler için ek kontrol
         setTimeout(initPanel, 1500);
     }
@@ -3581,7 +3581,7 @@
             }
         };
         // Başlatıcılar
-        window.addEventListener('load', () => {
+        unsafeWindow.addEventListener('load', () => {
             createNumberPanel();
             processNodes(document.body);
         });
@@ -3668,18 +3668,18 @@
                 const response = await fetch(url);
                 const blob = await response.blob();
                 const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
+                link.href = unsafeWindow.URL.createObjectURL(blob);
                 link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                window.URL.revokeObjectURL(link.href);
+                unsafeWindow.URL.revokeObjectURL(link.href);
             } catch (error) {
                 console.error("Resim indirilemedi:", url, error);
             }
         }
 
-        window.addEventListener('load', initSbmDownloadPanel);
+        unsafeWindow.addEventListener('load', initSbmDownloadPanel);
         setTimeout(initSbmDownloadPanel, 2000);
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
@@ -3976,7 +3976,7 @@
         // 1. ZORLAYICI DEĞER ATAMA FONKSİYONU
         function forceUpdateValue(input, value) {
             if (!input) return;
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(unsafeWindow.HTMLInputElement.prototype, "value").set;
             nativeInputValueSetter.call(input, value);
             ['input', 'change', 'blur'].forEach(name => {
                 input.dispatchEvent(new Event(name, { bubbles: true }));
