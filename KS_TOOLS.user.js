@@ -2025,9 +2025,7 @@
             panelContent.innerHTML = `
             <div id="panelContent" style ="color:#ffffff; text-align:center;"></div>
             <div style ="text-align:center; margin-bottom:8px; font-size:11px;"></div>
-
             <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; width: 100%;">
-
                 <div class="ks-tooltip-container" onmouseover="handleHover(this)">
                     <button id="autoSelectBtn" class="ks-btn" style="width:100%; height: 100%;">⚡ Ön Giriş</button>
                     <div class="ks-tooltip-box">
@@ -2035,9 +2033,7 @@
                         Açıklama düzenlenecek
                     </div>
                 </div>
-
                 <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%; height: 100%;" onclick="javascript:sb_ederken();">💾 KAYDET</button>
-
                 <div class="ks-tooltip-container" onmouseover="handleHover(this)">
                     <button id="unlockSelectBtn" class="ks-btn" style="width:100%; height: 100%;">🔓 Kilit Aç</button>
                     <div class="ks-tooltip-box">
@@ -2045,10 +2041,8 @@
                         Site üzerindeki tüm etkileşimleri aktifleştirir.
                     </div>
                 </div>
-
             </div>
-
-            <div style="display: none; position: fixed;">
+            <div>
                 <hr style="border:0; border-top:1px solid #444; margin:2px 0;">
                 <div id="shb-res-box">Piyasa kontrolü bekleniyor...</div>
                 <div style="display: flex; flex-direction: row; width: 100%; gap: 4%; justify-content: space-between;">
@@ -2184,14 +2178,13 @@
                     });
                 }
             }
-
             let generatedUrl = "";
             /* ===== 4. PANEL GÜNCELLEME ===== */
             function updatePanel() {
-                let html = '';
-                //let html = '<table style="width:100%; border-collapse:collapse; font-size:13px; color:white;">';
-                //html += `<tr><td colspan="2"><hr style="border:0; border-top:1px solid #444; margin:2px 0;"></td></tr>`;
-                //html += `</table>`;
+                //let html = '';
+                let html = '<table style="width:100%; border-collapse:collapse; font-size:13px; color:white;">';
+                html += `<tr><td colspan="2"><hr style="border:0; border-top:1px solid #444; margin:2px 0;"></td></tr>`;
+                html += `</table>`;
 
                 function buildTargetUrl() {
                     // 1. YARDIMCI: Metin içindeki ilk 4 haneli yılı bulur
@@ -2353,8 +2346,6 @@
 
                 document.getElementById('panelContent').innerHTML = html;
             }
-
-
             /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
             document.getElementById('autoSelectBtn').addEventListener('click', (e) => {
                 const setVal = (id, val) => {
@@ -3791,104 +3782,7 @@
             };
             init();
         }
-    }
-    /*
-    // Sahibinden oto arama
-    if (location.href.includes("otohasar")) {
-        GM_addStyle(`
-        #tmP{position:fixed;top:10px;right:10px;background:#fff;border:3px solid #f27a1a;padding:12px;z-index:99999;font-family:sans-serif;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
-        #tmP input{display:block;margin-bottom:8px;width:170px;padding:5px;border:1px solid #ccc;border-radius:4px}
-        .btn-group{display:flex;gap:5px;}
-        #tmP button{flex:1;padding:8px;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:bold;font-size:11px}
-        #b_analiz{background:#f27a1a}
-        #b_git{background:#3498db}
-        #res{margin-top:12px;font-size:13px;color:#333;line-height:1.4}
-    `);
-        const d = document,
-            p = d.createElement('div');
-        p.id = 'tmP';
-        p.innerHTML = `
-        <input id="m" placeholder="Model">
-        <input id="k" placeholder="KM">
-        <input id="y" placeholder="Yıl">
-        <div class="btn-group">
-            <button id="b_analiz">ANALİZ</button>
-            <button id="b_git">SAYFAYI AÇ</button>
-        </div>
-        <div id="res"></div>`;
-        d.body.appendChild(p);
-        const getParams = () => {
-            const m = d.getElementById('m').value,
-                k = parseInt(d.getElementById('k').value.replace(/\D/g, '')),
-                y = d.getElementById('y').value;
-            const kMin = Math.floor(k * 0.9),
-                kMax = Math.ceil(k * 1.1);
-            return {
-                m,
-                kMin,
-                kMax,
-                y
-            };
-        };
-        const findUrl = (callback) => {
-            const
-                {
-                    m,
-                    kMin,
-                    kMax,
-                    y
-                } = getParams();
-            if (!m || isNaN(kMin) || !y) return;
-            d.getElementById('res').innerText = "Eksik bilgi!";
-            d.getElementById('res').innerHTML = "🔍 Kategori aranıyor...";
-            GM_xmlhttpRequest(
-                {
-                    method: "GET",
-                    url: `https://www.google.com/search?q=site:sahibinden.com+${encodeURIComponent(m)}`,
-                    onload: (r) => {
-                        const doc = new DOMParser().parseFromString(r.responseText, "text/html");
-                        let a = doc.querySelector('a[href*="sahibinden.com/"]')?.href;
-                        if (a) {
-                            if (a.includes("url?q=")) a = decodeURIComponent(a.split("url?q=")[1].split("&")[0]);
-                            const finalUrl = `${a.split('?')[0]}?a4_min=${kMin}&a4_max=${kMax}&a5_min=${y}&a5_max=${y}`;
-                            callback(finalUrl);
-                        }
-                        else {
-                            d.getElementById('res').innerText = "❌ Kategori bulunamadı.";
-                        }
-                    }
-                });
-        };
-        // Analiz Butonu
-        d.getElementById('b_analiz').onclick = () => {
-            findUrl((url) => {
-                d.getElementById('res').innerHTML = "📊 Veriler çekiliyor...";
-                GM_xmlhttpRequest(
-                    {
-                        method: "GET",
-                        url: url,
-                        onload: (sr) => {
-                            const sDoc = new DOMParser().parseFromString(sr.responseText, "text/html");
-                            const prices = [...sDoc.querySelectorAll('.searchResultsPriceValue span')].map(el => parseInt(el.innerText.replace(/\D/g, ''))).filter(n => n > 1000);
-                            if (prices.length > 0) {
-                                const avg = Math.round(prices.reduce((a, b) => a + b) / prices.length);
-                                d.getElementById('res').innerHTML = `✅ <b>${prices.length} ilan</b><br>💰 <b>Ort:</b> ${avg.toLocaleString('tr-TR')} TL<br>📉 <b>Min:</b> ${Math.min(...prices).toLocaleString('tr-TR')} TL`;
-                            }
-                            else {
-                                d.getElementById('res').innerHTML = "❌ Veri alınamadı.";
-                            }
-                        }
-                    });
-            });
-        };
-        // Sayfayı Aç Butonu
-        d.getElementById('b_git').onclick = () => {
-            findUrl((url) => {
-                d.getElementById('res').innerHTML = "🚀 Yönlendiriliyor...";
-                GM_openInTab(url,{ active: true });
-            });
-        };
-    }*/
+    }   
     // Türkiye Sigorta
     if (location.href.includes("hasaroto.turkiyesigorta.com.tr")) {
         function applyModernStyles() {
