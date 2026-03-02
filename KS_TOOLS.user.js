@@ -4,6 +4,7 @@
 // @version      1.0.0
 // @license      GPL-3.0
 // @description  OtoHasar Form Panel // Parça - Manuel ve Çoklu ekleme // Donanim Panel // SBM Tramer no ayırma ve resim indirme
+// @author       Saygın
 // @match        *://*/*
 // @run-at       document-end
 // @grant        unsafeWindow
@@ -35,7 +36,7 @@
     if (hedefSiteler.test(url)) { ; }
     //if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") || url.includes("print")) { return; }
     const blockedGroups = [
-    "yazdir", "print", "etiket", "rapor", "ihbar", "talep", "basvuru", "dilekce", "fatura",
+    "yazdir", "print", "rapor", "ihbar", "dilekce", "fatura",
     "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart" ];
     if (blockedGroups.some(word => url.includes(word))) { return; }
 
@@ -51,778 +52,6 @@
         isCollapsed: false
     };
 
-    const oceanicTheme = `
-
-        :root {
-            --primary: #3589c1;
-            --primary-light: #e9f7f8;
-            --maim: #f0f9ff;
-            --accent: #2980b9;
-            --bg-body: #8fb5c1;
-            --reddo: #d00f0f;
-            --reddo-light: #f34352;
-            --reddo-dark: #b31414;
-            --border-soft: #66abff;/* neon gölge*/
-            --text-dark: #334155;
-            --texto: #1e293b;
-            --disabled: #475569;
-            --white: var(--maim);
-            --fontsize: 12px;
-            --font: 'Inter', 'Segoe UI', sans-serif ;
-        }
-
-        /* 1. GENEL TEMİZLİK */
-        body {
-            background-color: var(--bg-body) ;
-            background-image: none ;
-            color: var(--text-dark) ;
-            font-family: var(--font);
-        }
-        table {
-            text-align: left !important;
-            border-collapse: separate !important;
-            border-spacing: 1px !important;
-            table-layout: auto !important;
-        }
-
-        /* Boşluk yapan ve tasarımı bozan hücreleri/resimleri gizle */
-        td[width="273"], td[height="67"], td[background*="new_10.gif"],
-        td[background*="new_05.gif"], td[background*="new_18-9.gif"],
-        img[src*="new_10.gif"], img[src*="new_02.gif"], object, embed {
-            display: none ;
-        }
-
-        /* 2. HEADER & KURUMSAL BAŞLIK */
-        td[bgcolor="#000066"], td[bgcolor="#FF0000"] {
-            background-color: var(--maim) ;
-            border: none ;
-        }
-
-       .hosgeldin {
-           display: inline-flex; /* Panel gibi tüm satırı kaplamaması için */
-           padding: 5px 0;
-           margin: 15px;
-           position: relative;
-           cursor: default;
-
-           /* Tipografi */
-           color: var(--themeColor); /* Başlangıçta biraz şeffaf */
-           font-family: var(--font);
-           font-size: 15px;
-           font-weight: 600;
-           letter-spacing: 2px;
-           text-transform: uppercase;
-
-           /* Yumuşak Geçiş */
-           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-       }
-
-       /* Mouse ile üzerine gelince Yazı Değişimi */
-       .hosgeldin:hover {
-           color: #fff; /* Yazı canlansın */
-           letter-spacing: 4px; /* Yazı hafifçe genişlesin */
-           transform: translateX(10px); /* Hafif sağa kayma */
-           text-shadow: 0 0 15px var(--primary); /* Yazının kendisi parlasın */
-       }
-
-       /* Alt Çizgi Efekti (Panel kenarlığı yerine) */
-       .hosgeldin::after {
-           content: '';
-           position: absolute;
-           bottom: 0;
-           left: 0;
-           width: 0%;
-           height: 2px;
-           background: var(--primary);
-           transition: width 0.4s ease;
-           box-shadow: 0 0 10px var(--primary);
-       }
-
-       .hosgeldin:hover::after {
-           width: 100%; /* Yazının altını boydan boya çizer */
-       }
-
-       /* Panel Kapsayıcısı - Geliştirilmiş Cam Efekti */
-       .modern-nav-container {
-           display: flex;
-           flex-wrap: wrap;
-           gap: 30px; /* Boşluğu biraz artırdık */
-           padding: 15px 40px;
-           /* Sol tarafa ekstra boşluk ekledik */
-           margin: 20px 0 20px 20px;
-
-           background: rgba(255, 255, 255, 0.4);
-           backdrop-filter: blur(15px);
-           -webkit-backdrop-filter: blur(15px);
-
-           border: 1px solid rgba(255, 255, 255, 0.6);
-           border-bottom: 2px solid var(--border-soft);
-           justify-content: center;
-           align-items: center;
-           border-radius: 16px; /* Daha yumuşak köşeler */
-
-           /* Derinlik hissi veren çok katmanlı gölge */
-           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05),
-                       inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-
-           /* Giriş animasyonu: Panel yüklenirken hafifçe kayar */
-           animation: slideInSoft 0.8s ease-out;
-       }
-
-       /* Yazı Efekti - Daha Akıcı */
-       .modern-link {
-           text-decoration: none !important;
-           color: var(--texto) !important;
-           font-family: var(--font);
-           font-size: var(--fontsize);
-           font-weight: 700;
-           letter-spacing: 0.5px;
-           text-transform: uppercase;
-           position: relative;
-           padding: 10px 8px;
-           cursor: pointer;
-
-           /* Geçiş efektini daha profesyonel bir bezier eğrisine çektik */
-           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-           display: inline-block;
-       }
-
-       /* Mouse Üzerine Gelince (Hover) - Dinamik Hareket */
-       .modern-link:hover {
-           color: var(--primary) !important;
-           letter-spacing: 1.5px;
-           /* Hafif yukarı zıplama ve ölçeklenme */
-           transform: translateY(-4px) scale(1.05);
-           text-shadow: 0 4px 12px rgba(0,0,0,0.08);
-       }
-
-       /* Alt Çizgi Efekti - Genişleyen ve Parlayan */
-       .modern-link::after {
-           content: '';
-           position: absolute;
-           bottom: -2px;
-           left: 50%;
-           transform: translateX(-50%);
-           width: 0%;
-           height: 3px;
-           background: var(--primary);
-           border-radius: 10px;
-           /* Çizgiye neon bir parlama ekledik */
-           box-shadow: 0 0 10px var(--primary);
-           transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-           opacity: 0;
-       }
-
-       .modern-link:hover::after {
-           width: 70%;
-           opacity: 1;
-       }
-
-       /* Çıkış butonu - Özel Renk Geçişi */
-       .modern-link[href*="logout"] {
-           color: var(--reddo) !important;
-       }
-
-       .modern-link[href*="logout"]:hover {
-           color: var(--reddo-dark) !important;
-           transform: translateY(-4px) scale(1.05) rotate(-2deg); /* Logout için hafif eğilme efekti */
-       }
-
-       .modern-link[href*="logout"]::after {
-           background: var(--reddo);
-           box-shadow: 0 0 10px var(--reddo);
-       }
-
-       /* Panel için Giriş Animasyonu */
-       @keyframes slideInSoft {
-           from {
-               opacity: 0;
-               transform: translateX(-20px);
-           }
-           to {
-               opacity: 1;
-               transform: translateX(0);
-           }
-       }
-        /* 9. ÖNEMLİ BİLGİ METNİ (.yazi) */
-        .yazi {
-            font-size: 14px !important;
-            font-weight: 700 !important;
-            color: var(--texto) !important; /* Çok koyu, net bir lacivert/siyah */
-            letter-spacing: 1px !important;
-            padding-left: 10px;
-            padding-bottom: 10px;
-
-            /* Metni öne çıkaran profesyonel gölge oyunu */
-            /*text-shadow:
-                1px 1px 0px var(--maim),
-                2px 2px 0px var(--accent),
-                3px 3px 6px rgba(0,0,0,0.2) !important;*/
-
-            /* Arka planı hafif belirginleştirerek metni kutu içine alma */
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            border-radius: 4px !important;
-            /*display: inline-block !important; hata veriyor*/
-        }
-
-        /* Metin içindeki linklerin (dosya no vb.) rengini sabitle */
-        .yazi a, .yazi b {
-            color: var(--accent) !important;
-            text-decoration: underline !important;
-        }
-
-        /* 3. NAVİGASYON İKONLARI (STABİL DÜZEN) */
-        tr[background*="new_18.gif"] { background: var(--maim); }
-
-        tr[background*="new_18.gif"] table[width="760"] {
-            width: 100% ; /* Genişliği serbest bırak, sıkışmasın */
-            max-width: 950px ;
-            background: var(--maim) ;
-            margin: 10px auto ;
-            /* Yumuşatılmış kenarlık ayarları */
-            border: 1px solid rgba(0, 0, 0, 0.1); /* Daha ince ve yarı saydam kenarlık */
-            border-radius: 12px; /* Köşeleri biraz daha yuvarladık */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);/* Derinlik katmak için hafif gölge (Asıl yumuşaklığı bu verir) */
-            padding: 5px ;
-        }
-
-        tr[background*="new_18.gif"] img {
-            width: 46px ; /* İkonlar net görünsün */
-            height: auto ;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)) ;
-        }
-
-        .eksper_menu {
-            color: #475569 ;
-            font-size: 11px ;
-            font-weight: 500 ;
-            text-transform: uppercase ;
-            padding-top: 2px ;
-        }
-
-        /* 4. TABLO BAŞLIKLARI (CSS DOKUNUŞU) */
-        td.tb, td[background*="baslik_img02.gif"] {
-            background: #f8fafc ;
-            border-left: 4px solid var(--primary) ;
-            padding: 8px 12px ;
-            color: var(--accent) ;
-            font-weight: 700 ;
-            text-align: center ;
-        }
-        td[width="27"], td[width="43"], img[src*="baslik_img"] { display: none ; }
-
-        /* 11. TABLO ANA BAŞLIKLARI (.koyubaslik) */
-        .koyubaslik {
-            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;
-            color: var(--maim) !important;
-            font-size: 10px !important;
-            font-weight: 500 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-            padding: 5px 5px !important;
-            border: none !important;
-            border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-        }
-
-        /* Başlık içindeki linkler (Sipariş, İade vb. "check_all" linkleri) */
-        .koyubaslik a {
-            color: var(--maim) !important;
-            text-decoration: none !important;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.5) !important;
-            transition: all 0.2s !important;
-        }
-
-        .koyubaslik a:hover {
-            color: var(--primary-light) !important;
-            border-bottom-style: solid !important;
-        }
-
-        /* İlk ve son hücrelerin köşelerini yuvarlatmak istersen (opsiyonel)
-        .koyubaslik:first-child {
-            border-radius: 8px 0 0 0 !important;
-        }
-
-        .koyubaslik:last-child {
-            border-radius: 0 8px 0 0 !important;
-            border-right: none !important;
-        }*/
-
-        /* Tablo satırına genel bir derinlik kat */
-        tr:has(> .koyubaslik) {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* 5. BUTONLAR: MODERN & ANİMASYONLU */
-        .buton01, .BTNKIRMIZI, .BUTON06, input[type="submit"], input[type="button"] {
-            /* Boyutları sabit tutuyoruz */
-            height: 20px !important;
-            padding: 0 8px !important;
-            font-size: 10px !important;
-            font-weight: 500 !important;
-            border-radius: 3px !important;
-
-            /* Görünüş: Düz renk yerine hafif gradient derinlik katar */
-            /*background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;*/
-            /*color: black !important;*/
-            border: none !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
-
-            /* Animasyon Hazırlığı */
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            overflow: hidden !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-        }
-
-        /* HOVER: Üzerine gelince parlaması ve hafif yukarı kalkma hissi */
-        .buton01:hover, .BTNKIRMIZI:hover, .BUTON06:hover,
-        input[type="submit"]:hover, input[type="button"]:hover {
-            filter: brightness(1.1) !important;
-            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3) !important;
-            transform: translateY(-1px) !important; /* Boyutu büyütmez, sadece konumunu 1px kaydırır */
-        }
-
-        /* ACTIVE: Basılma efekti (tıklayınca içeri göçer) */
-        .buton01:active, .BTNKIRMIZI:active, .BUTON06:active,
-        input[type="submit"]:active, input[type="button"]:active {
-            transform: translateY(1px) !important;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* KIRMIZI BUTON ÖZEL */
-        .BTNKIRMIZI {
-            background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important;
-        }
-        .BTNKIRMIZI:hover {
-            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3) !important;
-        }
-
-        /* 5.1 ÖZEL KAYDET BUTONU (KIRMIZI & ANİMASYONLU) */
-        #btnKaydet2, input[name="btnKaydet2"], input[value="KAYDET"] {
-            background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--reddo-dark) !important;
-            box-shadow: 0 2px 5px rgba(255, 71, 87, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        }
-
-        /* Kaydet Hover: Daha güçlü bir kırmızı parlama */
-        #btnKaydet2:hover, input[name="btnKaydet2"]:hover, input[value="KAYDET"]:hover {
-            filter: brightness(1.2) !important;
-            box-shadow: 0 0 12px rgba(255, 71, 87, 0.7) !important; /* Kırmızı Neon Parlaması */
-            transform: translateY(-1px) scale(1.02) !important; /* Çok hafif bir sıçrama efekti */
-        }
-
-        /* Kaydet Click: Basılma hissi */
-        #btnKaydet2:active, input[name="btnKaydet2"]:active {
-            transform: translateY(1px) scale(0.98) !important;
-            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3) !important;
-        }
-
-        /* 5.2 ÖZEL AÇIK RENKLİ BUTONLAR (YENİ KAYIT, MOBİL ONARIM, TEDARİK) */
-        input[value="YENİ KAYIT"],
-        input[value="MOBİL ONARIM"],
-        input[value="TEDARİKCİYE GÖNDER"],
-        input[value="  TEDARİKCİYE GÖNDER  "],
-        input[value="  GÖNDER   "],
-        input[value="GÖNDER"],
-        input[value="Ara"],
-        input[value=" Ara "],
-        input[value="MESAJ GÖNDER"],
-        input[value="TRAMER EVRAKLARI"],
-        input[value="SBM BİLGİLERİ"],
-        input[value="UZMAN RAPORU"],
-        input[value="TOPLU EVRAK EKLE HTML5 (YENİ)"],
-        input[value="TOPLU FOTOĞRAF EKLE HTML5 (YENİ)"],
-        input[value=" ARAÇ DONANIM&TEKNİK BİLGİSİ "],
-        input[value="TED. PARÇA LİSTESİ"] {
-            background: linear-gradient(180deg, var(--accent) 0%, #1f442a 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--accent) !important;
-            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-        }
-        input[value="İHBAR YAZDIR"] {
-            background: linear-gradient(180deg, #434f53 0%, #1f442a 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--accent) !important;
-            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* Inputlar */
-        input[type="text"], select {
-            background-color: var(--primary-light);
-            border: 1px solid var(--border-soft) ;
-            border-radius: 4px ;
-            padding: 2px 4px ;
-            height: auto;
-        }
-        /* 7.1 READONLY & DISABLED FOCUS DURUMU (SEÇİLDİĞİNDE DEĞİŞMESİN) */
-        input:disabled,
-        select:disabled,
-        textarea:disabled,
-        input[readonly],
-        select[readonly],
-        textarea[readonly],
-        .box_disabled, input:disabled,
-        input[readonly]:focus,
-        input:disabled:focus,
-        textarea[readonly]:focus,
-        textarea:disabled:focus {
-            background-color: var(--disabled) !important; /* Koyu gri/mavi tonu */
-            color: var(--maim) !important;            /* Açık gri/beyaz yazı */
-            border-color: var(--disabled) !important;    /* Kenarlık rengini de koyulaştır */
-            cursor: not-allowed !important;       /* Yasak işareti imleci */
-            opacity: 1 !important;                /* Bazı tarayıcılardaki solukluğu engeller */
-
-        }
-
-        /* Metin seçildiğinde (farenin sol tıkıyla tarama yapıldığında) oluşacak renkler */
-        input[readonly]::selection,
-        input:disabled::selection {
-            background-color: var(--maim) !important;    /* Seçilen kısmın arka planı yazı renginiz olsun */
-            color: var(--disabled) !important;           /* Seçilen kısmın yazısı koyu kalsın */
-        }
-
-        /* 8. ICON HOVER NEON EFFECT */
-        td[align="center"] a:hover img {
-            filter: drop-shadow(0 0 8px rgba(52, 152, 219, 0.8))
-                    drop-shadow(0 0 12px rgba(52, 152, 219, 0.4)) !important;
-            transform: scale(1.1) !important; /* Hafifçe büyüterek etkileşimi artırır */
-            transition: all 0.2s ease-in-out !important;
-        }
-
-        /* Tıklanabilir alanı daha belirgin yapmak için opsiyonel */
-        td[align="center"] a {
-            display: inline-block !important;
-            text-decoration: none !important;
-        }
-
-        /* --- OCEANIC THEME COMPATIBILITY LAYER --- */
-        /* 2. VERİ HÜCRELERİ (SABİT GÖRÜNÜM) */
-        .koyu, .koyu_yangin, .koyu01, .koyu_text, .acik_cam {
-            background-color: color-mix(in srgb, var(--maim), var(--texto) 4%) !important;
-            color: var(--text-dark);
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            padding: 6px !important;
-            border: 1px solid rgba(0,0,0,0.05) !important;
-        }
-
-        .acik, .acik_yangin, .acik_text, .beyaz_liste, .yazi, .yazi1 {
-            background-color: var(--maim) !important;
-            color: var(--text-dark);
-            font-size: 10px !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-        }
-
-        /* 3. BAŞLIKLAR */
-        .koyubaslik, .koyubaslik_text, .koyubaslik01, .koyubaslik01_text, .koyubaslik_, .tb {
-            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;
-            color: var(--maim) !important;
-            font-size: 11px !important;
-            text-transform: uppercase !important;
-            font-weight: bold !important;
-            padding: 8px !important;
-            border: none !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
-        }
-        /* 4. INPUTLAR & FORM ELEMANLARI */
-        input, select, textarea, .box01, .select01, .textarea {
-            background-color: color-mix(in srgb, var(--maim), white 70%) !important;
-            border: 1px solid var(--border-soft) !important;
-            border-radius: 4px !important;
-            padding: 2px 4px !important;
-            font-size: 11px !important;
-            box-sizing: border-box !important;
-            animation: inputEntry 0.6s ease-out;
-
-            /* Animasyon Hazırlığı: Geçişlerin süresini ve hızını belirler */
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
-        }
-
-        /* Odaklanma (Tıklama) Animasyonu: Cafcaflı değil, pürüzsüz bir vurgu */
-        input:focus, select:focus, textarea:focus {
-            outline: none !important;
-            border-color: var(--reddo-light) !important;
-            /* Hafif bir derinlik hissi veren gölge animasyonu */
-            box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.08) !important;
-            background-color: white !important;
-            animation: inputEntry 0.6s ease-out;
-            /* Animasyon Hazırlığı: Geçişlerin süresini ve hızını belirler */
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
-        }
-
-        /* Özel: Büyük kutuların kontrolü ve giriş efekti */
-        input[size="85"], .textarea_buyuk, input[name*="YP_"] {
-            min-width: 150px !important;
-            /* Büyük alanlar için genişleme efekti (isteğe bağlı) */
-            transition: min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-        }
-
-        /* Büyük alanlara tıklandığında hafifçe genişleyerek güven verir */
-        input[size="85"]:focus {
-            min-width: 200px !important;
-        }
-
-        /* 5. BUTONLAR (TAM UYUMLU) */
-        .BUTON01, .BUTON02, .BUTON03, .BUTON06, .BTNKIRMIZI, .BUTON_YESIL, input[type="submit"] {
-            height: 24px !important;
-            padding: 0 15px !important;
-            border-radius: 4px !important;
-            font-weight: bold !important;
-            text-transform: uppercase !important;
-            font-size: 10px !important;
-            cursor: pointer !important;
-            transition: all 0.2s !important;
-            border: none !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        /* Mavi Butonlar */
-        .BUTON01 { background: var(--primary) !important; color: var(--maim) !important; }
-        /* Kırmızı Butonlar */
-        .BUTON02, .BUTON03, .BTNKIRMIZI { background: #e74c3c !important; color: var(--maim) !important; }
-        /* Yeşil Butonlar */
-        .BUTON06, .BUTON_YESIL { background: #27ae60 !important; color: var(--maim) !important; }
-
-        .BUTON01:hover, .BTNKIRMIZI:hover { filter: brightness(1.2) !important; transform: translateY(-1px) !important; }
-
-        /* 6. LİNKLER */
-        a, .link, .link01, .linkyp, .dosya_menu, .menu {
-            color: var(--accent) !important;
-            font-weight: bold !important;
-            text-decoration: none !important;
-            transition: color 0.2s !important;
-        }
-
-        a:hover, .link:hover, .menu:hover {
-            color: #e74c3c !important;
-            text-decoration: underline !important;
-        }
-
-        /* 7. ÖZEL DURUMLAR */
-        .cizgi { background-color: var(--border-soft) !important; height: 1px !important; }
-        .hosgeldin { color: var(--primary) !important; font-size: 14px !important; border-left: 4px solid var(--primary) !important; padding-left: 10px !important; }
-
-        /* Yan sanayi/Uyarı vurgusu */
-        .acik_yansanayi { background-color: #ffeb3b !important; color: #856404 !important; }
-        .kirmizi, .kirmizi1 { color: #e74c3c !important; }
-
-        /* Animasyonlu Buton (Orijinal ismi korundu) */
-        #btnStream { animation: blinkingText 1.5s infinite !important; }
-        @keyframes fadeInSmooth {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes inputEntry {
-            from { opacity: 0; filter: brightness(1.2); }
-            to { opacity: 1; filter: brightness(1); }
-        }
-
-        /* ANA KONTEYNER - ORTALANMIŞ VERSİYON */
-        .tm-tedarik-container {
-            /* Genişlik ayarları */
-            width: 100% !important;
-            min-width: 600px !important;     /* Panelin çok yayılmaması için ideal genişlik */
-            /* Ortalamayı sağlayan kritik satır */
-            margin: 10px auto !important;    /* Üstten-alttan 20px, sağdan-soldan otomatik (ortalama) */
-            background: var(--maim) !important;
-            border: 1px solid var(--border-soft) !important;
-            border-radius: 10px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; /* Daha derin bir gölge ile vurgu */
-            overflow: hidden !important;
-            display: block !important;       /* Ortalamanın çalışması için blok seviyesinde olmalı */
-        }
-        .tm-tedarik-header {
-            background: var(--primary) !important;
-            color: var(--maim) !important;
-            padding: 8px !important;
-            font-weight: 500 !important;
-            text-align: center !important;
-            font-size: 12px !important;
-            border-bottom: 1px solid var(--border-soft) !important;
-        }
-
-        /* TEK KOLON LİSTE ALANI */
-        .tm-tedarik-list {
-            max-height: 100px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-
-        .tm-tedarik-item {
-            padding: 8px 12px !important;
-            border-bottom: 1px solid  var(--maim) !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            transition: background 0.2s !important;
-        }
-
-        .tm-tedarik-item:hover {
-            background: var(--primary-light) !important;
-        }
-
-        .tm-firm-name {
-            font-size: 11px !important;
-            font-weight: 600 !important;
-            color: #334155 !important;
-        }
-
-        .tm-firm-rate {
-            font-size: 11px !important;
-            font-weight: 800 !important;
-            padding: 2px 6px !important;
-            border-radius: 4px !important;
-        }
-
-        /* %60 ve Üzeri: Kritik/Kırmızı */
-        .tm-high {
-            background: #fee2e2 !important; /* Hafif kırmızı arka plan */
-            color: #991b1b !important;      /* Koyu kırmızı metin */
-            border: 1px solid #fecaca !important;
-        }
-
-        /* %60 Altı: Güvenli/Yeşil (Eski tm-zero yerine bunu kullanıyoruz) */
-        .tm-zero {
-            background: #dcfce7 !important; /* Hafif yeşil arka plan */
-            color: #166534 !important;      /* Koyu yeşil metin */
-            border: 1px solid #bbf7d0 !important;
-        }
-
-        /* Scrollbar tasarımı */
-        .tm-tedarik-list::-webkit-scrollbar { width: 6px; }
-        .tm-tedarik-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-        .tm-tedarik-list::-webkit-scrollbar-track { background: #f1f5f9; }
-    `;
-    const formatTedarikciler = () => {
-        const targetFont = Array.from(document.querySelectorAll('td.text font, td font, td.text'))
-            .find(el => el.innerText.includes('BU DOSYA TEDARİĞE UYGUNDUR'));
-
-        if (!targetFont) return;
-
-        const parentTd = targetFont.closest('td');
-        if (parentTd.dataset.processed === "true") return;
-
-        // 1. Orijinal içeriği yedekle
-        const originalContent = parentTd.innerHTML;
-
-        // 2. Veriyi işle
-        let cleanText = targetFont.innerText.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ');
-        let content = cleanText.split('BU DOSYA TEDARİĞE UYGUNDUR:')[1] || "";
-
-        const generalRateMatch = content.match(/%\d+\.\d+/);
-        const defaultRate = generalRateMatch ? generalRateMatch[0] : "%0.00";
-
-        let firmsContent = content.replace(/\(%\d+\.\d+\)/g, '');
-        let firms = firmsContent.split(',')
-            .map(item => ({
-                name: item.trim().replace(/\)\s*\)$/, ')'),
-                rate: defaultRate
-            }))
-            .filter(f => f.name.length > 5);
-
-        // 3. Dinamik Renk Belirleme Fonksiyonu
-        const getRateClass = (rateStr) => {
-            // Yüzde sembolünü ve noktadan sonrasını temizleyip sayıya çeviriyoruz
-            const numericRate = parseFloat(rateStr.replace('%', ''));
-
-            if (numericRate >= 60) {
-                return 'tm-high'; // %60 ve üzeri için Kırmızı (Kritik)
-            } else {
-                return 'tm-zero'; // %60 altı için Yeşil (Güvenli)
-            }
-        };
-
-        // 4. Modern Liste HTML'ini oluştur
-        const itemsHtml = firms.map(f => `
-            <div class="tm-tedarik-item">
-                <span class="tm-firm-name">${f.name}</span>
-                <span class="tm-firm-rate ${getRateClass(f.rate)}">${f.rate}</span>
-            </div>
-        `).join('');
-
-        // 5. Wrapper ve Buton
-        const modernHtml = `
-            <div class="tm-tedarik-wrapper">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                    <span style="font-size: 11px; color: #666; font-weight: bold;">Tedarikçi Analiz Paneli</span>
-                    <button id="view-toggle-btn" class="BUTON01" style="min-width: 140px;">
-                        ORİJİNAL LİSTEYİ GÖSTER
-                    </button>
-                </div>
-                <div id="modern-view" class="tm-tedarik-container">
-                    <div class="tm-tedarik-header">TEDARİK UYGUNLUK LİSTESİ (${firms.length} Firma)</div>
-                    <div class="tm-tedarik-list">${itemsHtml}</div>
-                </div>
-                <div id="original-view" style="display: none; padding: 10px; border: 1px dashed #ccc; background: #fffafb;">
-                    ${originalContent}
-                </div>
-            </div>
-        `;
-
-        parentTd.innerHTML = modernHtml;
-        parentTd.dataset.processed = "true";
-        parentTd.style.width = "100%";
-
-        const toggleBtn = document.getElementById('view-toggle-btn');
-        const modernDiv = document.getElementById('modern-view');
-        const originalDiv = document.getElementById('original-view');
-
-        toggleBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (modernDiv.style.display === "none") {
-                modernDiv.style.display = "block";
-                originalDiv.style.display = "none";
-                this.innerText = "ORİJİNAL LİSTEYİ GÖSTER";
-                this.className = "BUTON01";
-            } else {
-                modernDiv.style.display = "none";
-                originalDiv.style.display = "block";
-                this.innerText = "MODERN LİSTEYE DÖN";
-                this.className = "BUTON_YESIL";
-            }
-        });
-    };
-    const map = document.querySelector('map[name="linkmap"]');
-    if (map) {
-        const areas = map.querySelectorAll('area');
-        const nav = document.createElement('nav');
-        nav.className = 'modern-nav-container';
-
-        areas.forEach(area => {
-            const link = document.createElement('a');
-            link.className = 'modern-link';
-            link.innerText = area.alt;
-            link.href = area.href;
-
-            if (area.onclick) link.setAttribute('onclick', area.getAttribute('onclick'));
-
-            nav.appendChild(link);
-        });
-
-        // Eski resmi bul ve yeni panelle değiştir
-        const oldImg = document.querySelector('img[usemap="#linkmap"]');
-        if (oldImg) {
-            oldImg.parentNode.replaceChild(nav, oldImg);
-        } else {
-            map.parentNode.insertBefore(nav, map);
-        }
-        map.remove();
-    }
     // 2. STİL ENJEKSİYONU
     const injectStyles = () => {
         const style = document.createElement('style');
@@ -3020,42 +2249,74 @@
         document.head.appendChild(style);
         const panel = document.createElement('div');
         panel.id = 'multi-action-panel';
+        /* ===== 1. PANEL VE TEK BUTON ===== */
         panel.innerHTML = `
-        <button id="btnAmblem">💎 GRUP → Kaporta Ön (10)</button>
-        <button id="btnAnaGrup">🏷️ ANA GRUP → Diger (777)</button>
-        <button id="btnExcelCopy">📋 EXCEL İÇİN KOPYALA (TÜMÜ)</button>
-    `;
+            <button id="btnHepsiniYap"> Grup & Ana Grup - GÜNCELLE </button>
+            <button id="btnSiparisHazirla">Tedarik Yok</button>
+            <button id="btnExcelCopy">📋 EXCEL İÇİN KOPYALA</button>
+        `;
         document.body.appendChild(panel);
-        /* ===== 2. GENEL SEÇİM FONKSİYONU ===== */
-        function bulkSelect(prefix, criteria) {
-            // Sadece ID'si ilgili prefix ile başlayan selectleri hedefle
-            const selectors = document.querySelectorAll(`select[id^="${prefix}"]`);
-            selectors.forEach(sel => {
-                let targetValue = null;
-                if (typeof criteria === 'function') {
-                    // Metin içeriğine göre ara (Amblem gibi)
-                    const opt = Array.from(sel.options).find(o => criteria(o.text.toUpperCase()));
-                    if (opt) targetValue = opt.value;
-                }
-                else {
-                    // Doğrudan value eşleşmesine bak (1632 gibi)
-                    targetValue = criteria;
-                }
-                if (targetValue && sel.value !== targetValue) {
-                    sel.value = targetValue;
-                    sel.dispatchEvent(new Event('change',
-                        {
-                            bubbles: true
-                        }));
+
+        /* ===== 2. GELİŞTİRİLMİŞ SEÇİM FONKSİYONU ===== */
+        document.getElementById('btnHepsiniYap').addEventListener('click', () => {
+            // 1. Tüm Grup selectlerini bul
+            const grupSelectors = document.querySelectorAll(`select[id^="GRUP_ID"]`);
+
+            grupSelectors.forEach(grupSel => {
+                // SADECE GRUP -1 İSE İŞLEM YAP
+                if (grupSel.value === "-1") {
+
+                    // Satır ID'sini al (Örn: GRUP_ID265467 -> 265467)
+                    const rowId = grupSel.id.replace('GRUP_ID', '');
+                    const anaGrupSel = document.getElementById(`ANA_GRUP${rowId}`);
+
+                    // GRUP'U DEĞİŞTİR
+                    grupSel.value = "10";
+                    grupSel.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    // GRUP DEĞİŞTİĞİ İÇİN AYNI SATIRDAKİ ANA GRUP'U DA DEĞİŞTİR
+                    if (anaGrupSel) {
+                        anaGrupSel.value = "777";
+                        anaGrupSel.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                 }
             });
-        }
-        /* ===== 3. EVENT LISTENERS ===== */
-        document.getElementById('btnAmblem').addEventListener('click', () => {
-            bulkSelect('GRUP_ID', '10');
         });
-        document.getElementById('btnAnaGrup').addEventListener('click', () => {
-            bulkSelect('ANA_GRUP', '777');
+        document.getElementById('btnSiparisHazirla').addEventListener('click', async () => {
+            // Fonksiyonu beklemeli çalıştırmak için küçük bir yardımcı
+            const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+            const radioSiparis = document.getElementById('SIPARIS_SECENEK1');
+            // 1. Radiobox (SIPARIS_SECENEK1) Seç ve Onclick Tetikle
+            if (radioSiparis) {
+                radioSiparis.focus(); // Bazı sistemler focus bekler
+                radioSiparis.checked = true; // Mantıksal seçim
+
+                // Hem click hem change olaylarını zorla tetikle
+                radioSiparis.dispatchEvent(new Event('click', { bubbles: true }));
+                radioSiparis.dispatchEvent(new Event('change', { bubbles: true }));
+
+                console.log("1. Radiobox işaretlendi ve tetiklendi.");
+                await wait(400); // Sistemin alt alanları açması için biraz daha uzun bekleme
+            }
+
+            // 2. Sipariş Vermeme Sebebi (SIPARIS_VERMEME_SEBEP_ID1) -> "Diğer" (9)
+            const sebepSel = document.getElementById('SIPARIS_VERMEME_SEBEP_ID1');
+            if (sebepSel) {
+                sebepSel.value = "9";
+                sebepSel.dispatchEvent(new Event('change', { bubbles: true }));
+                console.log("2. Sipariş vermeme sebebi 'Diğer' olarak seçildi.");
+                await wait(200);
+            }
+
+            // 3. Notlar Alanı (NOTLAR_SIPARIS1) -> "TEDARİK YOK"
+            const notlarArea = document.getElementById('NOTLAR_SIPARIS1');
+            if (notlarArea) {
+                notlarArea.value = "TEDARİK YOK";
+                notlarArea.dispatchEvent(new Event('input', { bubbles: true }));
+                console.log("3. Not eklendi.");
+            }
+
+            alert("İşlemler sırasıyla tamamlandı!");
         });
         /* ===== KOPYALAMA FONKSİYONU (NAME/ID DESTEKLİ) ===== */
         document.getElementById('btnExcelCopy').addEventListener('click', () => {
