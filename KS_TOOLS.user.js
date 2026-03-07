@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.0.0
+// @version      1.19
 // @license      GPL-3.0
-// @description  OtoHasar Form Panel // Parça - Manuel ve Çoklu ekleme // Donanim Panel // SBM Tramer no ayırma ve resim indirme
+// @description  OtoHasar Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
 // @match        *://*/*
 // @run-at       document-end
@@ -1649,7 +1649,7 @@
             setInterval(updatePanel, 2000);
         }
     }
-    //Resim yükleme kontrolü
+    // Resim yükleme kontrolü
     if (location.href.includes("otohasar") && location.href.includes("eks_hasar_evrak_foto_list.php")) {
         /* ===== 1. PANEL KURULUMU ===== */
         if (typeof injectStyles === 'function') injectStyles();
@@ -3144,7 +3144,7 @@
             init();
         }
     }
-    // Sahibinden Ortalama KM Piyasa sorgusu
+    // Whatsapp Resim indirme
     if (location.href.includes("web.whatsapp.com")) {
         function getFileName() {
             const now = new Date();
