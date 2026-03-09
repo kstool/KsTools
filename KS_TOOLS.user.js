@@ -144,187 +144,187 @@
                    letter-spacing: 1px; /* Harf arası boşluk profesyonel gösterir */
 
                }
-                /* İçerik Alanı */
-                .ks-content {
-                    padding: 5px;
-                    gap: 5px;
-                    display: flex;
-                    flex-direction: column;
-                    color: ${config.Color};
-                    transition: opacity 0.2s;
-                }
+               /* İçerik Alanı */
+               .ks-content {
+                   padding: 5px;
+                   gap: 5px;
+                   display: flex;
+                   flex-direction: column;
+                   color: ${config.Color};
+                   transition: opacity 0.2s;
+               }
 
-                .ks-draggable-panel.collapsed .ks-content {
-                    opacity: 0;
-                    pointer-events: none;
-                }
+               .ks-draggable-panel.collapsed .ks-content {
+                   opacity: 0;
+                   pointer-events: none;
+               }
 
-                /* Modern Butonlar */
-                .ks-btn {
-                    background: ${config.themeColor};
-                    color: white !important;
-                    border: none;
-                    padding: 6px;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: 0.2s;
-                }
-                .ks-btn:hover { filter: brightness(1.1);
-                    transform: translateY(-2px); /* Hafif yukarı kalkma efekti */
+               /* Modern Butonlar */
+               .ks-btn {
+                   background: ${config.themeColor};
+                   color: white !important;
+                   border: none;
+                   padding: 6px;
+                   border-radius: 10px;
+                   font-weight: bold;
+                   cursor: pointer;
+                   font-size: 12px;
+                   transition: 0.2s;
+               }
+               .ks-btn:hover { filter: brightness(1.1);
+                   transform: translateY(-2px); /* Hafif yukarı kalkma efekti */
 
-                    /* Neon Glow Efekti */
-                    /* Tema rengini kullanarak dışa doğru yayılan parlama */
-                    box-shadow: 0 0 10px ${config.themeColor},
-                                0 0 20px ${config.themeColor};
+                   /* Neon Glow Efekti */
+                   /* Tema rengini kullanarak dışa doğru yayılan parlama */
+                   box-shadow: 0 0 10px ${config.themeColor},
+                               0 0 20px ${config.themeColor};
 
-                    /* Yazı rengini de parlatmak istersen (isteğe bağlı) */
-                    text-shadow: 0 0 5px rgba(0,0,0,0.2); }
-                .ks-btn:active {
-                    transform: translateY(1px); /* Tıklayınca basılma hissi */
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-                /* Kırmızı Neon Buton */
-                .ks-btn-danger {
-                    border: none;
-                    padding: 6px;
-                    border-radius: 10px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    font-size: 12px;
-                    transition: 0.2s;
-                    background: #ff4d4d !important; /* Canlı kırmızı */
-                    color: white !important;
-                    box-shadow: 0 0 5px #ff4d4d;
-                }
+                   /* Yazı rengini de parlatmak istersen (isteğe bağlı) */
+                   text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+               .ks-btn:active {
+                   transform: translateY(1px); /* Tıklayınca basılma hissi */
+                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+               }
+               /* Kırmızı Neon Buton */
+               .ks-btn-danger {
+                   border: none;
+                   padding: 6px;
+                   border-radius: 10px;
+                   font-weight: bold;
+                   cursor: pointer;
+                   font-size: 12px;
+                   transition: 0.2s;
+                   background: #ff4d4d !important; /* Canlı kırmızı */
+                   color: white !important;
+                   box-shadow: 0 0 5px #ff4d4d;
+               }
 
-                .ks-btn-danger:hover {
-                    filter: brightness(1.2);
-                    /* Kırmızı Neon Glow Efekti */
-                    box-shadow: 0 0 10px #ff4d4d,
-                                0 0 20px #ff4d4d,
-                                0 0 30px #ff1a1a !important;
-                    text-shadow: 0 0 5px rgba(255,255,255,0.5);
-                }
-                .ks-btn-danger:active {
-                    transform: translateY(1px); /* Tıklayınca basılma hissi */
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-                 #shb-res-box { font-size: 13px; color: white; margin: 2px 0 2px 0; text-align: center; }
+               .ks-btn-danger:hover {
+                   filter: brightness(1.2);
+                   /* Kırmızı Neon Glow Efekti */
+                   box-shadow: 0 0 10px #ff4d4d,
+                               0 0 20px #ff4d4d,
+                               0 0 30px #ff1a1a !important;
+                   text-shadow: 0 0 5px rgba(255,255,255,0.5);
+               }
+               .ks-btn-danger:active {
+                   transform: translateY(1px); /* Tıklayınca basılma hissi */
+                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+               }
+                #shb-res-box { font-size: 13px; color: white; margin: 2px 0 2px 0; text-align: center; }
 
-                /* Sürekli yanıp sönen (Breath) efekti */
-                @keyframes neonPulse {
-                    0% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
-                    50% { box-shadow: 0 0 15px ${config.themeColor}AA, inset 0 0 5px ${config.themeColor}66; }
-                    100% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
-                }
+               /* Sürekli yanıp sönen (Breath) efekti */
+               @keyframes neonPulse {
+                   0% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
+                   50% { box-shadow: 0 0 15px ${config.themeColor}AA, inset 0 0 5px ${config.themeColor}66; }
+                   100% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
+               }
 
-                .ks-tooltip-container {
-                    position: relative;
-                    display: inline-block; /* Yan yana gelmelerine izin verir */
-                    width: 100%;
-                }
+               .ks-tooltip-container {
+                   position: relative;
+                   display: inline-block; /* Yan yana gelmelerine izin verir */
+                   width: 100%;
+               }
 
-                .ks-tooltip-box {
-                    visibility: hidden;
-                    width: 230px;
-                    background: rgba(25, 25, 27, 0.85);
-                    color: #e0e0e0;
-                    text-align: left;
-                    border-radius: 8px;
-                    padding: 10px;
-                    bottom: calc(100% + 20px); /* Butonun tam üzerinden 15px yukarıda başlar */
+               .ks-tooltip-box {
+                   visibility: hidden;
+                   width: 230px;
+                   background: rgba(25, 25, 27, 0.85);
+                   color: #e0e0e0;
+                   text-align: left;
+                   border-radius: 8px;
+                   padding: 10px;
+                   bottom: calc(100% + 20px); /* Butonun tam üzerinden 15px yukarıda başlar */
 
-                    /*display: block !important;*/
-                    position: absolute !important; /* Panelden tamamen koparır */
-                    z-index: 3179999 !important; /* Panelden daha büyük bir değer */
+                   /*display: block !important;*/
+                   position: absolute !important; /* Panelden tamamen koparır */
+                   z-index: 3179999 !important; /* Panelden daha büyük bir değer */
 
-                    /* Konumlandırma */
-                    transform: translateX(50%);
-                    opacity: 0;
+                   /* Konumlandırma */
+                   transform: translateX(50%);
+                   opacity: 0;
 
-                    /* Yavaşça belirme ve kaybolma (Transition) */
-                    transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+                   /* Yavaşça belirme ve kaybolma (Transition) */
+                   transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
 
-                    /* Dinamik Renklendirme */
-                    border: 1.5px solid ${config.themeColor};
-                    animation: neonPulse 2s infinite ease-in-out; /* Sürekli ışıma efekti */
+                   /* Dinamik Renklendirme */
+                   border: 1.5px solid ${config.themeColor};
+                   animation: neonPulse 2s infinite ease-in-out; /* Sürekli ışıma efekti */
 
-                    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-                    font-size: 11px;
-                    line-height: 1.5;
-                    pointer-events: none;
-                }
+                   font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+                   font-size: 11px;
+                   line-height: 1.5;
+                   pointer-events: none;
+               }
 
-                /* Hover durumunda yumuşak geçiş */
-                .ks-tooltip-container:hover .ks-tooltip-box {
-                    visibility: visible;
-                    opacity: 1;
-                    transform: translate(0%); /* Hafif yukarı süzülme */
-                }
+               /* Hover durumunda yumuşak geçiş */
+               .ks-tooltip-container:hover .ks-tooltip-box {
+                   visibility: visible;
+                   opacity: 1;
+                   transform: translate(0%); /* Hafif yukarı süzülme */
+               }
 
-                /* Başlık Renklendirme */
-                .ks-tooltip-box strong {
-                    color: ${config.themeColor}; /* config'den gelen ana renk */
-                    text-shadow: 0 0 8px ${config.themeColor}88; /* Yazıda da hafif neon */
-                    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-                    font-size: 12px;
-                    display: block;
-                    margin-bottom: 5px;
-                    text-transform: uppercase;
-                }
+               /* Başlık Renklendirme */
+               .ks-tooltip-box strong {
+                   color: ${config.themeColor}; /* config'den gelen ana renk */
+                   text-shadow: 0 0 8px ${config.themeColor}88; /* Yazıda da hafif neon */
+                   font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+                   font-size: 12px;
+                   display: block;
+                   margin-bottom: 5px;
+                   text-transform: uppercase;
+               }
 
-                #ks-dynamic-tooltip {
-                    width: 230px;
-                    background: rgba(25, 25, 27, 0.85);
-                    color: #e0e0e0;
-                    text-align: left;
-                    border-radius: 8px;
-                    padding: 10px;
-                    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-                    font-size: 11px;
-                    line-height: 1.5;
-                    width: 230px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+               #ks-dynamic-tooltip {
+                   width: 230px;
+                   background: rgba(25, 25, 27, 0.85);
+                   color: #e0e0e0;
+                   text-align: left;
+                   border-radius: 8px;
+                   padding: 10px;
+                   font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+                   font-size: 11px;
+                   line-height: 1.5;
+                   width: 230px;
+                   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 
-                    /* Yavaşça belirme ve kaybolma (Transition) */
-                    transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+                   /* Yavaşça belirme ve kaybolma (Transition) */
+                   transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
 
-                    /* Dinamik Renklendirme */
-                    border: 1.5px solid ${config.themeColor};
-                    animation: neonPulse 1s infinite ease-in-out; /* Sürekli ışıma efekti */
+                   /* Dinamik Renklendirme */
+                   border: 1.5px solid ${config.themeColor};
+                   animation: neonPulse 1s infinite ease-in-out; /* Sürekli ışıma efekti */
 
-                    font-size: 11px;
-                    line-height: 1.5;
-                    pointer-events: none;
+                   font-size: 11px;
+                   line-height: 1.5;
+                   pointer-events: none;
 
 
-                    /* Animasyon ve Geçişler */
-                    position: fixed;
-                    z-index: 3179999;
-                    pointer-events: none;
-                    display: none;
-                    opacity: 0;
-                    transform: translateY(10px);
-            }
+                   /* Animasyon ve Geçişler */
+                   position: fixed;
+                   z-index: 3179999;
+                   pointer-events: none;
+                   display: none;
+                   opacity: 0;
+                   transform: translateY(10px);
+               }
 
-            #ks-dynamic-tooltip.visible {
-                display: block;
-                opacity: 1;
-                transform: translateY(0);
-            }
+               #ks-dynamic-tooltip.visible {
+                   display: block;
+                   opacity: 1;
+                   transform: translateY(0);
+               }
 
-            #ks-dynamic-tooltip strong {
-                color: ${config.themeColor}; /* config'den gelen ana renk */
-                text-shadow: 0 0 8px ${config.themeColor}88; /* Yazıda da hafif neon */
-                font-size: 12px;
-                margin-bottom: 5px;
-                text-transform: uppercase;
-            }
+               #ks-dynamic-tooltip strong {
+                   color: ${config.themeColor}; /* config'den gelen ana renk */
+                   text-shadow: 0 0 8px ${config.themeColor}88; /* Yazıda da hafif neon */
+                   font-size: 12px;
+                   margin-bottom: 5px;
+                   text-transform: uppercase;
+               }
 
-            /* Sayfadaki orijinal kutuları gizle ki çakışmasın */
-            .ks-tooltip-box { display: none !important; }
+               /* Sayfadaki orijinal kutuları gizle ki çakışmasın */
+               .ks-tooltip-box { display: none !important; }
             `;
         document.head.appendChild(style);
     };
