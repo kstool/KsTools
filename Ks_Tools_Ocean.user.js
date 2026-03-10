@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      3.2
+// @version      1.1
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
 // @grant        GM_addStyle
+// @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
+// @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // ==/UserScript==
 
 (function() {
@@ -61,20 +63,15 @@
 
        .hosgeldin {
            display: inline-flex; /* Panel gibi tüm satırı kaplamaması için */
-           padding: 5px 0;
-           margin: 15px;
            position: relative;
            cursor: default;
-
-           /* Tipografi */
            color: var(--themeColor); /* Başlangıçta biraz şeffaf */
            font-family: var(--font);
            font-size: 15px;
            font-weight: 600;
            letter-spacing: 2px;
            text-transform: uppercase;
-
-           /* Yumuşak Geçiş */
+		   padding: 25px 50px;
            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
        }
 
@@ -104,31 +101,27 @@
        }
 
        /* Panel Kapsayıcısı - Geliştirilmiş Cam Efekti */
-       .modern-nav-container {
-           display: flex;
-           flex-wrap: wrap;
-           gap: 30px; /* Boşluğu biraz artırdık */
-           padding: 15px 40px;
-           /* Sol tarafa ekstra boşluk ekledik */
-           margin: 20px 0 20px 20px;
+      .modern-nav-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 50px;
+          padding: 15px 50px;
 
-           background: rgba(255, 255, 255, 0.4);
-           backdrop-filter: blur(15px);
-           -webkit-backdrop-filter: blur(15px);
+          /* Cam Efekti (Glassmorphism) */
+          background: rgba(255, 255, 255, 0.4);
+          backdrop-filter: blur(15px);
+          -webkit-backdrop-filter: blur(15px);
+          justify-content: center;
+          align-items: center;
 
-           border: 1px solid rgba(255, 255, 255, 0.6);
-           border-bottom: 2px solid var(--border-soft);
-           justify-content: center;
-           align-items: center;
-           border-radius: 16px; /* Daha yumuşak köşeler */
-
-           /* Derinlik hissi veren çok katmanlı gölge */
-           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05),
-                       inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-
-           /* Giriş animasyonu: Panel yüklenirken hafifçe kayar */
-           animation: slideInSoft 0.8s ease-out;
-       }
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          border-bottom: 2px solid var(--border-soft);
+          border-radius: 20px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+          animation: slideInSoft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+          text-decoration: none;
+          transition: all 0.3s ease;
+      }
 
        /* Yazı Efekti - Daha Akıcı */
        .modern-link {
@@ -140,7 +133,6 @@
            letter-spacing: 0.5px;
            text-transform: uppercase;
            position: relative;
-           padding: 10px 8px;
            cursor: pointer;
 
            /* Geçiş efektini daha profesyonel bir bezier eğrisine çektik */
@@ -152,7 +144,6 @@
        .modern-link:hover {
            color: var(--primary) !important;
            letter-spacing: 1.5px;
-           /* Hafif yukarı zıplama ve ölçeklenme */
            transform: translateY(-4px) scale(1.05);
            text-shadow: 0 4px 12px rgba(0,0,0,0.08);
        }
@@ -168,7 +159,6 @@
            height: 3px;
            background: var(--primary);
            border-radius: 10px;
-           /* Çizgiye neon bir parlama ekledik */
            box-shadow: 0 0 10px var(--primary);
            transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
            opacity: 0;
@@ -196,34 +186,28 @@
 
        /* Panel için Giriş Animasyonu */
        @keyframes slideInSoft {
-           from {
-               opacity: 0;
-               transform: translateX(-20px);
-           }
-           to {
-               opacity: 1;
-               transform: translateX(0);
-           }
+           from { opacity: 0; transform: translateX(-20px); }
+           to { opacity: 1; transform: translateX(0); }
+       }
+	   .modern-nav-container a,
+       .modern-nav-container a:hover,
+       .modern-nav-container a:visited,
+       .modern-nav-container * {
+           text-decoration: none !important; /* Alt çizgiyi zorla kaldırır */
+           border-bottom: none !important;    /* Bazı temalar border-bottom kullanır, onu da kapatır */
+           outline: none !important;
+
+           /* Yumuşak geçiş animasyonu */
+           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
        }
         /* 9. ÖNEMLİ BİLGİ METNİ (.yazi) */
         .yazi {
             font-size: 14px !important;
             font-weight: 700 !important;
-            color: var(--texto) !important; /* Çok koyu, net bir lacivert/siyah */
+            color: var(--texto) !important;
             letter-spacing: 1px !important;
-            padding-left: 10px;
-            padding-bottom: 10px;
-
-            /* Metni öne çıkaran profesyonel gölge oyunu */
-            /*text-shadow:
-                1px 1px 0px var(--maim),
-                2px 2px 0px var(--accent),
-                3px 3px 6px rgba(0,0,0,0.2) !important;*/
-
-            /* Arka planı hafif belirginleştirerek metni kutu içine alma */
             background-color: rgba(255, 255, 255, 0.6) !important;
             border-radius: 4px !important;
-            /*display: inline-block !important; hata veriyor*/
         }
 
         /* Metin içindeki linklerin (dosya no vb.) rengini sabitle */
@@ -236,36 +220,36 @@
         tr[background*="new_18.gif"] { background: var(--maim); }
 
         tr[background*="new_18.gif"] table[width="760"] {
-            width: 100% ; /* Genişliği serbest bırak, sıkışmasın */
-            max-width: 760px ;
-            background: var(--maim) ;
-            margin: 10px auto ;
-            /* Yumuşatılmış kenarlık ayarları */
+            align-items: center !important;
+            justify-content: center !important;
+			gap: 15px;
+			padding: 10px 10px 10px 10px;
             border: 1px solid rgba(0, 0, 0, 0.1); /* Daha ince ve yarı saydam kenarlık */
             border-radius: 12px; /* Köşeleri biraz daha yuvarladık */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);/* Derinlik katmak için hafif gölge (Asıl yumuşaklığı bu verir) */
-            padding: 5px ;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);/* Derinlik katmak için hafif gölge (Asıl yumuşaklığı bu verir) */
         }
 
-        tr[background*="new_18.gif"] img {
-            width: 46px ; /* İkonlar net görünsün */
+        tr[background*="new_18.gif"] img { /* İkonlar */
+            width: 50px ;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Daha ince ve yarı saydam kenarlık */
+            border-radius: 12px; /* Köşeleri biraz daha yuvarladık */
             height: auto ;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)) ;
         }
 
         .eksper_menu {
-            color: #475569 ;
+            color: color-mix(in srgb, var(--accent), black 25%);
+            transition: all 0.3s ease;
             font-size: 11px ;
-            font-weight: 500 ;
+            font-weight: 600 ;
             text-transform: uppercase ;
-            padding-top: 2px ;
+            padding: 4px 0px 4px 0px ;
+            filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--accent), black 25%);) ;
         }
 
-        /* 4. TABLO BAŞLIKLARI (CSS DOKUNUŞU) */
+        /* 4. TABLO BAŞLIKLARI */
         td.tb, td[background*="baslik_img02.gif"] {
             background: #f8fafc ;
             border-left: 4px solid var(--primary) ;
-            padding: 8px 12px ;
             color: var(--accent) ;
             font-weight: 700 ;
             text-align: center ;
@@ -280,7 +264,6 @@
             font-weight: 500 !important;
             text-transform: uppercase !important;
             letter-spacing: 0.5px !important;
-            padding: 5px 5px !important;
             border: none !important;
             border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
@@ -307,16 +290,10 @@
 
         /* 5. BUTONLAR: MODERN & ANİMASYONLU */
         .buton01, .BTNKIRMIZI, .BUTON06, input[type="submit"], input[type="button"] {
-            /* Boyutları sabit tutuyoruz */
             height: 20px !important;
-            padding: 0 8px !important;
             font-size: 10px !important;
             font-weight: 500 !important;
             border-radius: 3px !important;
-
-            /* Görünüş: Düz renk yerine hafif gradient derinlik katar */
-            /*background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;*/
-            /*color: black !important;*/
             border: none !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
 
@@ -347,7 +324,6 @@
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
         }
 
-        /* KIRMIZI BUTON ÖZEL */
         .BTNKIRMIZI {
             background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important;
         }
@@ -364,7 +340,7 @@
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         }
 
-        /* Kaydet Hover: Daha güçlü bir kırmızı parlama */
+        /* Kaydet Hover: Kırmızı parlama */
         #btnKaydet2:hover, input[name="btnKaydet2"]:hover, input[value="KAYDET"]:hover {
             filter: brightness(1.2) !important;
             box-shadow: 0 0 12px rgba(255, 71, 87, 0.7) !important; /* Kırmızı Neon Parlaması */
@@ -413,8 +389,6 @@
             background-color: var(--primary-light);
             border: 1px solid var(--border-soft) ;
             border-radius: 4px ;
-            padding: 2px 4px ;
-            height: auto;
         }
         /* 7.1 READONLY & DISABLED FOCUS DURUMU (SEÇİLDİĞİNDE DEĞİŞMESİN) */
         input:disabled,
@@ -462,16 +436,12 @@
         .koyu, .koyu_yangin, .koyu01, .koyu_text, .acik_cam {
             background-color: color-mix(in srgb, var(--maim), var(--texto) 4%) !important;
             color: var(--text-dark);
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            padding: 6px !important;
             border: 1px solid rgba(0,0,0,0.05) !important;
         }
 
         .acik, .acik_yangin, .acik_text, .beyaz_liste, .yazi, .yazi1 {
             background-color: var(--maim) !important;
             color: var(--text-dark);
-            font-size: 10px !important;
             border-bottom: 1px solid #e2e8f0 !important;
         }
 
@@ -479,10 +449,6 @@
         .koyubaslik, .koyubaslik_text, .koyubaslik01, .koyubaslik01_text, .koyubaslik_, .tb {
             background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;
             color: var(--maim) !important;
-            font-size: 11px !important;
-            text-transform: uppercase !important;
-            font-weight: bold !important;
-            padding: 8px !important;
             border: none !important;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
         }
@@ -491,12 +457,8 @@
             background-color: color-mix(in srgb, var(--maim), white 70%) !important;
             border: 1px solid var(--border-soft) !important;
             border-radius: 4px !important;
-            padding: 2px 4px !important;
-            font-size: 11px !important;
             box-sizing: border-box !important;
             animation: inputEntry 0.6s ease-out;
-
-            /* Animasyon Hazırlığı: Geçişlerin süresini ve hızını belirler */
             transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
         }
 
@@ -504,34 +466,20 @@
         input:focus, select:focus, textarea:focus {
             outline: none !important;
             border-color: var(--reddo-light) !important;
-            /* Hafif bir derinlik hissi veren gölge animasyonu */
             box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.08) !important;
             background-color: white !important;
             animation: inputEntry 0.6s ease-out;
-            /* Animasyon Hazırlığı: Geçişlerin süresini ve hızını belirler */
             transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
         }
 
-        /* Özel: Büyük kutuların kontrolü ve giriş efekti */
-        input[size="85"], .textarea_buyuk, input[name*="YP_"] {
-            min-width: 150px !important;
-            /* Büyük alanlar için genişleme efekti (isteğe bağlı) */
-            transition: min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-        }
-
-        /* Büyük alanlara tıklandığında hafifçe genişleyerek güven verir */
-        input[size="85"]:focus {
-            min-width: 200px !important;
-        }
+        input[size="85"], .textarea_buyuk, input[name*="YP_"] { min-width: 150px !important; transition: min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important; }
+        input[size="85"]:focus { min-width: 200px !important; }
 
         /* 5. BUTONLAR (TAM UYUMLU) */
         .BUTON01, .BUTON02, .BUTON03, .BUTON06, .BTNKIRMIZI, .BUTON_YESIL, input[type="submit"] {
             height: 24px !important;
-            padding: 0 15px !important;
             border-radius: 4px !important;
-            font-weight: bold !important;
             text-transform: uppercase !important;
-            font-size: 10px !important;
             cursor: pointer !important;
             transition: all 0.2s !important;
             border: none !important;
@@ -539,32 +487,56 @@
             align-items: center !important;
             justify-content: center !important;
         }
+		input.buton01[value="Ok"],input.buton01[value=" Ok "] {
+		    background: var(--reddo) !important;
+		    color: white !important;
+		    transition: all 0.3s ease !important;
+		    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3) !important;
+		}
+		input.buton01[value="Ok"]:hover,input.buton01[value=" Ok "]:hover {
+		    background: var(--reddo-light) !important;
+		    transform: translateY(-2px) scale(1.05) !important;
+		    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4) !important;
+		}
 
         /* Mavi Butonlar */
         .BUTON01 { background: var(--primary) !important; color: var(--maim) !important; }
-        /* Kırmızı Butonlar */
         .BUTON02, .BUTON03, .BTNKIRMIZI { background: #e74c3c !important; color: var(--maim) !important; }
-        /* Yeşil Butonlar */
         .BUTON06, .BUTON_YESIL { background: #27ae60 !important; color: var(--maim) !important; }
-
         .BUTON01:hover, .BTNKIRMIZI:hover { filter: brightness(1.2) !important; transform: translateY(-1px) !important; }
 
-        /* 6. LİNKLER */
+        /* 6. LİNKLER - Genel Yapı */
         a, .link, .link01, .linkyp, .dosya_menu, .menu {
             color: var(--accent) !important;
-            font-weight: bold !important;
+            filter: brightness(1.15);
+
             text-decoration: none !important;
-            transition: color 0.2s !important;
+            border-bottom: none !important; /* Alt çizgiyi kökten çözer */
+
+            /* Animasyonun temeli: Buradaki 'all' tüm değişimleri kapsar */
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.175) !important;
+            display: inline-block;
         }
 
-        a:hover, .link:hover, .menu:hover {
-            color: #e74c3c !important;
-            text-decoration: underline !important;
+        a:hover, .link:hover, .link01:hover, .linkyp:hover, .dosya_menu:hover, .menu:hover {
+            color: var(--reddo) !important;
+            text-decoration: none !important;
+            border-bottom: none !important;
+
+            /* Animasyon efektleri */
+            transform: scale(1.02) translateY(-1px) !important;
+            filter: brightness(1.1);
+
+            /* Alt çizgiyi yapan ghost elementler varsa temizle */
+        }
+
+        a::after, a::before {
+            display: none !important;
         }
 
         /* 7. ÖZEL DURUMLAR */
         .cizgi { background-color: var(--border-soft) !important; height: 1px !important; }
-        .hosgeldin { color: var(--primary) !important; font-size: 14px !important; border-left: 4px solid var(--primary) !important; padding-left: 10px !important; }
+        .hosgeldin { color: var(--primary) !important; font-size: 14px !important; border-left: 4px solid var(--primary) !important; }
 
         /* Yan sanayi/Uyarı vurgusu */
         .acik_yansanayi { background-color: #ffeb3b !important; color: #856404 !important; }
@@ -572,14 +544,8 @@
 
         /* Animasyonlu Buton (Orijinal ismi korundu) */
         #btnStream { animation: blinkingText 1.5s infinite !important; }
-        @keyframes fadeInSmooth {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes inputEntry {
-            from { opacity: 0; filter: brightness(1.2); }
-            to { opacity: 1; filter: brightness(1); }
-        }
+        @keyframes fadeInSmooth { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes inputEntry { from { opacity: 0; filter: brightness(1.2); } to { opacity: 1; filter: brightness(1); } }
 
         /* ANA KONTEYNER - ORTALANMIŞ VERSİYON */
         .tm-tedarik-container {
@@ -587,7 +553,6 @@
             width: 100% !important;
             min-width: 600px !important;     /* Panelin çok yayılmaması için ideal genişlik */
             /* Ortalamayı sağlayan kritik satır */
-            margin: 10px auto !important;    /* Üstten-alttan 20px, sağdan-soldan otomatik (ortalama) */
             background: var(--maim) !important;
             border: 1px solid var(--border-soft) !important;
             border-radius: 10px !important;
@@ -598,10 +563,6 @@
         .tm-tedarik-header {
             background: var(--primary) !important;
             color: var(--maim) !important;
-            padding: 8px !important;
-            font-weight: 500 !important;
-            text-align: center !important;
-            font-size: 12px !important;
             border-bottom: 1px solid var(--border-soft) !important;
         }
 
@@ -615,7 +576,6 @@
         }
 
         .tm-tedarik-item {
-            padding: 8px 12px !important;
             border-bottom: 1px solid  var(--maim) !important;
             display: flex !important;
             justify-content: space-between !important;
@@ -636,18 +596,15 @@
         .tm-firm-rate {
             font-size: 11px !important;
             font-weight: 800 !important;
-            padding: 2px 6px !important;
             border-radius: 4px !important;
         }
 
-        /* %60 ve Üzeri: Kritik/Kırmızı */
         .tm-high {
             background: #fee2e2 !important; /* Hafif kırmızı arka plan */
             color: #991b1b !important;      /* Koyu kırmızı metin */
             border: 1px solid #fecaca !important;
         }
 
-        /* %60 Altı: Güvenli/Yeşil (Eski tm-zero yerine bunu kullanıyoruz) */
         .tm-zero {
             background: #dcfce7 !important; /* Hafif yeşil arka plan */
             color: #166534 !important;      /* Koyu yeşil metin */
@@ -656,7 +613,7 @@
 
         /* Scrollbar tasarımı */
         .tm-tedarik-list::-webkit-scrollbar { width: 6px; }
-        .tm-tedarik-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .tm-tedarik-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
         .tm-tedarik-list::-webkit-scrollbar-track { background: #f1f5f9; }
 
     `;
@@ -676,51 +633,54 @@
         let cleanText = targetFont.innerText.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ');
         let content = cleanText.split('BU DOSYA TEDARİĞE UYGUNDUR:')[1] || "";
 
-        const generalRateMatch = content.match(/%\d+\.\d+/);
-        const defaultRate = generalRateMatch ? generalRateMatch[0] : "%0.00";
+        // Firmaları ve oranlarını doğru ayırmak için Regex kullanıyoruz
+        // Bu regex, virgülle ayrılmış blokları içindeki parantezli yüzdelerle birlikte yakalar
+        let firms = content.split(/,(?![^\(]*\))/).map(item => {
+            item = item.trim();
+            // Oranı yakala: (%35.00)
+            const rateMatch = item.match(/\((%\d+\.\d+)\)/);
+            const rate = rateMatch ? rateMatch[1] : "%0.00";
 
-        let firmsContent = content.replace(/\(%\d+\.\d+\)/g, '');
-        let firms = firmsContent.split(',')
-            .map(item => ({
-                name: item.trim().replace(/\)\s*\)$/, ')'),
-                rate: defaultRate
-            }))
-            .filter(f => f.name.length > 5);
+            // Firma adını temizle (yüzde kısmını kaldır)
+            const name = item.replace(/\(%\d+\.\d+\)/, '').trim();
+
+            return { name, rate };
+        }).filter(f => f.name.length > 2);
 
         // 3. Dinamik Renk Belirleme Fonksiyonu
         const getRateClass = (rateStr) => {
-            // Yüzde sembolünü ve noktadan sonrasını temizleyip sayıya çeviriyoruz
             const numericRate = parseFloat(rateStr.replace('%', ''));
-
             if (numericRate >= 60) {
-                return 'tm-high'; // %60 ve üzeri için Kırmızı (Kritik)
+                return 'tm-high'; // %60 ve üzeri için Kırmızı
+            } else if (numericRate > 0) {
+                return 'tm-active'; // %0'dan büyük ama %60'tan küçükler (Opsiyonel: Yeni sınıf ekleyebilirsiniz)
             } else {
-                return 'tm-zero'; // %60 altı için Yeşil (Güvenli)
+                return 'tm-zero'; // %0 için
             }
         };
 
         // 4. Modern Liste HTML'ini oluştur
         const itemsHtml = firms.map(f => `
-            <div class="tm-tedarik-item">
-                <span class="tm-firm-name">${f.name}</span>
-                <span class="tm-firm-rate ${getRateClass(f.rate)}">${f.rate}</span>
+            <div class="tm-tedarik-item" style="display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0;">
+                <span class="tm-firm-name" style="font-size: 12px;">${f.name}</span>
+                <span class="tm-firm-rate ${getRateClass(f.rate)}" style="font-weight: bold; min-width: 60px; text-align: right;">${f.rate}</span>
             </div>
         `).join('');
 
-        // 5. Wrapper ve Buton
+        // 5. Wrapper ve Buton (Geri kalan kısım aynı)
         const modernHtml = `
             <div class="tm-tedarik-wrapper">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
                     <span style="font-size: 11px; color: #666; font-weight: bold;">Tedarikçi Analiz Paneli</span>
-                    <button id="view-toggle-btn" class="BUTON01" style="min-width: 140px;">
+                    <button id="view-toggle-btn" class="BUTON01" style="min-width: 140px; cursor: pointer;">
                         ORİJİNAL LİSTEYİ GÖSTER
                     </button>
                 </div>
                 <div id="modern-view" class="tm-tedarik-container">
-                    <div class="tm-tedarik-header">TEDARİK UYGUNLUK LİSTESİ (${firms.length} Firma)</div>
+                    <div class="tm-tedarik-header" style="background: #f8f9fa;font-weight: bold; font-size: 13px; margin-bottom: 5px;">TEDARİK UYGUNLUK LİSTESİ (${firms.length} Firma)</div>
                     <div class="tm-tedarik-list">${itemsHtml}</div>
                 </div>
-                <div id="original-view" style="display: none; padding: 10px; border: 1px dashed #ccc; background: #fffafb;">
+                <div id="original-view" style="display: none; border: 1px dashed #ccc; background: #fffafb;">
                     ${originalContent}
                 </div>
             </div>
@@ -728,8 +688,8 @@
 
         parentTd.innerHTML = modernHtml;
         parentTd.dataset.processed = "true";
-        parentTd.style.width = "100%";
 
+        // Toggle Buton Fonksiyonu
         const toggleBtn = document.getElementById('view-toggle-btn');
         const modernDiv = document.getElementById('modern-view');
         const originalDiv = document.getElementById('original-view');
@@ -740,15 +700,14 @@
                 modernDiv.style.display = "block";
                 originalDiv.style.display = "none";
                 this.innerText = "ORİJİNAL LİSTEYİ GÖSTER";
-                this.className = "BUTON01";
             } else {
                 modernDiv.style.display = "none";
                 originalDiv.style.display = "block";
                 this.innerText = "MODERN LİSTEYE DÖN";
-                this.className = "BUTON_YESIL";
             }
         });
     };
+
     const map = document.querySelector('map[name="linkmap"]');
     if (map) {
         const areas = map.querySelectorAll('area');
