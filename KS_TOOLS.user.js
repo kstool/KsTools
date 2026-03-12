@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.22
+// @version      1.24
 // @license      GPL-3.0
 // @description  OtoHasar Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -9,6 +9,9 @@
 // @run-at       document-end
 // @grant        unsafeWindow
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_info
 // @grant        GM_openInTab
 // @grant        GM_download
 // @grant        GM_notification
@@ -40,8 +43,7 @@
     if (hedefSiteler.test(url)) { ; }
     //if (url.includes("dosya_ihbar_yazdir") || url.includes("talep_yp_db") || url.includes("print")) { return; }
     const blockedGroups = [
-        "yazdir", "print", "rapor", "ihbar", "dilekce", "fatura",
-        "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
+        "yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
     if (blockedGroups.some(word => url.includes(word))) { return; }
 
     // 1. PANEL AYARLARI (Boyutlar ve Durum)
@@ -322,7 +324,6 @@
                    margin-bottom: 5px;
                    text-transform: uppercase;
                }
-
                /* Sayfadaki orijinal kutuları gizle ki çakışmasın */
                .ks-tooltip-box { display: none !important; }
             `;
@@ -466,52 +467,45 @@
     const WARNING_COLOR = '#ff7e7e';
     const SUCCESS_COLOR = '#00ff88';
     const PANEL_ID = 'ks-global-status-indicator';
+if (window.self === window.top) {
     // 1. Stil Tanımı (Gelişmiş Animasyonlar)
     if (!document.getElementById(PANEL_ID + '-style')) {
         const style = document.createElement("style");
         style.id = PANEL_ID + '-style';
-        style.innerText = `
+       style.innerText = `
             #${PANEL_ID} {
                 position: fixed !important;
-                bottom: 0px !important; /* Çivili */
-                right: 0px !important;  /* Çivili */
+                bottom: 0px !important;
+                right: 0px !important;
                 padding: 3px 12px !important;
-                background: rgba(10, 10, 10, 0.70) !important; /* Panel gövdesi */
+                background: rgba(10, 10, 10, 0.70) !important;
                 backdrop-filter: blur(10px) !important;
                 font-size: 11px !important;
                 font-weight: 800 !important;
                 z-index: 3279999 !important;
-
-                /* Sağ altı çiviliyoruz */
                 transform-origin: bottom right !important;
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-
-                /* ÖNEMLİ: Gölgenin dışarı taşması için */
                 overflow: visible !important;
                 border-radius: 8px 0 0 0 !important;
                 border-left: 2px solid ${config.themeColor} !important;
                 border-top: 2px solid ${config.themeColor} !important;
-                box-shadow: -5px -5px 10px ${config.themeColor}74 !important; /* Temel gölge */
+                box-shadow: -5px -5px 10px ${config.themeColor}74 !important;
 
-                /* Animasyonu başlattık */
+                /* DÜZELTİLEN SATIRLAR */
                 animation: ks-glow-pulse 3s infinite ease-in-out !important;
             }
 
-            /* HOVER: YUMUŞAK BÜYÜME */
             #${PANEL_ID}:hover {
-                color:${config.themeColor} !important;
-                transform: scale(1.1) !important; /* Sol üste doğru büyüme */
-                border-radius: 30px 0 0 0 !important; /* Daha akışkan */
+                transform: scale(1.1) !important;
+                border-radius: 30px 0 0 0 !important;
             }
 
-            /* DOĞRU ANİMASYON KODU */
             @keyframes ks-glow-pulse {
                 0% {
                     color: ${config.themeColor};
                     text-shadow: 0 0 2px ${config.themeColor}74;
                 }
                 50% {
-                    /* Renk geçişi istiyorsan buraya başka renk de yazabilirsin */
                     color: #ffffff;
                     text-shadow: 0 0 12px ${config.themeColor}, 0 0 20px ${config.themeColor};
                 }
@@ -519,8 +513,7 @@
                     color: ${config.themeColor};
                     text-shadow: 0 0 2px ${config.themeColor}74;
                 }
-    }
-
+            }
         `;
         document.head.appendChild(style);
     }
@@ -535,37 +528,248 @@
 
     const injectPanel = () => {
         let kstatus = document.getElementById(PANEL_ID);
+        const getSetting = (key) => GM_getValue(key, false);
+        const setSetting = (key, val) => GM_setValue(key, val);
 
         if (!kstatus) {
             kstatus = document.createElement('div');
             kstatus.id = PANEL_ID;
-            kstatus.className = 'ks-active-pulse';
             document.body.appendChild(kstatus);
 
             kstatus.onmouseenter = () => {
                 kstatus.setAttribute('data-hover', 'true');
                 kstatus.style.color = '#fff';
-                kstatus.innerHTML = `<span style="color:${config.themeColor}">●</span> ${currentIP} <span style="opacity:0.5; margin:0 5px;">|</span> ${scriptVersion} <span style="opacity:0.5; margin:0 5px;">|</span> <span style="letter-spacing:1px">AKTİF</span>`;
+                kstatus.innerHTML = `
+                    <span style="color:${config.themeColor}; margin-right:5px;">●</span> ${currentIP}
+                    <span style="opacity:0.3; margin:0 8px;">|</span>
+                    <span id="ks-settings-btn" style="cursor:pointer; font-size:14px; filter: grayscale(1);">⚙️</span>
+                `;
+
+                document.getElementById('ks-settings-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    openSettingsModal();
+                };
             };
 
             kstatus.onmouseleave = () => {
                 kstatus.removeAttribute('data-hover');
-                kstatus.style.color = config.themeColor;
                 kstatus.innerHTML = `KS TOOLS`;
             };
         }
 
-        // setInterval çalıştığında eğer mouse üzerindeyse içeriği bozma
+        const openSettingsModal = () => {
+            if (document.getElementById('ks-modal-overlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'ks-modal-overlay';
+            Object.assign(overlay.style, {
+                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                backgroundColor: 'rgba(0,0,0,0.75)', zIndex: '10000000', backdropFilter: 'blur(5px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+            });
+
+            const modal = document.createElement('div');
+            Object.assign(modal.style, {
+                backgroundColor: '#1a1a1a', padding: '25px', borderRadius: '15px',
+                width: '280px', border: `2px solid ${config.themeColor}`, color: '#fff',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.8)', textAlign: 'center', fontFamily: 'sans-serif'
+            });
+            const settingsList = [
+                { id: 'ks-opt-1', key: 'KS_SYS', label: 'Sistem Aktifliği' },
+                { id: 'ks-opt-2', key: 'KS_PANEL', label: 'Dosya Kontrolü' },
+                { id: 'ks-opt-3', key: 'KS_MANU', label: 'Manuel Giriş' },
+                { id: 'ks-opt-4', key: 'KS_REF', label: 'Ref. Panelleri' },
+                { id: 'ks-opt-5', key: 'KS_DNM', label: 'Donanım Paneli' },
+                { id: 'ks-opt-6', key: 'KS_IMG', label: 'Resim Yükleme' },
+                { id: 'ks-opt-7', key: 'KS_TRS', label: 'TR Sigorta' },
+                { id: 'ks-opt-8', key: 'KS_SAHIB', label: 'Sahibinden' },
+                { id: 'ks-opt-9', key: 'KS_SBM', label: 'SBM Desteği' },
+                { id: 'ks-opt-10', key: 'KS_WP', label: 'WP İndirme' },
+                { id: 'ks-opt-11', key: 'KS_NTF', label: 'Bildirim Sınırı' }
+            ];
+
+            modal.innerHTML = `
+            <style>
+                #ks-setting-wrapper {
+                all: initial;
+                display: block;
+                background: #111111;
+                border-radius: 10px;
+                font-family: 'Inter', sans-serif;
+                border: 1px solid #222;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+                max-width: 400px;
+                color: #fff;
+            }
+
+            .ks-setting-title {
+                font-size: 16px;
+                font-weight: 800;
+                color: ${config.themeColor};
+                margin-bottom: 15px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border-bottom: 1px solid #222;
+                padding-bottom: 10px;
+                text-align: center;
+                display: block;
+                width: 100%;
+            }
+
+            .ks-setting-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 4px;
+            }
+
+            .ks-setting-card {
+                display: flex;
+                align-items: center;
+                justify-content: space-between; /* Switch'i en sağa, yazıyı en sola iter */
+                background: #1a1a1a;
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid #252525;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+
+            .ks-setting-card:hover {
+                background: #222;
+                border-color: ${config.themeColor}88;
+            }
+
+            .ks-setting-label {
+                font-size: 11px;
+                color: #bbb;
+                font-weight: 600;
+                pointer-events: none;
+                margin-right: 4px; /* Switch ile yazı arasına minimum boşluk */
+            }
+
+            /* Toggle Switch */
+            .ks-setting-switch {
+                position: relative;
+                width: 30px;
+                height: 16px;
+                flex-shrink: 0; /* Switch'in daralmasını engeller */
+            }
+
+            .ks-setting-switch input { opacity: 0; width: 0; height: 0; }
+
+            .ks-setting-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-color: #333;
+                transition: .3s;
+                border-radius: 20px;
+            }
+
+            .ks-setting-slider:before {
+                position: absolute;
+                content: "";
+                height: 12px;
+                width: 12px;
+                left: 2px;
+                bottom: 2px;
+                background-color: white;
+                transition: .3s;
+                border-radius: 50%;
+            }
+
+            .ks-setting-switch input:checked + .ks-setting-slider {
+                background-color: ${config.themeColor};
+            }
+
+            .ks-setting-switch input:checked + .ks-setting-slider:before {
+                transform: translateX(14px);
+            }
+
+            .ks-setting-btn {
+                margin-top: 15px;
+                width: 100%;
+                height: 40px;
+                background: ${config.themeColor};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s ease; /* Tüm değişimler için yumuşak geçiş */
+                outline: none;
+            }
+
+            /* Üzerine gelince (Hover) */
+            .ks-setting-btn:hover {
+                filter: brightness(1.15); /* Rengi hafifçe parlatır */
+                box-shadow: 0 4px 12px ${config.themeColor}55; /* Temaya uygun gölge ekler */
+                transform: translateY(-1px); /* Çok hafif yukarı kalkma efekti */
+            }
+
+            /* Tıklama anı (Click/Active) */
+            .ks-setting-btn:active {
+                transform: scale(0.96); /* Butonun hafifçe küçülüp basılma hissi vermesi */
+                filter: brightness(0.9); /* Renk hafifçe koyulaşır */
+            }
+            </style>
+
+            <div id="ks-setting-wrapper">
+                <div class="ks-setting-title">KS Paneli</div>
+                <div class="ks-setting-grid">
+                    ${settingsList.map(opt => `
+                        <div class="ks-setting-card" onclick="document.getElementById('${opt.id}').click()">
+                            <span class="ks-setting-label">${opt.label}</span>
+                            <label class="ks-setting-switch">
+                                <input type="checkbox" id="${opt.id}" ${getSetting(opt.key) ? 'checked' : ''}>
+                                <span class="ks-setting-slider"></span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+                <button id="ks-close-modal" class="ks-setting-btn">KAYDET</button>
+            </div>
+            `;
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            document.getElementById('ks-opt-1').onchange = (e) => setSetting('KS_SYS', e.target.checked);
+            document.getElementById('ks-opt-2').onchange = (e) => setSetting('KS_PANEL', e.target.checked);
+            document.getElementById('ks-opt-3').onchange = (e) => setSetting('KS_MANU', e.target.checked);
+            document.getElementById('ks-opt-4').onchange = (e) => setSetting('KS_REF', e.target.checked);
+            document.getElementById('ks-opt-5').onchange = (e) => setSetting('KS_DNM', e.target.checked);
+            document.getElementById('ks-opt-6').onchange = (e) => setSetting('KS_IMG', e.target.checked);
+            document.getElementById('ks-opt-7').onchange = (e) => setSetting('KS_TRS', e.target.checked);
+            document.getElementById('ks-opt-8').onchange = (e) => setSetting('KS_SAHIB', e.target.checked);
+            document.getElementById('ks-opt-9').onchange = (e) => setSetting('KS_SBM', e.target.checked);
+            document.getElementById('ks-opt-10').onchange = (e) => setSetting('KS_WP', e.target.checked);
+            document.getElementById('ks-opt-11').onchange = (e) => setSetting('KS_NTF', e.target.checked);
+            document.getElementById('ks-close-modal').onclick = () => overlay.remove();
+        };
+
         if (!kstatus.hasAttribute('data-hover')) {
             kstatus.innerHTML = `KS TOOLS`;
         }
     };
-
     setInterval(injectPanel, 2000);
     injectPanel();
+}
+	const KS_SYSTEM = GM_getValue('KS_SYS', false);//KS_SYS
+    const ANALIZPANEL = GM_getValue('KS_PANEL', false);//KS_PANEL
+    const MANUEL = GM_getValue('KS_MANU', false);//KS_MANU
+    const REFERANS = GM_getValue('KS_REF', false);//KS_REF
+    const DONANIM = GM_getValue('KS_DNM', false);//KS_DNM
+    const RESIM = GM_getValue('KS_IMG', false);//KS_IMG
+    const TRSIGORTA = GM_getValue('KS_TRS', false);//KS_TRS
+    const SAHIBINDEN = GM_getValue('KS_SAHIB', false);//KS_SAHIB
+    const SBM = GM_getValue('KS_SBM', false);//KS_SBM
+    const WHATSAPP = GM_getValue('KS_WP', false);//KS_WP
+    const BILDIRIM = GM_getValue('KS_NTF', false);//KS_WP
 
     // Hızlı ve Panel takipli Ön giriş
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
+    if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
         /* ===== 1. PANEL VE STİL ===== */
         injectStyles();
         initPanel();
@@ -1259,7 +1463,7 @@
             setInterval(updatePanel, 2000);
         }
     }
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_magdur.php")) {
+    if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_magdur.php")) {
         /* ===== 1. PANEL VE STİL ===== */
         injectStyles();
         initPanel();
@@ -1663,7 +1867,7 @@
         }
     }
     // Resim yükleme kontrolü
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_evrak_foto_list.php")) {
+    if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_evrak_foto_list.php")) {
         /* ===== 1. PANEL KURULUMU ===== */
         if (typeof injectStyles === 'function') injectStyles();
         if (typeof initPanel === 'function') initPanel();
@@ -1793,7 +1997,7 @@
         }, true);
     }
     // Hızlı Referans açma Otohasar
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
+    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
         injectStyles();
         initPanel();
         config.bottom = "22px";
@@ -1823,10 +2027,20 @@
                     const text = await navigator.clipboard.readText();
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
 
-                    // Sayfadaki mevcut input kutularını sayalım (YP_AD_1, YP_AD_2... şeklinde gidenler)
+                    // Sayfadaki mevcut input kutularını bulalım
                     let availableFields = [];
-                    for (let j = 1; j <= 20; j++) { // Maksimum 20 kutu kontrolü
-                        const field = document.all(`YP_AD_${j}`);
+                    for (let j = 1; j <= 20; j++) {
+                        // Önce standart inputu kontrol et
+                        let field = document.all(`YP_AD_${j}`);
+
+                        // Eğer standart input yoksa veya gizliyse, "DIGER" inputuna bak
+                        if (!field || field.offsetParent === null) {
+                            const alternativeField = document.all(`YP_AD_DIGER_${j}`);
+                            if (alternativeField) {
+                                field = alternativeField;
+                            }
+                        }
+
                         if (field) {
                             availableFields.push(field);
                         }
@@ -1836,23 +2050,25 @@
                     const lineCount = lines.length;
 
                     // --- UYARI MEKANİZMASI ---
-                    if (lineCount !== inputCount) {
+                    if (lineCount !== inputCount && lineCount > 0) {
                         const confirmAction = confirm(`Dikkat: Sayı Uyuşmazlığı!\n\nExcel'den gelen satır: ${lineCount}\nSayfadaki kutu sayısı: ${inputCount}\n\nYine de devam etmek istiyor musunuz?`);
-                        if (!confirmAction) return; // Kullanıcı iptal ederse işlemi durdur
+                        if (!confirmAction) return;
                     }
 
                     // --- DOLDURMA İŞLEMİ ---
                     lines.forEach((line, i) => {
                         if (i < inputCount) {
                             availableFields[i].value = line;
+                            // Değişikliği tetiklemek gerekirse (bazı sistemler için)
+                            availableFields[i].dispatchEvent(new Event('input', { bubbles: true }));
                         }
                     });
 
                     btnPaste.innerText = "✔️ OK";
-                    btnPaste.style.backgroundColor = "#28a745"; // Başarılı renk
+                    btnPaste.style.backgroundColor = "#28a745";
                     setTimeout(() => {
                         btnPaste.innerText = "📋 YAPIŞTIR";
-                        btnPaste.style.backgroundColor = ""; // Eski rengine dön
+                        btnPaste.style.backgroundColor = "";
                     }, 2000);
 
                 } catch (err) {
@@ -1891,6 +2107,53 @@
                     alert("Kopyalama hatası: " + err);
                 }
             };
+			// --- 3. BUTON: OTOMATİK GRUP SEÇ (KAPORTA & DİĞER) ---
+            const btnFillAll = document.createElement('button');
+            btnFillAll.className = 'ks-btn';
+            btnFillAll.innerText = "🚗 TÜMÜNÜ GRUPLANDIR - Hepiyi";
+
+            btnFillAll.onclick = async () => {
+                try {
+                    let count = 0;
+                    // 1'den 20'ye kadar tüm olası satırları kontrol et
+                    for (let j = 1; j <= 20; j++) {
+                        const grupSelect = document.querySelector(`select[name="YP_GRUP_ID_${j}"]`);
+
+                        if (grupSelect) {
+                            // 1. Ana Grubu Seç (KAPORTA)
+                            grupSelect.value = "2";
+
+                            // onchange olayını tetikle (Bu, yp_doldur fonksiyonunu çalıştırır)
+                            grupSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+                            // 2. Alt Grubu Seç (DİĞER)
+                            // Fonksiyonun alt menüyü doldurması için çok kısa bir bekleme ekliyoruz
+                            await new Promise(resolve => setTimeout(resolve, 150));
+
+                            const altSelect = document.querySelector(`select[name="YP_ID_${j}"]`);
+                            if (altSelect) {
+                                altSelect.value = "0"; // Diğer seçeneği
+                                altSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                count++;
+                            }
+                        }
+                    }
+
+                    if (count > 0) {
+                        btnFillAll.innerText = `✔️ ${count} SATIR HAZIR`;
+                        setTimeout(() => { btnFillAll.innerText = "🚗 TÜMÜNÜ SEÇ"; }, 2000);
+                    } else {
+                        alert("Seçilecek kutu bulunamadı!");
+                    }
+
+                } catch (err) {
+                    console.error("Toplu seçim hatası:", err);
+                    alert("İşlem sırasında bir hata oluştu.");
+                }
+            };
+
+            // Butonu ekle
+            contentArea.appendChild(btnFillAll);
 
             // Butonları ekle
             contentArea.appendChild(btnPaste);
@@ -1898,7 +2161,7 @@
         }
     }
     // Hızlı Referans açma Otohasar
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list.php")) {
+    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list.php")) {
         injectStyles();
         initPanel();
         config.bottom = "22px";
@@ -1951,7 +2214,7 @@
         }
     }
     // Hızlı Manuel Parça girişi
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref")) {
+    if (KS_SYSTEM === true && MANUEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref")) {
         function initPanel() {
             if (document.getElementById("tm-panel")) return;
             /* ===== 1. STYLES ===== */
@@ -2021,7 +2284,7 @@
             #tm-panel input {
                 width: 100% !important; padding: 10px; border-radius: 8px;
                 border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.1); color: #fff;
+                background: rgba(255,255,255,0.1); color: black;
                 outline: none; transition: all 0.3s ease;
                 box-sizing: border-box; font-size: 13px;
             }
@@ -2117,6 +2380,7 @@
                 <button id="b_elk" class="btn-purple">ELEKTRİK</button>
                 <button id="b_cam" class="btn-orange">CAM</button>
                 <button id="b_mot" class="btn-indigo">MOTORSİKLET</button>
+                <button id="b_dorse" class="btn-teal">DORSE</button>
             </div>
 
             <div class="tm-section-title">DİĞER İŞLEMLER</div>
@@ -2274,6 +2538,7 @@
             $("b_mek").onclick = async () => { await MainFields(); await SideFields("4", "686"); };
             $("b_cam").onclick = async () => { await MainFields(); await SideFields("17", "934"); };
             $("b_mot").onclick = async () => { await MainFields(); await SideFields("29", "554"); };
+            $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); };
 
             $("b_onar").onclick = async () => {
                 const fiyat = refs.fiyat.value.replace(",", ".");
@@ -2317,7 +2582,7 @@
         }, 1000);
     }
     // Hızlı Çoklu Parça girişi
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
+    if (KS_SYSTEM === true && MANUEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
         /* ===== 1. PANEL VE STİLLER ===== */
         const style = document.createElement('style');
         style.innerHTML = `
@@ -2448,7 +2713,7 @@
         });
     }
     // Hızlı Resim girişi
-    if (location.href.includes("otohasar") && location.href.includes("multi_file_upload")) {
+    if (KS_SYSTEM === true && RESIM === true && location.href.includes("otohasar") && location.href.includes("multi_file_upload")) {
         const getSistemAyarlari = () => {
             const text = document.body.innerText.toUpperCase();
             const url = location.href.toLowerCase();
@@ -2680,7 +2945,7 @@
         setInterval(start, 2500);
     }
     // Hızlı Donanım girişi
-    if (location.href.includes("otohasar") && /eks_(magdur_arac_donanim|arac_donanim)/.test(location.href)) {
+    if (KS_SYSTEM === true && DONANIM === true && location.href.includes("otohasar") && /eks_(magdur_arac_donanim|arac_donanim)/.test(location.href)) {
         function initPanel() {
             if (document.getElementById('donanim-panel') || !document.body.innerText.toLowerCase().includes("donanim")) return;
             //injectStyles(); initPanel();
@@ -2848,9 +3113,7 @@
         setTimeout(initPanel, 1500);
     }
     // Sbm 3lü sayı bölme
-    //https://online.sbm.org.tr/trm-ktt/giris/sonuc.sbm?randQ=8fa87a8f371f5aec4ee3afe2edc34fa2  GİRİŞ ADRES
-    //https://online.sbm.org.tr/trm-ktt/sirket/listView.sbm?randQ=23b5dd697aa33580675278a280940a3f  SONUÇ ADRES
-    if (location.href.includes("online.sbm.org.tr/trm-ktt/giris")) {
+    if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-ktt/giris")) {
         let lastFormattedNumber = "";
 
         // --- 1. YARDIMCI FONKSİYONLAR ---
@@ -2967,7 +3230,7 @@
         else unsafeWindow.addEventListener('load', init);
     }
     // SBM Resim indirme
-    if (location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+    if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
         // AYARLAR
         const MIN_WIDTH = 300; // Sadece bu genişlikten büyük resimleri indirir (Thumbnail'leri eler)
 
@@ -3048,7 +3311,7 @@
         setTimeout(initSbmDownloadPanel, 2000);
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
-    if (location.href.includes("sahibinden.com")) {
+    if (KS_SYSTEM === true && SAHIBINDEN === true && location.href.includes("sahibinden.com")) {
         injectStyles();
         initPanel();
         config.bottom = "22px";
@@ -3158,7 +3421,7 @@
         }
     }
     // Whatsapp Resim indirme
-    if (location.href.includes("web.whatsapp.com")) {
+    if (KS_SYSTEM === true && WHATSAPP === true && location.href.includes("web.whatsapp.com")) {
         function getFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
@@ -3223,7 +3486,7 @@
         }, true);
     }
     // Türkiye Sigorta
-    if (location.href.includes("hasaroto.turkiyesigorta.com.tr")) {
+    if (KS_SYSTEM === true && TRSIGORTA === true && location.href.includes("hasaroto.turkiyesigorta.com.tr")) {
         function applyModernStyles() {
             if (document.getElementById('ts-modern-styles')) return;
             const style = document.createElement('style');
@@ -3478,67 +3741,87 @@
         setInterval(fixSaveButton, 1000);
 
 
-        // Panel her an dinamik gelebileceği için sürekli kontrol eden bir observer kuruyoruz
-        const observer = new MutationObserver(() => {
-            // Hedef panelin ana kapsayıcısını bul (dx-overlay-shader olan en dış katman)
-            const overlays = document.querySelectorAll('.dx-overlay-wrapper.dx-overlay-shader');
+    const observer = new MutationObserver(() => {
+        // Tüm overlay wrapper'ları tara
+        const overlays = document.querySelectorAll('.dx-overlay-wrapper.dx-overlay-shader');
 
-            overlays.forEach(overlay => {
-                // Panel başlığını kontrol et (Sadece bu panelde görünmesi için)
-                const isTargetPanel = overlay.innerText.includes("Seddk 2025/12 Yönetmeliği");
+        overlays.forEach(overlay => {
+            const textContent = overlay.innerText;
 
-                // Eğer doğru panel ise ve henüz buton eklenmemişse
-                if (isTargetPanel && !overlay.querySelector('.custom-close-btn')) {
+            // Kontrol edilecek başlıklar (Buraya istediğin kadar başlık ekleyebilirsin)
+            const targetTitles = [
+                "Seddk 2025/12 Yönetmeliği",
+                "Ön Rapor Gönderilmeme Sebebi Girilmemiş Dosyalar Mevcut!"
+            ];
 
-                    // Butonu oluştur
-                    const closeBtn = document.createElement('button');
-                    closeBtn.innerHTML = '✕';
-                    closeBtn.className = 'custom-close-btn';
+            // Eğer overlay içeriğinde bu başlıklardan biri varsa
+            const isTargetPanel = targetTitles.some(title => textContent.includes(title));
 
-                    // Buton Stilleri
-                    Object.assign(closeBtn.style, {
-                        position: 'absolute',
-                        top: '10px',
-                        right: '25px',
-                        zIndex: '9999',
-                        backgroundColor: '#ff4d4d',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        width: '35px',
-                        height: '35px',
-                        cursor: 'pointer',
-                        fontSize: '20px',
-                        fontWeight: 'bold',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    });
+            // Panel doğruysa ve buton henüz eklenmemişse
+            if (isTargetPanel && !overlay.querySelector('.custom-close-btn')) {
 
-                    // Kapatma işlemi
-                    closeBtn.onclick = function () {
-                        overlay.remove(); // Paneli komple siler
-                    };
+                // Butonu oluştur
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '✕';
+                closeBtn.className = 'custom-close-btn';
 
-                    // Butonu panele (içerik kısmına) ekle
-                    const contentArea = overlay.querySelector('.dx-overlay-content');
-                    if (contentArea) {
-                        contentArea.appendChild(closeBtn);
+                // Buton Stilleri
+                Object.assign(closeBtn.style, {
+                    position: 'absolute',
+                    top: '10px',
+                    right: '25px',
+                    zIndex: '999999',
+                    backgroundColor: '#ff4d4d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    width: '35px',
+                    height: '35px',
+                    cursor: 'pointer',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                });
+
+                // Kapatma işlemi
+                closeBtn.onclick = function () {
+                    overlay.remove();
+                };
+
+                // Butonu panele (içerik kısmına) ekle
+                const contentArea = overlay.querySelector('.dx-overlay-content');
+                if (contentArea) {
+                    // DevExpress panellerinde z-index çakışması olmaması için göreceli konumlandırma
+                    if (window.getComputedStyle(contentArea).position === 'static') {
+                        contentArea.style.position = 'relative';
                     }
+                    contentArea.appendChild(closeBtn);
                 }
-            });
+            }
         });
+    });
+
+    // Observer'ı başlat
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 
         // Sayfadaki değişiklikleri izlemeye başla
         observer.observe(document.body, { childList: true, subtree: true });
     }
     // Sayfa bildirim öldürücü
-    if (location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
-        // Sayfa içindeki gerçek window nesnesine erişiyoruz
+    if (KS_SYSTEM === true && BILDIRIM === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
+        // Sayfa içindeki gerçek window nesnesine erişim
         const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
+
         let notificationCounts = {};
         const MAX_ALLOWED = 3;
+
+        // Bildirim Çubuğu Fonksiyonu
         const showTopNotification = (message, count) => {
             let notifyDiv = document.getElementById('tm-notify-bar');
             if (!notifyDiv) {
@@ -3547,38 +3830,53 @@
                 Object.assign(notifyDiv.style, {
                     position: 'fixed', top: '0', left: '0', width: '100%',
                     backgroundColor: '#f44336', color: 'white', textAlign: 'center',
-                    padding: '10px', zIndex: '999999', fontSize: '14px',
-                    fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                    padding: '10px', zIndex: '9999999', fontSize: '14px',
+                    fontFamily: 'sans-serif', fontWeight: 'bold',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
                     transition: 'opacity 0.5s ease', pointerEvents: 'none'
                 });
                 document.body.appendChild(notifyDiv);
             }
-            notifyDiv.innerText = `[${count}. Tekrar] SİSTEM UYARISI: ${message} (Otomatik Geçildi)`;
+            notifyDiv.innerText = `[${count}. Tekrar] OTOMATİK GEÇİLDİ: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`;
             notifyDiv.style.opacity = '1';
-            setTimeout(() => { notifyDiv.style.opacity = '0'; }, 3000);
+
+            // 3 saniye sonra gizle
+            if (w.tmNotifyTimeout) clearTimeout(w.tmNotifyTimeout);
+            w.tmNotifyTimeout = setTimeout(() => { if(notifyDiv) notifyDiv.style.opacity = '0'; }, 3000);
         };
 
-        // --- Alert Ezme ---
-        const originalAlert = w.alert;
-        w.alert = function (message) {
+        // --- Ortak Yakalayıcı Fonksiyon ---
+        const handleNotification = (type, message, originalFn, defaultValue) => {
             notificationCounts[message] = (notificationCounts[message] || 0) + 1;
-            if (notificationCounts[message] <= MAX_ALLOWED) {
-                return originalAlert(message);
-            } else {
-                showTopNotification(message, notificationCounts[message]);
-                console.log("Alert engellendi:", message);
-            }
-        };
 
-        // --- Confirm Ezme (HATA BURADAYDI: confirm yerine originalConfirm kullanılmalı) ---
-        const originalConfirm = w.confirm;
-        w.confirm = function (message) {
-            notificationCounts[message] = (notificationCounts[message] || 0) + 1;
             if (notificationCounts[message] > MAX_ALLOWED) {
-                showTopNotification(message, notificationCounts[message]);
-                return true; // 3'ten sonra hep "Tamam" de
+                console.warn(`[Tampermonkey] ${type} engellendi:`, message);
+                // DOM henüz yüklenmemiş olabilir (document-start nedeniyle)
+                if (document.body) {
+                    showTopNotification(message, notificationCounts[message]);
+                }
+                return defaultValue; // Otomatik onay (true veya boş string)
             }
-            return originalConfirm(message); // Burası 'confirm' olsaydı sonsuz döngüye girerdi
+            return originalFn.call(w, message);
         };
+
+        // --- Metodları Ezme ---
+        const originalAlert = w.alert;
+        const originalConfirm = w.confirm;
+        const originalPrompt = w.prompt;
+
+        w.alert = function(message) {
+            handleNotification('Alert', message, originalAlert, undefined);
+        };
+
+        w.confirm = function(message) {
+            return handleNotification('Confirm', message, originalConfirm, true);
+        };
+
+        w.prompt = function(message, _default) {
+            return handleNotification('Prompt', message, originalPrompt, _default || "");
+        };
+
+        console.log("Tampermonkey: Bildirim kontrolü aktif.");
     }
 })();
