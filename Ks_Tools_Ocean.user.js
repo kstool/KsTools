@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.1
+// @version      1.2
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -217,7 +217,7 @@
         }
 
         /* 3. NAVİGASYON İKONLARI (STABİL DÜZEN) */
-        tr[background*="new_18.gif"] { background: var(--maim); }
+        tr[background*="new_18.gif"] { background: var(--maim); background-image: none;}
 
         tr[background*="new_18.gif"] table[width="760"] {
             align-items: center !important;
@@ -386,7 +386,7 @@
 
         /* Inputlar */
         input[type="text"], select {
-            background-color: var(--primary-light);
+            background: var(--primary-light);
             border: 1px solid var(--border-soft) ;
             border-radius: 4px ;
         }
@@ -427,27 +427,31 @@
 
         /* Tıklanabilir alanı daha belirgin yapmak için opsiyonel */
         td[align="center"] a {
+		    filter: brightness(1.2) !important;
             display: inline-block !important;
             text-decoration: none !important;
         }
 
         /* --- OCEANIC THEME COMPATIBILITY LAYER --- */
+		.kirmizi {
+			background-color: color-mix(in srgb, var(--maim), var(--reddo) 14%);
+		}
         /* 2. VERİ HÜCRELERİ (SABİT GÖRÜNÜM) */
         .koyu, .koyu_yangin, .koyu01, .koyu_text, .acik_cam {
-            background-color: color-mix(in srgb, var(--maim), var(--texto) 4%) !important;
+            background-color: color-mix(in srgb, var(--maim), var(--texto) 4%);
             color: var(--text-dark);
             border: 1px solid rgba(0,0,0,0.05) !important;
         }
 
         .acik, .acik_yangin, .acik_text, .beyaz_liste, .yazi, .yazi1 {
-            background-color: var(--maim) !important;
+            background-color: var(--maim);
             color: var(--text-dark);
             border-bottom: 1px solid #e2e8f0 !important;
         }
 
         /* 3. BAŞLIKLAR */
         .koyubaslik, .koyubaslik_text, .koyubaslik01, .koyubaslik01_text, .koyubaslik_, .tb {
-            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%) !important;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
             color: var(--maim) !important;
             border: none !important;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
@@ -541,6 +545,9 @@
         /* Yan sanayi/Uyarı vurgusu */
         .acik_yansanayi { background-color: #ffeb3b !important; color: #856404 !important; }
         .kirmizi, .kirmizi1 { color: #e74c3c !important; }
+		td.tb[background*="baslik_img02.gif"] {
+		    color: var(--accent) !important; /* Tam siyah yapar */
+		}
 
         /* Animasyonlu Buton (Orijinal ismi korundu) */
         #btnStream { animation: blinkingText 1.5s infinite !important; }
