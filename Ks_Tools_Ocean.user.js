@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.2
+// @version      1.3
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
 // @grant        GM_addStyle
+// @exclude      *://otohasar.mapfre.com.tr/print*
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // ==/UserScript==
