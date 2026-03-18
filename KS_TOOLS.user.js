@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.26
+// @version      1.27
 // @license      GPL-3.0
 // @description  OtoHasar Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -1847,11 +1847,11 @@
     }
     // Hızlı Referans açma Otohasar
     if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
+        config.bottom = "24px";
+        config.width = "200px";
+        config.collapsedWidth = "200px";
         injectStyles();
         initPanel();
-        config.bottom = "22px";
-        config.width = "250px"; // İki buton yan yana sığsın diye genişliği artırdık
-        config.collapsedWidth = "250px";
 
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -2003,18 +2003,18 @@
     }
     // Hızlı Referans açma Otohasar
     if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list.php")) {
+        config.bottom = "22px";
+        config.width = "150px"; // İki buton yan yana sığsın diye genişliği artırdık
+        config.collapsedWidth = "150px";
         injectStyles();
         initPanel();
-        config.bottom = "22px";
-        config.width = "250px"; // İki buton yan yana sığsın diye genişliği artırdık
-        config.collapsedWidth = "250px";
 
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
             // Başlığı güncellemek isterseniz:
             const headerTitle = panel.querySelector('.ks-header h4');
-            if (headerTitle) headerTitle.innerText = "Excell Panel";
+            if (headerTitle) headerTitle.innerText = "Aktifleştirici Panel";
         }
 
         const contentArea = document.querySelector('.ks-content');
@@ -2065,17 +2065,17 @@
                 --panel-bg: rgba(25, 25, 25, 0.85);
                 --accent-blue: #0078d4;
                 --transition-speed: 0.4s;
-                --toggle-loc: 280px;
+                --toggle-loc: 250px;
             }
 
             #tm-panel {
-                position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+                position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
                 background: var(--panel-bg);
                 backdrop-filter: blur(20px) saturate(160%);
                 -webkit-backdrop-filter: blur(20px) saturate(160%);
                 color: #fff; z-index: 9999999;
                 display: flex; flex-direction: column;
-                padding: 20px 15px; gap: 15px;
+                padding: 10px 10px; gap: 8px;
                 font-family: 'Segoe UI', system-ui, sans-serif;
                 box-shadow: 5px 0 25px rgba(0,0,0,0.5);
                 border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -2099,19 +2099,32 @@
 
             /* Kapatma / Açma Butonu (Toggle) */
             #tm-toggle {
-                position: fixed; top: 20px; left: var(--toggle-loc);
-                width: 40px; height: 50px;
+                position: fixed;
+                top: 20px;
+                left: var(--toggle-loc);
+                width: 40px;
+                height: 50px;
                 background: var(--panel-bg);
                 border: 1px solid rgba(255,255,255,0.1);
-                border-left: none; border-radius: 0 8px 8px 0;
-                cursor: pointer; color: #fff; z-index: 1;
-                display: flex; align-items: center; justify-content: center;
+                border-left: none;
+                border-radius: 0 8px 8px 0;
+                cursor: pointer;
+                color: #fff;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 box-shadow: 5px 0 25px rgba(0,0,0,0.5);
-                transition: left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
                 backdrop-filter: blur(10px);
+
+                /* AÇILIRKEN: Yavaş geçiş (Panel açılırken toggle sağa yavaş gider) */
+                transition: left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             }
+
+            /* KAPANIRKEN: Hızlı geçiş (closed sınıfı eklendiğinde toggle sola hızlı gider) */
             #tm-panel.closed + #tm-toggle {
-                left: 25px;
+                left: 0px;
+                transition: left calc(var(--transition-speed) / 2) cubic-bezier(0.4, 0, 0.2, 1);
             }
 
             .tm-section-title {
@@ -2123,11 +2136,11 @@
             /* Giriş Alanları (Tam Genişlik) */
             .tm-input-group { display: flex; flex-direction: column; gap: 8px; }
             #tm-panel input {
-                width: 100% !important; padding: 10px; border-radius: 8px;
+                width: 100% !important; padding: 6px; border-radius: 8px;
                 border: 1px solid rgba(255,255,255,0.1);
                 background: rgba(255,255,255,0.1); color: black;
                 outline: none; transition: all 0.3s ease;
-                box-sizing: border-box; font-size: 13px;
+                box-sizing: border-box; font-size: 12px;
             }
             #tm-panel input:focus {
                 background: rgba(255,255,255,0.2);
@@ -2137,10 +2150,10 @@
 
             /* Butonlar (Daha küçük ve zarif) */
             .tm-button-grid {
-                display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+                display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
             }
             #tm-panel button {
-                padding: 8px 10px; border-radius: 6px; border: none;
+                padding: 6px 8px; border-radius: 6px; border: none;
                 cursor: pointer; font-size: 11px; font-weight: 600;
                 color: #fff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 display: flex; align-items: center; justify-content: center;
@@ -2174,7 +2187,6 @@
             .btn-orange { background: #FF9800; color: #000; }
             .btn-purple { background: purple; color: #000; }
             .btn-rpr { background: #FF5722; }
-            /* Yeni Renkler */
             .btn-danger { background: #F44336; color: white; }     /* Kırmızı - İptal/Sil */
             .btn-info { background: #00BCD4; color: black; }       /* Turkuaz - Bilgi */
             .btn-dark { background: #37474F; color: white; }       /* Antrasit - Arşiv */
@@ -2185,7 +2197,7 @@
             .btn-brown { background: #795548; color: white; }      /* Kahve - Geçmiş/Log */
             .btn-gold { background: #D4AF37; color: black; }       /* Altın - Premium/Öncelikli */
 
-            @keyframes blink { 0%, 100% { background: #2196F3; opacity: 1; } 50% { background: #ff5722; opacity: 0.5; } }
+            @keyframes blink { 0%, 100% { background: #D4AF37; opacity: 1; } 50% { background: #3F51B5; opacity: 0.5; } }
             .blink { animation: blink 1s infinite; background: #FF9800; }
         `;
             document.head.appendChild(style);
@@ -2376,7 +2388,8 @@
             $("b_kpyn").onclick = async () => { await MainFields(); await SideFields("11", "852"); };
             $("b_kpar").onclick = async () => { await MainFields(); await SideFields("12", "898"); };
             $("b_kptv").onclick = async () => { await MainFields(); await SideFields("13", "905"); };
-            $("b_mek").onclick = async () => { await MainFields(); await SideFields("4", "686"); };
+            $("b_elk").onclick = async () => { await MainFields(); await SideFields("4", "686"); };
+            $("b_mek").onclick = async () => { await MainFields(); await SideFields("2", "645"); };
             $("b_cam").onclick = async () => { await MainFields(); await SideFields("17", "934"); };
             $("b_mot").onclick = async () => { await MainFields(); await SideFields("29", "554"); };
             $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); const sipSec2 = await waitFor(() => $("SIP_SEC_2")); sipSec2.checked = true;};
@@ -3059,7 +3072,7 @@
                 panel = document.createElement('div');
                 panel.id = 'sbm-big-number-panel';
                 Object.assign(panel.style, {
-                    position: 'fixed', bottom: '22px', right: '0px',
+                    position: 'fixed', bottom: '2px', left: '2px',
                     backgroundColor: 'rgba(0,0,0,0.75)', color: 'white',
                     padding: '8px 12px', borderRadius: '4px 0 0 4px',
                     boxShadow: '0 4px 15px rgba(0,0,0,0.4)', zIndex: '10000',
@@ -3250,11 +3263,11 @@
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (KS_SYSTEM === true && SAHIBINDEN === true && location.href.includes("sahibinden.com")) {
-        injectStyles();
-        initPanel();
         config.bottom = "22px";
         config.width = "200px";
         config.collapsedWidth = "200px";
+        injectStyles();
+        initPanel();
         const contentArea = document.querySelector('.ks-content');
         /* ================= AYARLAR & STATE ================= */
         let lastState = ""; // Veri değişmediyse DOM'u güncellememek için
