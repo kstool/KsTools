@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.29
+// @version      1.30
 // @license      GPL-3.0
 // @description  OtoHasar Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -2922,32 +2922,60 @@
             const text = document.body.innerText.toUpperCase();
             const url = location.href.toLowerCase();
 
-            // VARSAYILAN AYARLAR (Atlas, Hepiyi, Doğa vb.)
+            // VARSAYILAN AYARLAR (Atlas, Doğa vb.)
             const varsayilan = {
                 EHLİYET: ['1'],
                 RUHSAT: ['7'],
                 KTT: ['174', '11'],
                 BEYAN: ['179', '155'],
                 ZABIT: ['5', '118'],
-                POLICE: '3',
-                IMZA: '131',
-                SICIL: '202',
-                SKAYIT: '219',
-                GAZETE: '202',
-                FAAL: '190',
-                IRSALIYE: '26',
-                NUFUS: '2',
-                DIGER: '12',
-                ONARIM_SONRASI: '32',
-                MUTABAKAT: '28',
-                MUVAFAKAT: '39',
-                IBRA: '33',
-                ALKOL: '4',
-                RAYIC: '49',
-                TRAMER: ['48'],
+                POLICE: ['3'],
+                IMZA: ['131'],
+                SICIL: ['202'],
+                SKAYIT: ['219'],
+                GAZETE: ['202'],
+                FAAL: ['190'],
+                IRSALIYE: ['26'],
+                NUFUS: ['2'],
+                DIGER: ['12'],
+                ONARIM_SONRASI: ['32'],
+                MUTABAKAT: ['211','28'],
+                MUVAFAKAT: ['111'],
+                IBRA: ['33'],
+                ALKOL: ['4'],
+                RAYIC: ['231','184'],
+                TRAMER: ['230', '229', '228'],
                 VERGI: ['9', '221'],
-                MASAK: '162'
+                MASAK: ['248']
             };
+
+			const atlas = {
+			    EHLİYET: ['1', '195', '196'],
+			    RUHSAT: ['7', '92', '38'],
+			    KTT: ['174', '11', '96'],
+			    BEYAN: ['179', '155', '6'],
+			    ZABIT: ['5', '118', '22', '169'],
+			    POLICE: ['3'],
+			    IMZA: ['131', '8'],
+			    SICIL: ['202'],
+			    SKAYIT: ['219'],
+			    GAZETE: ['202'],
+			    FAAL: ['190'],
+			    IRSALIYE: ['26', '220', '41'],
+			    NUFUS: ['2', '213'],
+			    DIGER: ['12'],
+			    ONARIM_SONRASI: ['32'],
+			    MUTABAKAT: ['211', '28'],
+			    MUVAFAKAT: ['111', '56', '57', '101', '130'],
+			    IBRA: ['33', '132', '212'],
+			    ALKOL: ['4'],
+			    RAYIC: ['184'],
+			    TRAMER: ['12'],
+			    VERGI: ['9', '221', '208', '62'],
+			    MASAK: ['12'],
+			    IHRACAT_REFAKAT: ['133'],
+			    TASIT_BELGESI: ['177']
+			};
 
             // MAPFRE ÖZEL AYARLARI
             const mapfre = {
@@ -2955,55 +2983,55 @@
                 RUHSAT: ['143', '144'],
                 KTT: ['36', '11'],
                 BEYAN: ['6'],
-                ZABIT: ['5'],
-                POLICE: '3',
-                IMZA: '8',
-                SICIL: '40',
-                SKAYIT: '219',
-                GAZETE: '40',
-                FAAL: '190',
-                IRSALIYE: '41',
-                NUFUS: '2',
-                DIGER: '12',
-                ONARIM_SONRASI: '18',
-                MUTABAKAT: '28',
-                MUVAFAKAT: '39',
-                IBRA: '33',
-                ALKOL: '4',
-                RAYIC: '49',
-                TRAMER: ['48'],
-                VERGI: ['9', '221'],
-                MASAK: '162'
+                ZABIT: ['5', '22'],
+                POLICE: ['3'],
+                IMZA: ['8'],
+                SICIL: ['40'],
+                SKAYIT: ['12'],
+                GAZETE: ['40'],
+                FAAL: ['65'],
+                IRSALIYE: ['70'],
+                NUFUS: ['2'],
+                DIGER: ['12'],
+                ONARIM_SONRASI: ['18'],
+                MUTABAKAT: ['28'],
+                MUVAFAKAT: ['39', '79'],
+                IBRA: ['33'],
+                ALKOL: ['4'],
+                RAYIC: ['49', '184'],
+                TRAMER: ['48', '210'],
+                VERGI: ['9'],
+                MASAK: ['162']
             };
 
             // MAPFRE ÖZEL AYARLARI
             const hepiyi = {
-                EHLİYET: ['1'],
-                RUHSAT: ['7'],
-                KTT: ['174', '11'],
-                BEYAN: ['179', '155'],
-                ZABIT: ['5', '118'],
-                POLICE: '3',
-                IMZA: '131',
-                SICIL: '202',
-                SKAYIT: '219',
-                GAZETE: '202',
-                FAAL: '190',
-                IRSALIYE: '26',
-                NUFUS: '2',
-                DIGER: '12',
-                ONARIM_SONRASI: '6',
-                MUTABAKAT: '211',
-                MUVAFAKAT: '111',
-                IBRA: '33',
-                ALKOL: '4',
-                RAYIC: '231',
-                TRAMER: ['230', '229', '228'],
-                VERGI: ['9', '221'],
-                MASAK: '248'
+                EHLİYET: ['1', '195', '196', '239'],
+                RUHSAT: ['7', '92', '38', '238'],
+                KTT: ['174', '11', '96', '237', '224'],
+                BEYAN: ['179', '155', '246', '226', '6'],
+                ZABIT: ['5', '118', '22', '169'],
+                POLICE: ['3'],
+                IMZA: ['131', '8'],
+                SICIL: ['202'],
+                SKAYIT: ['219'],
+                GAZETE: ['202'],
+                FAAL: ['190'],
+                IRSALIYE: ['26', '220', '41', '134'],
+                NUFUS: ['2', '213', '201'],
+                DIGER: ['12', '243'],
+                ONARIM_SONRASI: ['6'],
+                MUTABAKAT: ['211', '247', '28'],
+                MUVAFAKAT: ['111', '56', '57', '130'],
+                IBRA: ['33', '132', '212'],
+                ALKOL: ['4'],
+                RAYIC: ['231', '184', '225', '234'],
+                TRAMER: ['230', '229', '228', '233'],
+                VERGI: ['9', '221', '136'],
+                MASAK: ['248']
             };
 
-            return (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre : (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi : varsayilan;
+            return (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre : (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi : (text.includes("ATLAS") || url.includes("atlas")) ? atlas : varsayilan;
 
         };
 
@@ -3021,33 +3049,24 @@
             if (!panel) return;
             panel.style.setProperty('width', config.width, 'important');
             panel.style.setProperty('min-width', config.width, 'important');
-
             const panelContent = panel.querySelector('.ks-content');
             const headerTitle = panel.querySelector('.ks-header h4');
-
             if (headerTitle) headerTitle.innerText = "Resim Seçme";
-
-            // Panel içeriğini temizle ve flex-direction: column ile dikey yap
             panelContent.innerHTML = `
-                    <div id="ks-action-container" style="display: flex; flex-direction: column; gap: 6px; padding: 4px;"></div>
+                    <div id="ks-action-container" style="display: flex; flex-direction: column; gap: 2px; padding: 4px;"></div>
                     <hr style="border:0; border-top:1px solid #444; margin:8px 0;">
                 `;
             const actionContainer = panelContent.querySelector('#ks-action-container');
-
             const createMiniBtn = (text, color, targetSelector, val, tooltipTitle, tooltipDesc) => {
                 const container = document.createElement('div');
                 container.className = 'ks-tooltip-container';
-
-                // Konteynırı satırı tam kaplamaya zorla
                 Object.assign(container.style, {
                     width: '100%',
                     display: 'block'
                 });
-
                 const btn = document.createElement('button');
                 btn.innerText = text;
                 btn.className = 'ks-btn';
-
                 Object.assign(btn.style, {
                     background: color,
                     border: '0',
@@ -3057,26 +3076,21 @@
                     fontWeight: "bold",
                     padding: '3px 4px',
                     fontSize: '11px',
-                    width: '100%', // Buton genişliği %100
+                    width: '100%',
                     display: 'block',
                     textAlign: 'center',
                     transition: 'transform 0.1s',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    boxSizing: 'border-box' // Padding'in genişliği bozmaması için
+                    boxSizing: 'border-box'
                 });
-
-                // Tıklama animasyonları (Atama hatası düzeltildi)
                 btn.onmousedown = () => { btn.style.transform = 'scale(0.98)'; };
                 btn.onmouseup = () => { btn.style.transform = 'scale(1)'; };
                 btn.onmouseleave = () => { btn.style.transform = 'scale(1)'; };
-
-                // Tooltip Veri Kaynağı
                 const tip = document.createElement('div');
                 tip.className = 'ks-tooltip-box';
                 tip.style.display = 'none';
                 tip.style.borderColor = color;
-                tip.innerHTML = `<strong>${tooltipTitle}</strong><br>${tooltipDesc}`;
-
+				tip.innerHTML = `<strong>${tooltipTitle}</strong><br>${tooltipDesc}`;
                 btn.onclick = (e) => {
                     e.preventDefault();
                     document.querySelectorAll(targetSelector).forEach(sel => {
@@ -3084,13 +3098,10 @@
                         sel.dispatchEvent(new Event('change', { bubbles: true }));
                     });
                 };
-
                 container.appendChild(btn);
                 container.appendChild(tip);
                 return container;
             };
-
-            // Butonları tek tek ekle (Artık kesinlikle alt alta gelecekler)
             actionContainer.appendChild(createMiniBtn('Fotokopi', '#e67e22', 'select[name^="EVRAK_TIPI_"]', '0', 'Evrak Tipi: Fotokopi', 'Tümünü Fotokopi olarak işaretler.'));
             actionContainer.appendChild(createMiniBtn('Aslı', '#2980b9', 'select[name^="EVRAK_TIPI_"]', '1', 'Evrak Tipi: Aslı', 'Tümünü Aslı olarak işaretler.'));
             actionContainer.appendChild(createMiniBtn('OLAY YERİ', '#8e44ad', 'select[name^="PHOTO_CTG_ID_"]', '11', 'Kategori: Olay', 'Tümünü Olay Yeri Resimleri yapar.'));
@@ -3105,22 +3116,18 @@
             evrakSelects.forEach(selectEl => {
                 if (selectEl.hasAttribute('data-panel-active')) return;
                 selectEl.setAttribute('data-panel-active', 'true');
-
                 const fileNameMatch = selectEl.name.match(/\[(.*?)\]/);
                 const fileName = fileNameMatch ? fileNameMatch[1] : "Dosya";
                 const parentTd = selectEl.closest('td');
                 const noteArea = parentTd.querySelector('textarea[name^="HEADER_"]');
-
                 if (noteArea) {
                     const container = document.createElement('div');
                     Object.assign(container.style, {
                         background: '#f1f1f1', border: '1px solid #ccc', borderRadius: '3px',
                         padding: '4px', marginBottom: '4px', marginTop: '6px'
                     });
-
                     const nameLabel = document.createElement('div');
                     nameLabel.innerText = "📁 " + fileName;
-
                     Object.assign(nameLabel.style, {
                         fontWeight: '800',
                         fontSize: '10px',
@@ -3139,45 +3146,40 @@
                         letterSpacing: '0.5px',
                         boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
                     });
-
                     container.appendChild(nameLabel);
-
-                    // Eski flex yapısı yerine 7 kolonlu kesin grid yapısı
                     const btnGroup = document.createElement('div');
                     Object.assign(btnGroup.style, {
                         display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', width: 'auto', boxSizing: 'border-box'
                     });
-
                     const buttons = [
-                        { label: 'EHLİY', vals: ayarlar.EHLİYET, color: '#ff4757', t: 'Ehliyet - Mağdur/Sigortalı Tekrar tıkla' },
-                        { label: 'RUHST', vals: ayarlar.RUHSAT, color: '#ffa502', t: 'Ruhsat - Mağdur/Sigortalı Tekrar tıkla' },
-                        { label: 'KİMLK', vals: [ayarlar.NUFUS], color: '#1e90ff', t: 'Kimlik/Nüfus' },
-                        { label: 'POLİÇ', vals: [ayarlar.POLICE], color: '#3742fa', t: 'Poliçe' },
-                        { label: 'KTT', vals: ayarlar.KTT, color: '#2ed573', t: 'Kaza Tespit/Karakol Tutanağı' },
+                        { label: 'EHLİYET', vals: ayarlar.EHLİYET, color: '#ff4757', t: 'Ehliyet - Mağdur/Sigortalı Tekrar tıkla' },
+                        { label: 'RUHSAT', vals: ayarlar.RUHSAT, color: '#ffa502', t: 'Ruhsat - Mağdur/Sigortalı Tekrar tıkla' },
+                        { label: 'KİMLİK', vals: ayarlar.NUFUS, color: '#1e90ff', t: 'Kimlik/Nüfus' },
+                        { label: 'POLİÇE', vals: ayarlar.POLICE, color: '#3742fa', t: 'Poliçe' },
+                        { label: 'TUTANAK', vals: ayarlar.KTT, color: '#2ed573', t: 'Kaza Tespit/Karakol Tutanağı' },
                         { label: 'BEYAN', vals: ayarlar.BEYAN, color: '#57606f', t: 'Beyan Mağdur/Talep' },
                         { label: 'ZABIT', vals: ayarlar.ZABIT, color: '#a29bfe', t: 'Zabıt / Zabıt Tercüme' },
-                        { label: 'ALKOL', vals: [ayarlar.ALKOL], color: '#ff6b81', t: 'Alkol Raporu' },
-                        { label: 'İMZA', vals: [ayarlar.IMZA], color: '#1abc9c', t: 'İmza Sirküsü' },
-                        { label: 'GAZET', vals: [ayarlar.GAZETE], color: '#95a5a6', t: 'Sicil Gazetesi' },
-                        { label: 'SCLKT', vals: [ayarlar.SICIL], color: '#7f8c8d', t: 'Sicil Kayıt' },
-                        { label: 'SSKKT', vals: [ayarlar.SKAYIT], color: '#8395a7', t: 'SSK Kaydı' },
-                        { label: 'FALYT', vals: [ayarlar.FAAL], color: '#ee5253', t: 'Faaliyet' },
-                        { label: 'MUTAB', vals: [ayarlar.MUTABAKAT], color: '#10ac84', t: 'Mutabakatname' },
-                        { label: 'MUVAB', vals: [ayarlar.MUVAFAKAT], color: '#22af94', t: 'Muvafakatname' },
-                        { label: 'TESİB', vals: [ayarlar.IBRA], color: '#2e86de', t: 'Teslim İbra' },
-                        { label: 'İRSAL', vals: [ayarlar.IRSALIYE], color: '#f39c12', t: 'İrsaliye' },
-                        { label: 'RAYİÇ', vals: [ayarlar.RAYIC], color: '#f1c40f', t: 'Rayiç Çalışması' },
-                        { label: 'TRAME', vals: ayarlar.TRAMER, color: '#5f27cd', t: 'Tramer Sorgulama/Ağır Hasar/Geçmiş Hasar' },
-                        { label: 'MASAK', vals: [ayarlar.MASAK], color: '#00d2d3', t: 'MASAK Evrakları' },
-                        { label: 'VERLV', vals: ayarlar.VERGI, color: '#546e7a', t: 'VERGİ LEVHASI / V.L. ŞİRKETLER İÇİN Tekrar tıkla' },
-                        { label: 'DİĞER', vals: [ayarlar.DIGER], color: '#bdc3c7', t: 'Diğer Evraklar' }
+                        { label: 'ALKOL', vals: ayarlar.ALKOL, color: '#ff6b81', t: 'Alkol Raporu' },
+                        { label: 'İMZA', vals: ayarlar.IMZA, color: '#1abc9c', t: 'İmza Sirküsü' },
+                        { label: 'GAZETE', vals: ayarlar.GAZETE, color: '#95a5a6', t: 'Sicil Gazetesi' },
+                        { label: 'SİCİLKT', vals: ayarlar.SICIL, color: '#7f8c8d', t: 'Sicil Kayıt' },
+                        { label: 'SSKKT', vals: ayarlar.SKAYIT, color: '#8395a7', t: 'SSK Kaydı' },
+                        { label: 'FALİYET', vals: ayarlar.FAAL, color: '#ee5253', t: 'Faaliyet' },
+                        { label: 'MUTABAK', vals: ayarlar.MUTABAKAT, color: '#10ac84', t: 'Mutabakatname/Mutabakat Yazısı' },
+                        { label: 'MUVAFFA', vals: ayarlar.MUVAFAKAT, color: '#22af94', t: 'Muvaffakatname' },
+                        { label: 'TSLMİBR', vals: ayarlar.IBRA, color: '#2e86de', t: 'İbraname/Teslim İbra' },
+                        { label: 'İRSALYE', vals: ayarlar.IRSALIYE, color: '#f39c12', t: 'İrsaliye' },
+                        { label: 'PİYASA', vals: ayarlar.RAYIC, color: '#f1c40f', t: 'Piyasa - Rayiç Çalışması/Aktüer Raporu' },
+                        { label: 'TRAMER', vals: ayarlar.TRAMER, color: '#5f27cd', t: 'Tramer Sorgulama/Ağır Hasar/Geçmiş Hasar' },
+                        { label: 'MASAK', vals: ayarlar.MASAK, color: '#00d2d3', t: 'MASAK Evrakları' },
+                        { label: 'VERLVHA', vals: ayarlar.VERGI, color: '#546e7a', t: 'VERGİ LEVHASI / V.L. ŞİRKETLER İÇİN Tekrar tıkla' },
+                        { label: 'DİĞER', vals: ayarlar.DIGER, color: '#bdc3c7', t: 'Diğer Evraklar' }
                     ];
 
                     buttons.forEach(btnData => {
                         const btnWrapper = document.createElement('div');
                         btnWrapper.className = 'ks-tooltip-container';
                         btnWrapper.style.width = 'auto';
-
                         const btn = document.createElement('button');
                         btn.innerText = btnData.label;
                         btn.className = 'ks-btn';
@@ -3192,12 +3194,10 @@
                         btn.onmouseup = () => {
                             btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)';
                         };
-
                         const tip = document.createElement('div');
                         tip.className = 'ks-tooltip-box';
                         tip.style.borderColor = btnData.color;
                         tip.innerHTML = `<b style:"font-weight: bold;">${btnData.t}</b>`;
-
                         btn.onclick = (e) => {
                             e.preventDefault();
                             let nextVal = btnData.vals[0];
@@ -3207,24 +3207,22 @@
                             selectEl.value = nextVal;
                             selectEl.dispatchEvent(new Event('change', { bubbles: true }));
 
-                            /*const tipiSelect = parentTd.querySelector('select[name^="EVRAK_TIPI_"]');
+                            /* //-- Evrak türünüde seçer
+                            const tipiSelect = parentTd.querySelector('select[name^="EVRAK_TIPI_"]');
                             if (tipiSelect) {
                                 tipiSelect.value = "1";
                                 tipiSelect.dispatchEvent(new Event('change', { bubbles: true }));
                             }*/
                         };
-
                         btnWrapper.appendChild(btn);
                         btnWrapper.appendChild(tip);
                         btnGroup.appendChild(btnWrapper);
                     });
-
                     container.appendChild(btnGroup);
                     noteArea.parentNode.insertBefore(container, noteArea);
                 }
             });
         }
-
         function start() {
             initGeneralPanel();
             injectRowPanels();
@@ -3397,13 +3395,11 @@
         // Başlatma
         if (document.readyState === 'complete') initPanel();
         else unsafeWindow.addEventListener('load', initPanel);
-        // Dinamik yüklemeler için ek kontrol
         setTimeout(initPanel, 1500);
     }
     // Sbm 3lü sayı bölme
     if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-ktt/giris")) {
         let lastFormattedNumber = "";
-
         // --- 1. YARDIMCI FONKSİYONLAR ---
         const parseDate = (s) => {
             const b = s?.split(' ')[0].split('/');
@@ -3466,16 +3462,12 @@
             const kazaInp = document.getElementById('ihbarPoliceSorguBilgileriForm.kazaTarihi');
             const kazaT = parseDate(kazaInp?.value);
             if (!kazaT || isNaN(kazaT)) return;
-
             document.querySelectorAll('tr.odd, tr.even, tr[class*="selected"]').forEach(row => {
                 const match = row.innerText.match(/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/);
                 if (!match) return;
-
                 const dS = parseDate(match[1]), dE = parseDate(match[2]);
                 if (!dS || !dE) return;
-
                 let color = '#f8d7da'; // Varsayılan: Kırmızı (Kapsam dışı)
-
                 // Eğer kaza tarihi poliçe aralığındaysa
                 if (kazaT >= dS && kazaT <= dE) {
                     const gecenGun = Math.floor((kazaT - dS) / 864e5); // Başlangıçtan kaza anına kadar geçen gün
@@ -3488,16 +3480,13 @@
                         color = '#d4edda'; // Güvenli (Yeşil)
                     }
                 }
-
                 row.style.setProperty('background-color', color, 'important');
             });
 };
 
         // --- 3. GÖZLEMCİ VE BAŞLATICI ---
         const mainObserver = new MutationObserver((mutations) => {
-            mainObserver.disconnect(); // Döngüsel tetiklemeyi önle
-
-            // Sayı formatlama işlemleri
+            mainObserver.disconnect();
             for (const mutation of mutations) {
                 mutation.addedNodes.forEach(node => {
                     if (node.nodeType === 1) processNodes(node);
@@ -3506,32 +3495,23 @@
                     }
                 });
             }
-
-            // Poliçe renk analiz işlemleri
             analyzePolicies();
-
             mainObserver.observe(document.body, { childList: true, subtree: true });
         });
-
-        // İlk çalıştırma
         const init = () => {
             createNumberPanel();
             processNodes(document.body);
             analyzePolicies();
             mainObserver.observe(document.body, { childList: true, subtree: true });
         };
-
         if (document.readyState === 'complete') init();
         else unsafeWindow.addEventListener('load', init);
     }
     // SBM Resim indirme
     if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
-        // AYARLAR
-        const MIN_WIDTH = 300; // Sadece bu genişlikten büyük resimleri indirir (Thumbnail'leri eler)
-
+        const MIN_WIDTH = 300;
         function initSbmDownloadPanel() {
             if (document.getElementById('sbm-download-mini-panel')) return;
-
             const panel = document.createElement('div');
             panel.id = 'sbm-download-mini-panel';
             Object.assign(panel.style, {
@@ -3541,7 +3521,6 @@
                 display: 'flex', flexDirection: 'column',
                 gap: '4px', width: '110px', border: '1px solid #555'
             });
-
             const mainBtn = document.createElement('button');
             mainBtn.innerText = 'RESİMLERİ İNDİR';
             Object.assign(mainBtn.style, {
@@ -3549,38 +3528,27 @@
                 color: "white", cursor: 'pointer', fontWeight: "bold",
                 padding: '6px 2px', fontSize: '10px', width: '100%'
             });
-
             mainBtn.onclick = async () => {
                 const images = document.querySelectorAll('img');
                 let count = 0;
-
                 for (const img of images) {
-                    // Sadece büyük boyutlu olanları al
                     if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
                         const url = img.src;
                         if (!url || url.startsWith('data:')) continue;
-
                         count++;
-
-                        // Orijinal ismi URL parametrelerinden veya sıradan oluştur
-                        // SBM genellikle parametre kullandığı için temiz bir isim üretelim
                         let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
-
-                        // URL içinde anlamlı bir ID varsa onu çekmeye çalışalım
                         const urlParams = new URLSearchParams(url.split('?')[1]);
                         if (urlParams.has('id')) {
                             fileName = `tutanak_${urlParams.get('id')}.jpg`;
                         } else if (url.includes('filename=')) {
                             fileName = url.split('filename=')[1].split('&')[0] + ".jpg";
                         }
-
                         await forceDownload(url, fileName);
                     }
                 }
                 mainBtn.innerText = `BİTTİ (${count})`;
                 setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
             };
-
             panel.appendChild(mainBtn);
             document.body.appendChild(panel);
         }
@@ -3704,13 +3672,9 @@
             const init = () => {
                 if (document.querySelector('table')) {
                     if (!document.body.contains(contentArea)) document.body.appendChild(contentArea);
-                    hesapla();
-                    // Sayfa değişimlerini veya dinamik yüklemeleri yakalamak için
-                    setInterval(hesapla, 2000);
+                    hesapla(); setInterval(hesapla, 2000);
                 }
-                else {
-                    setTimeout(init, 500);
-                }
+                else { setTimeout(init, 500); }
             };
             init();
         }
@@ -3732,14 +3696,10 @@
                 target.querySelector('img');
 
             if (imgElement && imgElement.src) {
-                // Event'in yukarı/aşağı yayılmasını durdurun (Çift tetiklenmeyi önler)
                 event.stopPropagation();
                 event.preventDefault();
-
                 const fileName = getFileName();
                 console.log("İndirme başlatılıyor:", fileName);
-
-                // GM_download kullanımı (Eğer Tampermonkey/Violentmonkey ise en sağlıklısı budur)
                 if (typeof GM_download === "function") {
                     GM_download({
                         url: imgElement.src,
@@ -3747,7 +3707,6 @@
                         saveAs: false,
                         onload: () => console.log("GM_download ile başarıyla indirildi."),
                         onerror: (err) => {
-                            // Sadece GM_download gerçekten başarısız olursa manuel yöntemi dene
                             if (err.error !== 'not_permitted' && err.error !== 'not_supported') {
                                 manualDownload(imgElement.src, fileName);
                             }
@@ -3769,8 +3728,6 @@
             link.click();
             setTimeout(() => document.body.removeChild(link), 100);
         }
-
-        // Sağ tık menüsü (Mevcut kodunuzu koruduk)
         document.addEventListener('contextmenu', function (event) {
             const msgNode = event.target.closest('.message-out, .message-in');
             if (msgNode && event.target.tagName !== 'IMG' && event.target.tagName !== 'A') {
@@ -3787,7 +3744,6 @@
             const style = document.createElement('style');
             style.id = 'ts-modern-styles';
             style.innerHTML = `
-            /* Ana Konteynır - Soft Gri ve Ortalı */
             .tab-header {
                 display: flex !important;
                 justify-content: center !important;
@@ -3801,8 +3757,6 @@
                 border: 1px solid #e2e8f0 !important;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
             }
-
-            /* Butonlar - Modern ve Dengeli */
             .tab-header .tab-button,
             .osem-tab-btn {
                 border: 1px solid transparent !important;
@@ -3820,8 +3774,6 @@
                 outline: none !important;
                 white-space: nowrap !important;
             }
-
-            /* Hover - Hafif Aydınlanma */
             .tab-header .tab-button:hover:not(.active),
             .osem-tab-btn:hover:not(.active) {
                 background-color: #ffffff !important;
@@ -3829,8 +3781,6 @@
                 border-color: #e2e8f0 !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
             }
-
-            /* AKTİF SEKME - Derinlikli Beyaz */
             .tab-header .tab-button.active,
             .osem-tab-btn.active {
                 background: #ffffff !important;
@@ -3839,8 +3789,6 @@
                 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
                 transform: translateY(-1px) !important;
             }
-
-            /* Alt Çizgi Yerine Modern Vurgu */
             .tab-header .tab-button.active::after,
             .osem-tab-btn.active::after {
                 content: '';
@@ -3853,8 +3801,6 @@
                 border-radius: 20px;
                 opacity: 0.4;
             }
-
-            /* Site kalıntılarını temizle */
             .tab-header .tab-button::after,
             .tab-header .tab-button::before {
                 display: none !important;
@@ -3876,27 +3822,21 @@
 
         function handleMagicFill(input) {
             if (!input || input.tagName !== 'INPUT') return;
-
             const id = (input.id || "").toLowerCase();
             const name = (input.name || "").toLowerCase();
             const html = (input.outerHTML || "").toLowerCase();
-
             // --- HARİÇ TUTULACAKLAR ---
             const excludedTerms = ["servicetel", "servicephone"];
             const isExcluded = excludedTerms.some(term => id.includes(term) || name.includes(term));
-
             if (isExcluded) return;
-
             // --- TELEFON / GSM KONTROLÜ ---
             const isPhoneField = id.includes("gsm") || name.includes("gsm") || html.includes("gsm") ||
                 id.includes("phone") || name.includes("phone") || html.includes("phone") ||
                 id.includes("tel") || name.includes("tel");
-
             if (isPhoneField && (input.value.includes('_') || input.value.trim() === "" || input.value.length < 5)) {
                 const telNo = "1111111111";
                 input.focus();
                 forceUpdateValue(input, "");
-
                 setTimeout(() => {
                     const dt = new DataTransfer();
                     dt.setData('text', telNo);
@@ -3906,7 +3846,6 @@
                         cancelable: true
                     });
                     input.dispatchEvent(pasteEvt);
-
                     setTimeout(() => {
                         input.dispatchEvent(new Event('change', { bubbles: true }));
                         input.blur();
@@ -3916,31 +3855,24 @@
             }
 
             // --- ARAÇ SAHİBİ (İsim + Soyisim) ---
-
             // 1. MAĞDUR (VICTIM) KONTROLÜ
             const isVictimOwnerField = id.includes("victimcarownername") || name.includes("victimcarownername");
-
             if (isVictimOwnerField && input.value.trim() === "") {
-                // Özellikle victimName ve victimSurname içeren inputları seçiyoruz
                 const vName = document.querySelector('input[name*="victimName"]')?.value || "";
                 const vSurname = document.querySelector('input[name*="victimSurname"]')?.value || "";
                 const fullVictimName = (vName + " " + vSurname).trim();
 
                 if (fullVictimName.length > 1) {
                     forceUpdateValue(input, fullVictimName);
-                    return; // Mağdur işlemi bittiyse fonksiyondan çık
+                    return;
                 }
             }
-
             // 2. GENEL / SİGORTALI KONTROLÜ (Eskisi gibi çalışmaya devam eder)
             const isOwnerField = id.includes("carownername") || html.includes("carownername");
-
             if (isOwnerField && input.value.trim() === "") {
-                // Mağdur olmayan genel Name/Surname alanlarını bulur
                 const fName = document.querySelector('input[id*="Name"]:not([id*="victim"]), input[name*="Name"]:not([name*="victim"])')?.value || "";
                 const lName = document.querySelector('input[id*="Surname"]:not([id*="victim"]), input[name*="Surname"]:not([name*="victim"])')?.value || "";
                 const fullName = (fName + " " + lName).trim();
-
                 if (fullName.length > 1) {
                     forceUpdateValue(input, fullName);
                 }
@@ -3958,9 +3890,7 @@
                 }, true);
             });
         }
-
         initGlobalListener();
-
         setInterval(() => {
             applyModernStyles();
             if (document.querySelector('.osem-tab-btn') && !document.getElementById('ts-modern-styles')) {
@@ -3970,22 +3900,14 @@
 
 
         function fixSaveButton() {
-
-            // Eğer buton zaten doğru şekilde sabitlenmişse (ID kontrolü), tekrar işlem yapma
             if (document.getElementById("main-fixed-save-button")) return;
-
-            // Sayfadaki tüm "Tümünü Kaydet" butonlarını bul
             const allSaveButtons = Array.from(document.querySelectorAll('.dx-button-success'));
-
-            // Sadece "Tümünü Kaydet" yazanları filtrele
             const mainSaveButton = allSaveButtons.find(btn =>
                 btn.innerText.includes("Tümünü Kaydet") ||
                 btn.getAttribute('aria-label')?.includes("Tümünü Kaydet")
             );
 
             if (mainSaveButton) {
-                // Sadece bu spesifik butonun stilini değiştir
-                // 1. Animasyonu CSS olarak sayfaya ekle (Sadece bir kez)
                 if (!document.getElementById('save-button-animation')) {
                     const animStyle = document.createElement('style');
                     animStyle.id = 'save-button-animation';
@@ -3998,25 +3920,19 @@
                     `;
                     document.head.appendChild(animStyle);
                 }
-
-                // 2. fixSaveButton içindeki stil kısmına animasyonu ekle
                 mainSaveButton.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
                 mainSaveButton.style.position = "fixed";
                 mainSaveButton.style.top = "65px";
                 mainSaveButton.style.left = "52%";
-                mainSaveButton.style.transform = "translateX(-50%)"; // Merkezleme
+                mainSaveButton.style.transform = "translateX(-50%)";
                 mainSaveButton.style.zIndex = "9999";
                 mainSaveButton.style.borderRadius = "5px";
-                mainSaveButton.style.padding = "4px 15px"; // Biraz daha dolgun durması için artırdım
+                mainSaveButton.style.padding = "4px 15px";
                 mainSaveButton.style.color = "#ffffff";
                 mainSaveButton.style.fontSize = "14px";
                 mainSaveButton.style.cursor = "pointer";
                 mainSaveButton.style.border = "1px solid rgba(255,255,255,0.2)";
-
-                // SÜREKLİ ANİMASYON BURADA:
                 mainSaveButton.style.animation = "pulse-animation 2s infinite ease-in-out";
-
-                // Hover (Üzerine gelince) efekti için
                 mainSaveButton.onmouseenter = () => {
                     mainSaveButton.style.transform = "scale(1.1) translateY(-3px)";
                     mainSaveButton.style.boxShadow = "0 20px 30px -10px rgba(34, 197, 94, 0.6)";
@@ -4026,41 +3942,24 @@
                     mainSaveButton.style.transform = "scale(1) translateY(0)";
                     mainSaveButton.style.boxShadow = "0 10px 25px -5px rgba(34, 197, 94, 0.5)";
                 };
-
-                // Butonun diğerlerinden ayrılması için özel bir ID verelim ki CSS'le çakışmasın
                 mainSaveButton.id = "main-fixed-save-button";
             }
         }
-
-        // Sayfa değiştikçe butonun orada olduğundan emin olalım
         setInterval(fixSaveButton, 1000);
-
-
         const observer = new MutationObserver(() => {
-            // Tüm overlay wrapper'ları tara
             const overlays = document.querySelectorAll('.dx-overlay-wrapper.dx-overlay-shader');
 
             overlays.forEach(overlay => {
                 const textContent = overlay.innerText;
-
-                // Kontrol edilecek başlıklar (Buraya istediğin kadar başlık ekleyebilirsin)
                 const targetTitles = [
                     "Seddk 2025/12 Yönetmeliği",
                     "Ön Rapor Gönderilmeme Sebebi Girilmemiş Dosyalar Mevcut!"
                 ];
-
-                // Eğer overlay içeriğinde bu başlıklardan biri varsa
                 const isTargetPanel = targetTitles.some(title => textContent.includes(title));
-
-                // Panel doğruysa ve buton henüz eklenmemişse
                 if (isTargetPanel && !overlay.querySelector('.custom-close-btn')) {
-
-                    // Butonu oluştur
                     const closeBtn = document.createElement('button');
                     closeBtn.innerHTML = '✕';
                     closeBtn.className = 'custom-close-btn';
-
-                    // Buton Stilleri
                     Object.assign(closeBtn.style, {
                         position: 'absolute',
                         top: '10px',
@@ -4080,16 +3979,11 @@
                         alignItems: 'center',
                         justifyContent: 'center'
                     });
-
-                    // Kapatma işlemi
                     closeBtn.onclick = function () {
                         overlay.remove();
                     };
-
-                    // Butonu panele (içerik kısmına) ekle
                     const contentArea = overlay.querySelector('.dx-overlay-content');
                     if (contentArea) {
-                        // DevExpress panellerinde z-index çakışması olmaması için göreceli konumlandırma
                         if (window.getComputedStyle(contentArea).position === 'static') {
                             contentArea.style.position = 'relative';
                         }
@@ -4098,25 +3992,17 @@
                 }
             });
         });
-
-        // Observer'ı başlat
         observer.observe(document.body, {
             childList: true,
             subtree: true
         });
-
-        // Sayfadaki değişiklikleri izlemeye başla
         observer.observe(document.body, { childList: true, subtree: true });
     }
     // Sayfa bildirim öldürücü
     if (KS_SYSTEM === true && BILDIRIM === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
-        // Sayfa içindeki gerçek window nesnesine erişim
         const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
-
         let notificationCounts = {};
         const MAX_ALLOWED = 3;
-
-        // Bildirim Çubuğu Fonksiyonu
         const showTopNotification = (message, count) => {
             let notifyDiv = document.getElementById('tm-notify-bar');
             if (!notifyDiv) {
@@ -4134,8 +4020,6 @@
             }
             notifyDiv.innerText = `[${count}. Tekrar] OTOMATİK GEÇİLDİ: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`;
             notifyDiv.style.opacity = '1';
-
-            // 3 saniye sonra gizle
             if (w.tmNotifyTimeout) clearTimeout(w.tmNotifyTimeout);
             w.tmNotifyTimeout = setTimeout(() => { if (notifyDiv) notifyDiv.style.opacity = '0'; }, 3000);
         };
@@ -4143,15 +4027,13 @@
         // --- Ortak Yakalayıcı Fonksiyon ---
         const handleNotification = (type, message, originalFn, defaultValue) => {
             notificationCounts[message] = (notificationCounts[message] || 0) + 1;
-
             if (notificationCounts[message] > MAX_ALLOWED) {
                 console.warn(`[Tampermonkey] ${type} engellendi:`, message);
-                // DOM henüz yüklenmemiş olabilir (document-start nedeniyle)
                 if (document.body) {
                     showTopNotification(message, notificationCounts[message]);
                 }
                 return defaultValue; // Otomatik onay (true veya boş string)
-            }
+			}
             return originalFn.call(w, message);
         };
 
@@ -4160,18 +4042,9 @@
         const originalConfirm = w.confirm;
         const originalPrompt = w.prompt;
 
-        w.alert = function (message) {
-            handleNotification('Alert', message, originalAlert, undefined);
-        };
-
-        w.confirm = function (message) {
-            return handleNotification('Confirm', message, originalConfirm, true);
-        };
-
-        w.prompt = function (message, _default) {
-            return handleNotification('Prompt', message, originalPrompt, _default || "");
-        };
-
+        w.alert = function (message) { handleNotification('Alert', message, originalAlert, undefined); };
+        w.confirm = function (message) { return handleNotification('Confirm', message, originalConfirm, true); };
+        w.prompt = function (message, _default) { return handleNotification('Prompt', message, originalPrompt, _default || ""); };
         console.log("Tampermonkey: Bildirim kontrolü aktif.");
     }
 })();
