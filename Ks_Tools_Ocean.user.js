@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.5
+// @version      1.6
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -17,9 +17,6 @@
 	const blockedGroups = [ "yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
     if (blockedGroups.some(word => url.includes(word))) { return; }
     const oceanicTheme = `
-        * {
-            box-sizing: border-box !important;
-        }
         :root {
             --primary: #3589c1;
             --primary-light: #e9f7f8;
@@ -202,10 +199,10 @@
        }
         /* 9. ÖNEMLİ BİLGİ METNİ (.yazi) */
         .yazi {
-            font-size: 14px !important;
-            font-weight: 700 !important;
+            /*font-size: 14px !important;*/
+            /*font-weight: 700 !important;*/
             color: var(--texto) !important;
-            letter-spacing: 1px !important;
+            /*letter-spacing: 1px !important;*/
             background-color: rgba(255, 255, 255, 0.6) !important;
             border-radius: 4px !important;
         }
@@ -513,15 +510,11 @@
         a, .link, .link01, .linkyp, .dosya_menu, .menu {
             color: var(--accent) !important;
             filter: brightness(1.15);
-
             text-decoration: none !important;
-            border-bottom: none !important; /* Alt çizgiyi kökten çözer */
-
-            /* Animasyonun temeli: Buradaki 'all' tüm değişimleri kapsar */
+            border-bottom: none !important;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.175) !important;
             display: inline-block;
         }
-
         a:hover, .link:hover, .link01:hover, .linkyp:hover, .dosya_menu:hover, .menu:hover {
             color: var(--reddo) !important;
             text-decoration: none !important;
@@ -533,7 +526,6 @@
 
             /* Alt çizgiyi yapan ghost elementler varsa temizle */
         }
-
         a::after, a::before {
             display: none !important;
         }
@@ -541,22 +533,18 @@
         /* 7. ÖZEL DURUMLAR */
         .cizgi { background-color: var(--border-soft) !important; height: 1px !important; }
         .hosgeldin { color: var(--primary) !important; font-size: 14px !important; border-left: 4px solid var(--primary) !important; }
-
-        /* Yan sanayi/Uyarı vurgusu */
         .acik_yansanayi { background-color: #ffeb3b !important; color: #856404 !important; }
         .kirmizi, .kirmizi1 { color: #e74c3c !important; }
 		td.tb[background*="baslik_img02.gif"] {
 		    color: var(--accent) !important; /* Tam siyah yapar */
 		}
 
-        /* Animasyonlu Buton (Orijinal ismi korundu) */
+        /* Animasyonlu Buton */
         #btnStream { animation: blinkingText 1.5s infinite !important; }
         @keyframes fadeInSmooth { from { opacity: 0; } to { opacity: 1; } }
         @keyframes inputEntry { from { opacity: 0; filter: brightness(1.2); } to { opacity: 1; filter: brightness(1); } }
 
-
 		/* 1. Butonun Ana Stil Ayarları (Daha sade ve profesyonel) */
-        /* Butonun kendisini bir kutu gibi düşünelim */
         a[onclick*="document.yedparforhasar.submit"] {
             display: inline-flex !important; /* İçeriği merkeze almak için */
             align-items: center;
@@ -576,21 +564,15 @@
             border: 1px solid #b71c1c;
             text-transform: uppercase;
         }
-
-        /* Mevcut çirkin GIF görselini tamamen siliyoruz */
         a[onclick*="document.yedparforhasar.submit"] img {
             display: none !important;
         }
-
-        /* Yazıyı buraya 'çakıyoruz' */
         a[onclick*="document.yedparforhasar.submit"]::after {
             content: "KAYDET" !important;
             display: block !important;
             visibility: visible !important;
             color: white !important;
         }
-
-        /* Üstüne gelince ufak bir büyüme efekti (Animasyon) */
         a[onclick*="document.yedparforhasar.submit"]:hover {
             transform: scale(1.02);
             background: linear-gradient(180deg, #ff0000 0%, #b71c1c 100%) !important;
@@ -598,15 +580,14 @@
         }
         .tm-tedarik-container {
             /* Genişlik ayarları */
-            width: 100% !important;
-            min-width: 600px !important;     /* Panelin çok yayılmaması için ideal genişlik */
-            /* Ortalamayı sağlayan kritik satır */
+            /*width: 100% !important;
+            min-width: 600px !important;*/
             background: var(--maim) !important;
             border: 1px solid var(--border-soft) !important;
             border-radius: 10px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; /* Daha derin bir gölge ile vurgu */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
             overflow: hidden !important;
-            display: block !important;       /* Ortalamanın çalışması için blok seviyesinde olmalı */
+            display: block !important;
         }
         .tm-tedarik-header {
             background: var(--primary) !important;
@@ -780,5 +761,14 @@
         }
         map.remove();
     }
+    const mapfrefix = `
+    	html, body {
+            zoom: 0.99 !important;
+            -moz-transform: scale(0.99);
+            -moz-transform-origin: 0 0;
+			overflow-x: auto !important;
+        }
+    `;
+	if (location.href.includes("otohasar")&&location.href.includes("mapfre")) { GM_addStyle(mapfrefix);}
     if (location.href.includes("otohasar")) { GM_addStyle(oceanicTheme); if (location.href.includes("eks_hasar_yp_list")) { setTimeout(formatTedarikciler, 500); } }
 })();
