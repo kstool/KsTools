@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.32
+// @version      1.33
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -48,23 +48,23 @@
     const urlll = window.location.href.toLowerCase();
     const themes = {
         'online.sbm.org': 'white', // SBM Beyaz
-        'hepiyi': '#55ac05', // Hepiyi Turuncu/Kırmızı
-        'atlas': '#005596', // Atlas Mavi
-        'mapfre': '#e00d26', // Mapfre Kırmızı
-        'aksigorta': '#eb5311', // Aksigorta Turuncu
-        'allianz': '#164481', // Allianz Lacivert
-        'anadolu': '#005ba4', // Anadolu Mavi
-        'sompo': '#e20613', // Sompo Kırmızı
-        'turkiye': '#1cb2cd', // Türkiye Sigorta Deniz Mavisi
-        'groupama': '#007a33', // Groupama Yeşil
-        'axa': '#00008f', // AXA Mavi
-        'quick': '#d1a401', // Quick Sarı (Canlı Ton)
-        'ray': '#ed1c24', // Ray Sigorta Kırmızı
-        'bereket': '#04b03d', // Bereket Yeşil
-        'hdı': '#007a33', // HDI Yeşil
-        'turknippon': '#0054a6', // Türk Nippon Mavi
-        'unico': '#e30613', // Unico Kırmızı
-        'doğa': '#009640' // Doğa Yeşil
+        'otohasar.hepiyi': '#55ac05', // Hepiyi Turuncu/Kırmızı
+        'otohasar.atlas': '#005596', // Atlas Mavi
+        'otohasar.mapfre': '#e00d26', // Mapfre Kırmızı
+        'otohasar.akcozum2': '#eb5311', // Aksigorta Turuncu
+        'otohasar.allianz': '#164481', // Allianz Lacivert
+        'otohasar.anadolu': '#005ba4', // Anadolu Mavi
+        'otohasar.sompo': '#e20613', // Sompo Kırmızı
+        'otohasar.turkiye': '#1cb2cd', // Türkiye Sigorta Deniz Mavisi
+        'otohasar.groupama': '#007a33', // Groupama Yeşil
+        'otohasar.axa': '#00008f', // AXA Mavi
+        'otohasar.quick': '#d1a401', // Quick Sarı (Canlı Ton)
+        'otohasar.ray': '#ed1c24', // Ray Sigorta Kırmızı
+        'otohasar.bereket': '#04b03d', // Bereket Yeşil
+        'otohasar.hdı': '#007a33', // HDI Yeşil
+        'otohasar.turknippon': '#0054a6', // Türk Nippon Mavi
+        'otohasar.unico': '#e30613', // Unico Kırmızı
+        'otohasar.doga': '#009640' // Doğa Yeşil
     };
     for (const [key, color] of Object.entries(themes)) { if (urlll.includes(key)) { config.themeColor = color; break; } }
     // 2. STİL ENJEKSİYONU
@@ -104,12 +104,9 @@
                     overflow: auto;
 					transition: opacity 0.2s ease;
                 }
-                .ks-draggable-panel.collapsed {
-                    resize: none;
-				}
-
                 /* Küçülmüş Mod (Collapsed) */
                 .ks-draggable-panel.collapsed {
+					resize: none;
                     width: ${config.collapsedWidth};
 				    min-width: ${config.collapsedWidth};
                     height: 30px !important;
@@ -163,10 +160,10 @@
                    color: ${config.Color};
                    transition: opacity 0.2s;
                    width: 100% !important;
-                   max-width: 100% !important;
-                   box-sizing: border-box !important;
-                   overflow-x: hidden !important;
-                   word-wrap: break-word !important;
+                   max-width: 100%;
+                   box-sizing: border-box;
+                   overflow-x: hidden;
+                   word-wrap: break-word;
                }
                .ks-content * {
                    max-width: 100% !important;
@@ -186,7 +183,8 @@
                    font-weight: bold;
                    cursor: pointer;
                    font-size: 12px;
-                   transition: all 0.15s ease;
+                   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+				   outline: none;
                }
                .ks-btn:hover {
                    filter: brightness(1.1);
@@ -200,15 +198,15 @@
                }
                /* Kırmızı Neon Buton */
                .ks-btn-danger {
+                   background: #ff4d4d !important;
+                   color: white !important;
                    border: none;
                    padding: 6px;
                    border-radius: ${config.borderRadius};
                    font-weight: bold;
                    cursor: pointer;
                    font-size: 12px;
-                   transition: 0.2s;
-                   background: #ff4d4d !important; /* Canlı kırmızı */
-                   color: white !important;
+                   transition: all 0.2s ease;
                    box-shadow: 0 0 5px #ff4d4d;
                }
                .ks-btn-danger:hover {
@@ -223,120 +221,82 @@
                    transform: translateY(-2px);
                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                }
-                #shb-res-box { font-size: 13px; color: white; margin: 2px 0 2px 0; text-align: center; }
+               #shb-res-box { font-size: 13px; color: white; margin: 2px 0 2px 0; text-align: center; }
                @keyframes neonPulse {
-                   0% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
-                   50% { box-shadow: 0 0 15px ${config.themeColor}AA, inset 0 0 5px ${config.themeColor}66; }
-                   100% { box-shadow: 0 0 5px ${config.themeColor}66, inset 0 0 2px ${config.themeColor}44; }
+            		0%, 100% { box-shadow: 0 0 5px ${config.themeColor}66; }
+            		50% { box-shadow: 0 0 15px ${config.themeColor}AA; }
                }
                .ks-tooltip-container {
-                   position: relative;
-                   display: inline-block;
-                   width: 100%;
-               }
-               .ks-tooltip-box {
-                   width: auto;
-                   background: rgba(15, 15, 18, 0.9) !important;
-                   color: #f0f0f0;
-                   text-align: left;
-                   border-radius: ${config.borderRadius};
-                   padding: 12px 16px;
-                   z-index: ${Number(config.zIndex) + 9999999} !important;
-                   border-left: 3px solid ${config.themeColor}80;
-				   border-right: 3px solid ${config.themeColor}80;
-                   border-top: 5px solid ${config.themeColor};
-                   border-bottom: 5px solid ${config.themeColor};
-                   display: block !important;
-               }
-               #ks-dynamic-tooltip::before,
-               #ks-dynamic-tooltip::after {
-                   content: "";
-                   position: absolute;
-                   top: 0;
-                   left: 0;
-                   width: 100%;
-                   height: 100%;
-                   border-radius: ${config.borderRadius};
-                   z-index: -9999;
-                   opacity: 0;
-                   pointer-events: none;
-               }
-               #ks-dynamic-tooltip::before {
-                   box-shadow: 0 0 25px color-mix(in srgb, ${config.themeColor}, white 30%), 0 0 50px ${config.themeColor}88;
-               }
-               #ks-dynamic-tooltip::after {
-                   box-shadow: inset 0 0 20px color-mix(in srgb, ${config.themeColor}, white 30%), inset 0 0 40px ${config.themeColor}44;
-               }
-               #ks-dynamic-tooltip.visible::before,
-               #ks-dynamic-tooltip.visible::after {
-                   opacity: 1;
-                   animation: fullGlowPulse 1.5s infinite alternate ease-in-out;
-               }
-               @keyframes fullGlowPulse {
-                   from { filter: blur(2px) brightness(1); transform: scale(0.98); opacity: 0.5; }
-                   to { filter: blur(4px) brightness(1.3); transform: scale(1.02); opacity: 0.8; }
-               }
-               /* Başlık Renklendirme */
-               .ks-tooltip-box strong {
-                   color: color-mix(in srgb, ${config.themeColor}, white 30%) !important;
-                   text-shadow: 0 0 8px ${config.themeColor}88;
-                   font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-                   font-size: 12px;
-                   display: block;
-                   margin-bottom: 5px;
-                   text-transform: uppercase;
-               }
-               #ks-dynamic-tooltip {
-                   width: auto;
-                   background: rgba(25, 25, 27, 0.85);
-                   color: #e0e0e0;
-                   text-align: left;
-                   border-radius: ${config.borderRadius};
-                   padding: 10px;
-                   font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
-                   font-size: 11px;
-                   line-height: 1.5;
-                   width: 230px;
-                   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-                   transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
-                   border: 2.5px solid ${config.themeColor};
-                   animation: neonPulse 1s infinite ease-in-out
-                   pointer-events: none;
-                   position: fixed;
-                   z-index: ${Number(config.zIndex) + 2};
-                   display: none;
-                   opacity: 0;
-				   left: 50%;
-                   transform: translateX(-50%) translateY(10px) scale(0.95);
-               }
-               #ks-dynamic-tooltip.visible {
-                   display: block;
-                   opacity: 1;
-                   transform: translateY(0);
-               }
-               #ks-dynamic-tooltip strong {
-                   color: color-mix(in srgb, ${config.themeColor}, white 30%) !important;
-                   text-shadow: 0 0 8px ${config.themeColor}88;
-                   font-size: 12px;
-                   margin-bottom: 5px;
-                   text-transform: uppercase;
-               }
-               .ks-tooltip-box { display: none !important; }
-
+                    position: relative;
+                    display: inline-block;
+                }
+                .ks-tooltip-box {
+                    display: none !important;
+                    border-color: ${config.themeColor};
+                }
+                #ks-dynamic-tooltip {
+                    position: fixed;
+                    z-index: ${Number(config.zIndex) + 1000};
+                    width: 230px;
+                    padding: 10px 14px;
+                    background: rgba(15, 15, 18, 0.75);
+                    color: #f0f0f0;
+                    font-family: 'Inter', system-ui, sans-serif;
+                    font-size: 11px;
+                    line-height: 1.5;
+                    border-radius: ${config.borderRadius};
+                    border: 2px solid ${config.themeColor};
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    box-shadow: 0 0 30px rgba(15, 15, 15, 0.5);
+                    pointer-events: none;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.2s ease, transform 0.2s ease;
+                }
+                #ks-dynamic-tooltip.visible {
+                    opacity: 1;
+                    visibility: visible;
+                    animation: neonPulse 3s infinite ease-in-out;
+                }
+                #ks-dynamic-tooltip::before {
+                    content: "";
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: inherit;
+                    z-index: -1;
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+                    opacity: 0.6;
+                }
+                #ks-dynamic-tooltip strong {
+                    color: inherit;
+                    filter: brightness(1.7);
+                    font-size: 12px;
+                    display: block;
+                    margin-bottom: 4px;
+                    text-transform: uppercase;
+                    font-weight: 800;
+                    letter-spacing: 0.5px;
+                }
+                @keyframes neonPulse {
+                    0%, 100% { filter: brightness(0.9); }
+                    50% { filter: brightness(1.3); }
+                }
+                .ks-tooltip-box { display: none !important; }
             `;
         document.head.appendChild(style);
     };
-    // 3. PANEL OLUŞTURMA VE MANTIK
+   // 3. PANEL OLUŞTURMA VE MANTIK
     const initPanel = () => {
         const panel = document.createElement('div');
         panel.className = 'ks-draggable-panel';
         panel.id = 'ks-master-panel';
         panel.innerHTML = `
-            <div class="ks-header" id="ks-header">
-                <h4>PANEL</h4>
-                <span style="font-size: 10px; opacity: 0.5;">▼</span>
-            </div>
             <div class="ks-content" id="ks-content">Loading...</div>
+            <div class="ks-header" id="ks-header" style="border-top: 1px solid #333; border-bottom: none;">
+                <h4>PANEL</h4>
+                <span style="font-size: 10px; opacity: 0.5;">▲</span>
+            </div>
         `;
         document.body.appendChild(panel);
         const content = document.getElementById('ks-content');
@@ -378,29 +338,28 @@
             setTransition('width 0.3s ease, height 0.3s ease');
             setTimeout(() => { panel.dataset.wasDragging = 'false'; }, 200);
         };
-        // --- B. KÜÇÜLTME/BÜYÜTME (CLICK) ---
+        // --- B. KÜÇÜLTME/BÜYÜTME ---
         header.addEventListener('click', () => {
             if (panel.dataset.wasDragging === 'true') return;
             panel.classList.toggle('collapsed');
+            const icon = header.querySelector('span');
+            if (icon) icon.innerText = panel.classList.contains('collapsed') ? '▲' : '▼';
         });
-        // --- C. YERİNE GERİ DÖNME (DBLCLICK) ---
+        // --- C. YERİNE GERİ DÖNME ---
         panel.addEventListener('dblclick', (e) => {
             e.preventDefault();
             const rect = panel.getBoundingClientRect();
-            // 1. Mevcut konumu inline piksel olarak sabitle
             panel.style.transition = 'none';
             panel.style.left = rect.left + 'px';
             panel.style.top = rect.top + 'px';
             panel.style.right = 'auto';
             panel.style.bottom = 'auto';
-            // 2. Animasyonu başlat
             requestAnimationFrame(() => {
                 setTransition('all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)');
                 const targetLeft = window.innerWidth - panel.offsetWidth - parseInt(safeConfig.right);
                 const targetTop = window.innerHeight - panel.offsetHeight - parseInt(safeConfig.bottom);
                 panel.style.left = targetLeft + 'px';
                 panel.style.top = targetTop + 'px';
-                // 3. Sıfırlama ve Temizlik
                 setTimeout(() => {
                     setTransition('none');
                     panel.style.top = 'auto';
@@ -408,9 +367,7 @@
                     panel.style.right = safeConfig.right;
                     panel.style.bottom = safeConfig.bottom;
                     panel.dataset.wasDragging = 'false';
-                    setTimeout(() => {
-                        setTransition('width 0.3s ease, height 0.3s ease');
-                    }, 50);
+                    setTimeout(() => { setTransition('width 0.3s ease, height 0.3s ease'); }, 50);
                 }, 550);
             });
         });
@@ -419,32 +376,34 @@
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     };
-    // 2. Dinamik Panel Elementi
+
+    // Tooltip Mantığı
     const tooltip = document.createElement('div');
     tooltip.id = 'ks-dynamic-tooltip';
     document.body.appendChild(tooltip);
+
     document.addEventListener('mouseover', function (e) {
         const container = e.target.closest('.ks-tooltip-container');
         if (container) {
             const boxContent = container.querySelector('.ks-tooltip-box');
             if (boxContent) {
-                tooltip.innerHTML = boxContent.innerHTML; tooltip.classList.add('visible');
-                const borderColor = getComputedStyle(boxContent).borderColor; tooltip.style.borderColor = borderColor;
+                tooltip.innerHTML = boxContent.innerHTML;
+                tooltip.classList.add('visible');
+                const borderColor = getComputedStyle(boxContent).borderColor;
+                tooltip.style.borderColor = borderColor;
                 if (tooltip.querySelector('strong')) { tooltip.querySelector('strong').style.color = borderColor; }
             }
         }
     });
+
     document.addEventListener('mousemove', function (e) {
         if (tooltip.classList.contains('visible')) {
             const gap = 15;
-            let x = e.clientX;
-            let y = e.clientY;
-            const tw = tooltip.offsetWidth;
-            const th = tooltip.offsetHeight;
-            let left = x - (tw / 2);
-            let top = y - th - gap;
+            let x = e.clientX, y = e.clientY;
+            const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+            let left = x - (tw / 2), top = y - th - gap;
             if (left < 10) left = 10;
-            if (left + tw > unsafeWindow.innerWidth - 10) left = unsafeWindow.innerWidth - tw - 10;
+            if (left + tw > window.innerWidth - 10) left = window.innerWidth - tw - 10;
             if (top < 10) {
                 top = y + gap + 20;
                 tooltip.style.transform = 'translateY(-10px)';
@@ -455,6 +414,7 @@
             tooltip.style.top = top + 'px';
         }
     });
+
     document.addEventListener('mouseout', function (e) {
         if (e.target.closest('.ks-tooltip-container')) { tooltip.classList.remove('visible'); }
     });
@@ -490,6 +450,14 @@
             #${PANEL_ID}:hover {
                 transform: scale(1.1) !important;
                 border-radius: 10px !important;
+            }
+			@media print {
+                #${PANEL_ID} {
+                    position: fixed !important;
+                    bottom: 0px;
+				    right: 0px;
+				    /*display: none !important;*///komple gizler
+                }
             }
             @keyframes ks-glow-pulse {
                 0% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
@@ -550,7 +518,6 @@
                     kstatus.innerHTML = `KS TOOLS`;
                 };
             }
-
             const openSettingsModal = () => {
                 if (document.getElementById('ks-modal-overlay')) return;
                 const overlay = document.createElement('div');
@@ -676,20 +643,19 @@
                          font-size: 13px;
                          font-weight: 700;
                          cursor: pointer;
-                         transition: all 0.3s ease; /* Tüm değişimler için yumuşak geçiş */
+                         transition: all 0.3s ease;
                          outline: none;
                      }
-                     /* Üzerine gelince (Hover) */
                      .ks-setting-btn:hover {
-                         filter: brightness(1.15); /* Rengi hafifçe parlatır */
-                         box-shadow: 0 4px 12px ${config.themeColor}55; /* Temaya uygun gölge ekler */
-                         transform: translateY(-1px); /* Çok hafif yukarı kalkma efekti */
+                         filter: brightness(1.15);
+                         box-shadow: 0 4px 12px ${config.themeColor}55;
+                         transform: translateY(-1px);
                      }
 
                      /* Tıklama anı (Click/Active) */
                      .ks-setting-btn:active {
-                         transform: scale(0.96); /* Butonun hafifçe küçülüp basılma hissi vermesi */
-                         filter: brightness(0.9); /* Renk hafifçe koyulaşır */
+                         transform: scale(0.96);
+                         filter: brightness(0.9);
                      }
                      </style>
                      <div id="ks-setting-wrapper">
@@ -754,6 +720,15 @@
       🔵 &#128309; (Mavi daire - Bilgi/İşlemde)
       ⚪ &#9898; (Beyaz daire)
       ⚫ &#9899; (Siyah daire) */
+	const unlockAllElements = () => {
+    	document.querySelectorAll('[disabled], .disabled, [readonly]').forEach(el => {
+    	    el.disabled = false;
+    	    el.readOnly = false;
+    	    ['disabled', 'readonly'].forEach(attr => el.removeAttribute(attr));
+    	    el.classList.remove('disabled');
+    	    Object.assign(el.style, { pointerEvents: 'auto', opacity: '1' });
+    	});
+	};
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
         /* ===== 1. PANEL VE STİL ===== */
@@ -767,9 +742,7 @@
             <div id="panelContent" style ="color:#ffffff; text-align:center;">⏳ Yükleniyor...</div>
             <hr style="border:0; border-top:1px solid #444; margin:2px 0;">
             <div style ="text-align:center; margin-bottom:8px; font-size:11px;"></div>
-
             <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; width: 100%;">
-
                 <div class="ks-tooltip-container" onmouseover="handleHover(this)">
                     <button id="autoSelectBtn" class="ks-btn" style="width:100%; height: 100%;">⚡ Ön Giriş</button>
                     <div class="ks-tooltip-box">
@@ -777,9 +750,7 @@
                         Kaza ihbar türü, Eksper, Alkol durumu ve Ehliyet sınıfını doğrulamayı unutmayın.
                     </div>
                 </div>
-
                 <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%; height: 100%;" onclick="c('kaydet();')">💾 KAYDET</button>
-
                 <div class="ks-tooltip-container" onmouseover="handleHover(this)">
                     <button id="unlockSelectBtn" class="ks-btn" style="width:100%; height: 100%;">🔓 Kilit Aç</button>
                     <div class="ks-tooltip-box">
@@ -788,7 +759,6 @@
                     </div>
                 </div>
             </div>
-
             <div>
                 <hr style="border:0; border-top:1px solid #444; margin:2px 0;">
                 <div id="shb-res-box">Piyasa kontrolü bekleniyor...</div>
@@ -816,7 +786,6 @@
                     placeholder="Buraya notunu bırakabilirsin..."></textarea>
             </div>
             `;
-
             /* ===== 2. YARDIMCI FONKSİYONLAR ===== */
             const $ = (id) => document.getElementById(id) || document.querySelector(`[name="${id}"]`);
             const getValue = (id) => ($(id)?.value || $(id)?.textContent || '').trim();
@@ -826,7 +795,6 @@
                 if (!g || !a || !y) return null;
                 return new Date(y, a - 1, g);
             };
-
             // --- Not Sistemi Ayarları ---
             const storageKey = "page_note_" + unsafeWindow.location.href;
             const textarea = document.getElementById('page-note-input');
@@ -862,50 +830,36 @@
             function highlightFields() {
                 // 1. Tahmini Hasar değerini güvenli bir şekilde alalım
                 const tahminiHasarEl = document.getElementById('TAHMINI_HASAR') || document.getElementsByName('TAHMINI_HASAR')[0];
-
-                // Değeri sayıya çevirme: Nokta ve virgülleri temizleyip float'a çeviriyoruz
                 let rawHasar = tahminiHasarEl ? tahminiHasarEl.value : "0";
                 let cleanHasar = parseFloat(rawHasar.replace(/\./g, '').replace(',', '.')) || 0;
-
                 // 2. Kontrol edilecek alan listeleri
                 const watchFields = ['EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI'];
                 const selectFields = ['SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI'];
-
                 // 3. Şart Kontrolü: 1000'den küçükse boya
                 if (cleanHasar < 1000) {
-
                     // Input ve Metin Alanları
                     watchFields.forEach(id => {
                         const el = document.getElementById(id) || document.getElementsByName(id)[0];
                         const td = el?.closest('td');
-                        if (td) {
-                            // getValue fonksiyonunun doğru çalıştığından emin olun,
-                            // alternatifi: el.value.trim() === ''
-                            td.style.backgroundColor = (getValue(id) === '') ? WARNING_COLOR : '';
-                        }
+                        if (td) { td.style.backgroundColor = (getValue(id) === '') ? WARNING_COLOR : ''; }
                     });
-
                     // KM Kontrolü
                     const km = parseNum('HAS_KM');
                     const kmEl = document.getElementById('HAS_KM') || document.getElementsByName('HAS_KM')[0];
                     const kmTd = kmEl?.closest('td');
                     if (kmTd) kmTd.style.backgroundColor = km < 1 ? WARNING_COLOR : '';
-
                     // HASAR_SEKLI Kontrolü
                     const hasarSekliEl = document.getElementById('HASAR_SEKLI') || document.getElementsByName('HASAR_SEKLI')[0];
                     const hasarSekliTd = hasarSekliEl?.closest('td');
                     // 2. HASAR_SEKLI Renklendirme (Yeni talep: -1 ise renklendir)
                     if (hasarSekliTd) {
-                        // Değer "-1" ise WARNING_COLOR yap, değilse temizle
                         hasarSekliTd.style.backgroundColor = (hasarSekliEl && hasarSekliEl.value === "-1") ? WARNING_COLOR : '';
                     }
-
                     // Piyasa Kontrolü
                     const piyasa = parseNum('HAS_PIYASA');
                     const piyasaEl = document.getElementById('HAS_PIYASA') || document.getElementsByName('HAS_PIYASA')[0];
                     const piyasaTd = piyasaEl?.closest('td');
                     if (piyasaTd) piyasaTd.style.backgroundColor = piyasa < 1000 ? WARNING_COLOR : '';
-
                     // Select Alanları
                     selectFields.forEach(id => {
                         const el = document.getElementById(id) || document.getElementsByName(id)[0];
@@ -934,7 +888,7 @@
                     hasar.setHours(0, 0, 0, 0);
                     bas.setHours(0, 0, 0, 0);
                     bitis.setHours(0, 0, 0, 0);
-                    html += `<tr><td colspan="2" style="text-align:center; padding:10px;">`;
+                    html += `<tr><td colspan="2" style="text-align:center; padding:10px;"><div class="ks-tooltip-container" onmouseover="handleHover(this)">`;
                     // 1. DURUM: POLİÇE VADESİ İÇİNDE
                     if (hasar >= bas && hasar <= bitis) {
                         const diffBas = Math.floor((hasar - bas) / 86400000);
@@ -969,20 +923,20 @@
                         html += `Vade ${yon} ${diff} gün fark var!`;
                         html += `</span>`;
                     }
-                    html += `</td></tr>`;
+                    html += `<div class="ks-tooltip-box">
+                        Hasar ile Poliçe arasındaki gün farkını kontrol eder.
+                    </div>
+                </div></td></tr>`;
                 }
                 html += `<tr><td colspan="2"><hr style="border:0; border-top:1px solid #444; margin:2px 0;"></td></tr>`;
                 const sigortaElement = document.getElementById('SIGORTA_SEKLI');
                 let dynamicLabel = 'Sigortalı/Kaskolu Araç';
-
                 if (sigortaElement) {
                     const selectedText = sigortaElement.options[sigortaElement.selectedIndex]?.text || "Bilinmiyor";
                     const upText = selectedText.toUpperCase();
-
                     // Varsayılan (Diğer)
                     let sigortaColor = "#ff9500";
                     let sigortaBg = "rgba(255, 149, 0, 0.15)";
-
                     if (upText.includes("TRAFİK")) {
                         sigortaColor = "#00d4ff"; // Canlı Mavi
                         sigortaBg = "rgba(0, 212, 255, 0.15)";
@@ -1059,16 +1013,13 @@
                             ${text.toUpperCase()}
                         </span>`;
                 };
-
                 const ihbarElement = document.getElementById('KAZA_IHBAR_TURU');
                 const hasarElement = document.getElementById('HASAR_SEKLI');
-
                 // --- 1. MANTIK: İHBAR TÜRÜ ---
                 if (ihbarElement && ihbarElement.value !== "" && ihbarElement.value !== "-1") {
                     let selectedText = ihbarElement.options[ihbarElement.selectedIndex]?.text || "";
                     let selectedValue = ihbarElement.value;
                     let ihbarColor = "#bdc3c7"; // Varsayılan Gri
-
                     switch (selectedValue) {
                         case "1": ihbarColor = "#2ecc71"; break; // Anlaşmalı
                         case "2": ihbarColor = "#f1c40f"; break; // Beyan
@@ -1077,7 +1028,6 @@
                         case "5": ihbarColor = "#9b59b6"; break; // Savcılık
                         case "6": ihbarColor = "#e67e22"; break; // İtfaiye
                     }
-
                     html += `
                         <tr style="border-bottom: 1px solid #333;">
                             <td style="padding:4px 0; white-space:nowrap; width:100px;">İhbar Türü:</td>
@@ -1086,16 +1036,13 @@
                             </td>
                         </tr>`;
                 }
-
                 // --- 2. MANTIK: HASAR ŞEKLİ (Bağımsız If) ---
                 if (hasarElement && hasarElement.value !== "" && hasarElement.value !== "-1") {
                     let selectedText = hasarElement.options[hasarElement.selectedIndex]?.text || "";
                     let selectedValue = hasarElement.value;
                     let hasarColor = "#00d4ff"; // Hasar şekli için genel mavi
-
                     if (["1", "5", "18"].includes(selectedValue)) hasarColor = "#e74c3c"; // Hırsızlık: Kırmızı
                     if (selectedValue === "28") hasarColor = "#9c88ff"; // Değer Kaybı: Mor
-
                     html += `
                         <tr style="border-bottom: 1px solid #333;">
                             <td style="padding:4px 0; white-space:nowrap; width:100px;">Hasar Şekli:</td>
@@ -1142,8 +1089,7 @@
                     { label: 'Servis :', id: "SERVIS_ADI" },
                     { label: 'Tramer :', id: "TRAMER_IHBAR_NO" },
                     { label: 'Sigortalı :', id: "HAS_ARAC_SAHIBI" },
-                    { label: dynamicLabel, id: "HAS_MODEL_ADI" },
-                    { label: 'Piyasa :', id: "HAS_PIYASA" }
+                    { label: dynamicLabel, id: "HAS_MODEL_ADI" }
                 ];
                 fields.forEach(f => {
                     // Önce ID ile ara, bulamazsan NAME niteliği ile ara
@@ -1176,40 +1122,58 @@
                              </tr>`;
                 });
                 html += `<tr><td colspan="2"><hr style="border:0; border-top:1px solid #444; margin:2px 0;"></td></tr>`;
+                // 1. Hesaplama ve Durum Belirleme
+                const getStatusBadge = (text, color) => {
+                    return `<span style="background:${color}15; color:${color}; border:1px solid ${color}44; padding:1px 4px; border-radius:${config.borderRadius}; font-weight:bold; font-size:10px; white-space:nowrap; vertical-align:middle; margin-left:4px;">${text.toUpperCase()}</span>`;
+                };
                 const oran = hasPiyasa > 0 ? (tahminiHasar / hasPiyasa) * 100 : 0;
-                let durum = '⚠️ ?';
-                let durumColor = SUCCESS_COLOR;
-
+                let durumMetni = 'BELİRSİZ';
+                let durumColor = "#aaa";
                 if (hasPiyasa >= 1000) {
-                    if (oran <= 30) { durum = '✅ Uygun'; }
-                    else if (oran <= 60) { durum = '🟠 %30+'; durumColor = '#ffa500'; }
-                    else { durum = '🔴 %60+'; durumColor = '#ff4d4d'; }
+                    if (oran <= 30) { durumMetni = '✅ UYGUN'; durumColor = SUCCESS_COLOR; }
+                    else if (oran <= 60) { durumMetni = '🟠 %30 ÜZERİ'; durumColor = '#ffa500'; }
+                    else { durumMetni = '🔴 %60 ÜZERİ'; durumColor = '#ff4d4d'; }
                 }
-
-                html += `<table style="width:100%; border-collapse:collapse; font-size:12px; color:white; line-height:1.1;">`;
-                // Satır 1: Eksper Hasar
-                html += `
-                    <tr style="border-top:1px solid #333;">
-                        <td style="white-space:nowrap; width:50px;"">Eksper:</td>
-                        <td style="text-align:right; padding:4px 0;">
-                            <b style="color:${durumColor}">${tahminiHasar.toLocaleString()} ₺</b>
-                            <span style="display:inline-block; background:${durumColor}; color:black; padding:0 3px; border-radius: ${config.borderRadius}; border:1px solid ${durumColor}44; margin-left:4px; vertical-align:middle;">${durum}</span>
-                        </td>
-                    </tr>`;
-                // Satır 2: Muallak ve Bar (Flexbox ile hizalandı)
+                const pertUyari = (oran >= 60 && !document.getElementById('pert')?.checked)
+                    ? `<div style="color:#ff4d4d; font-weight:bold; font-size:10px; animation:ksBlink 1s infinite; margin-top:2px; text-align:right;">⚠️ DİKKAT: PERT SEÇİLMELİ!</div>`
+                    : "";
+                // --- 2. HTML OLUŞTURMA ---
+                html += `<style>@keyframes ksBlink { 0%{opacity:1} 50%{opacity:0.3} 100%{opacity:1} }</style>`;
+                html += `<table style="width:100%; border-collapse:collapse; font-size:12px; color:white; line-height:1.2;">`;
                 html += `
                     <tr>
-                        <td style="white-space:nowrap; width:50px;">Muallak:</td>
-                        <td style="padding:4px 0;">
-                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                                ${hasPiyasa >= 1000 ? `
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <div style="background:#222; width:80px; height:5px; border-radius: ${config.borderRadius}; overflow:hidden; border: 1px solid #444;">
+                        <td style="width:100px; padding:4px 0;">Sigorta Muallak:</td>
+                        <td style="text-align:right; padding:4px 0;">
+                            <b>${ssTahmini.toLocaleString()} ₺</b>
+                        </td>
+                    </tr>`;
+				html += `
+                    <tr style="border-top:1px solid #333;">
+                        <td style="width:100px; padding:4px 0;">Piyasa/Rayiç:</td>
+                        <td style="text-align:right; padding:4px 0;">
+                            <b style="color:#00d4ff">${hasPiyasa.toLocaleString('tr-TR')} ₺</b>
+                        </td>
+                    </tr>`;
+                html += `
+                    <tr>
+                        <td style="width:100px; padding:4px 0;">Eksper Muallak:</td>
+                        <td style="text-align:right; padding:4px 0;">
+                            <b style="color:${durumColor}">${tahminiHasar.toLocaleString()} ₺</b>
+                            ${getStatusBadge(durumMetni, durumColor)}
+                        </td>
+                    </tr>`;
+                html += `
+                    <tr>
+                        <td colspan="2" style="padding:4px 0;">
+                            <div class="ks-tooltip-container" onmouseover="handleHover(this)" style="width:100%;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <div style="background:#222; flex-grow:1; height:6px; border-radius:4px; overflow:hidden; border:1px solid #444;">
                                         <div style="background:${durumColor}; width:${Math.min(oran, 100)}%; height:100%;"></div>
                                     </div>
-                                    <span style="color:config.themeColor; min-width: 22px;">%${oran.toFixed(0)}</span>
-                                </div>` : ''}
-                                <b style="color:white;">${ssTahmini.toLocaleString()} ₺</b>
+                                    <span style="color:${config.Color}; font-size:12px; min-width:25px;">%${oran.toFixed(0)}</span>
+                                </div>
+                                ${pertUyari}
+                                <div class="ks-tooltip-box">Eksper hasar tutarının piyasa değerine oranını gösterir.</div>
                             </div>
                         </td>
                     </tr>`;
@@ -1417,27 +1381,7 @@
                 console.log('✅ Otomatik seçimler tamamlandı.');
             });
             /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
-            document.getElementById('unlockSelectBtn').addEventListener('click', (e) => {
-                // 1. Disabled attribute'una sahip tüm elementleri bul
-                const disabledElements = document.querySelectorAll('[disabled], .disabled');
-
-                disabledElements.forEach(el => {
-                    el.disabled = false;
-                    el.removeAttribute('disabled');
-                    el.classList.remove('disabled');
-                    // Bazı siteler pointer-events: none kullanır, onu da çözelim:
-                    el.style.pointerEvents = 'auto';
-                    el.style.opacity = '1';
-                });
-
-                // 2. Readonly olanları düzenlenebilir yap
-                const readOnlyElements = document.querySelectorAll('[readonly]');
-                readOnlyElements.forEach(el => {
-                    el.readOnly = false;
-                    el.removeAttribute('readonly');
-                });
-
-            });
+			document.getElementById('unlockSelectBtn').addEventListener('click', unlockAllElements);
             setInterval(highlightFields, 1500);
             setInterval(updatePanel, 2000);
         }
@@ -1447,8 +1391,8 @@
         config.bottom = "22px";
         config.width = "270px";
         config.collapsedWidth = "270px";
-        injectStyles();
-        initPanel();
+        //injectStyles();
+        //initPanel();
         // Globalde veya üst kapsamda oluşturduğumuz panel elementini seçiyoruz
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -1798,27 +1742,7 @@
                 console.log('✅ Otomatik seçimler tamamlandı.');
             });
             /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
-            document.getElementById('unlockSelectBtn').addEventListener('click', (e) => {
-                // 1. Disabled attribute'una sahip tüm elementleri bul
-                const disabledElements = document.querySelectorAll('[disabled], .disabled');
-
-                disabledElements.forEach(el => {
-                    el.disabled = false;
-                    el.removeAttribute('disabled');
-                    el.classList.remove('disabled');
-                    // Bazı siteler pointer-events: none kullanır, onu da çözelim:
-                    el.style.pointerEvents = 'auto';
-                    el.style.opacity = '1';
-                });
-
-                // 2. Readonly olanları düzenlenebilir yap
-                const readOnlyElements = document.querySelectorAll('[readonly]');
-                readOnlyElements.forEach(el => {
-                    el.readOnly = false;
-                    el.removeAttribute('readonly');
-                });
-
-            });
+            document.getElementById('unlockSelectBtn').addEventListener('click', unlockAllElements);
             setInterval(highlightFields, 1500);
             setInterval(updatePanel, 2000);
         }
@@ -1828,14 +1752,11 @@
         /* ===== 1. PANEL KURULUMU ===== */
         if (typeof injectStyles === 'function') injectStyles();
         if (typeof initPanel === 'function') initPanel();
-
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
-
         if (panel && panelContent) {
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Resim Kontrol";
-
             panelContent.innerHTML = `
                 <div id="panelContent" style="color:#ffffff; text-align:center;"></div>
                 <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 5px; width: 100%;">
@@ -1843,7 +1764,6 @@
                 </div>
             `;
         }
-
         /* ===== 2. KONTROL SİSTEMİ ===== */
         function updatePanel() {
             const container = document.querySelector('.ks-grid-container');
@@ -1933,7 +1853,6 @@
                 container.appendChild(createBox("Kaza Evrağı (KTT/Zabıt/Beyan) Eksik!", false));
             }
         }
-
         /* ===== 3. ÇALIŞTIRICI ===== */
         const runner = setInterval(() => {
             if (document.querySelector('table')) {
@@ -1957,7 +1876,6 @@
         config.collapsedWidth = "200px";
         injectStyles();
         initPanel();
-
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
@@ -1965,13 +1883,11 @@
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Excell Panel";
         }
-
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Excel için Referanslar kopyala butonu ile kopyalanabilir.<br>Excel'den kopyalanan satırlar yapıştır ile sıralı şekilde yapıştırılabilir.</div>`;
             contentArea.style.display = "flex";
             contentArea.style.gap = "5px";
-
             // --- 1. BUTON: EXCEL'DEN YAPIŞTIR ---
             const btnPaste = document.createElement('button');
             btnPaste.className = 'ks-btn';
@@ -1980,7 +1896,6 @@
                 try {
                     const text = await navigator.clipboard.readText();
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
-
                     // Sayfadaki mevcut input kutularını bulalım
                     let availableFields = [];
                     for (let j = 1; j <= 20; j++) {
@@ -1991,16 +1906,13 @@
                         }
                         if (field) { availableFields.push(field); }
                     }
-
                     const inputCount = availableFields.length;
                     const lineCount = lines.length;
-
                     // --- UYARI MEKANİZMASI ---
                     if (lineCount !== inputCount && lineCount > 0) {
                         const confirmAction = confirm(`Dikkat: Sayı Uyuşmazlığı!\n\nExcel'den gelen satır: ${lineCount}\nSayfadaki kutu sayısı: ${inputCount}\n\nYine de devam etmek istiyor musunuz?`);
                         if (!confirmAction) return;
                     }
-
                     // --- DOLDURMA İŞLEMİ ---
                     lines.forEach((line, i) => {
                         if (i < inputCount) {
@@ -2009,14 +1921,12 @@
                             availableFields[i].dispatchEvent(new Event('input', { bubbles: true }));
                         }
                     });
-
                     btnPaste.innerText = "✔️ OK";
                     btnPaste.style.backgroundColor = "#28a745";
                     setTimeout(() => {
                         btnPaste.innerText = "📋 YAPIŞTIR";
                         btnPaste.style.backgroundColor = "";
                     }, 2000);
-
                 } catch (err) {
                     alert("Pano erişim hatası veya kutular bulunamadı!");
                     console.error(err);
@@ -2041,7 +1951,6 @@
                         const rowData = tds.slice(0, 6).map(td => td.innerText.trim());
                         return rowData.join('\t'); // Excel için TAB ile ayır
                     }).join('\n');
-
                     if (excelData) {
                         await navigator.clipboard.writeText(excelData);
                         btnCopy.innerText = "✔️ KOPYALANDI";
@@ -2057,25 +1966,18 @@
             const btnFillAll = document.createElement('button');
             btnFillAll.className = 'ks-btn';
             btnFillAll.innerText = "🚗 TÜMÜNÜ GRUPLANDIR - Hepiyi";
-
             btnFillAll.onclick = async () => {
                 try {
                     let count = 0;
                     // 1'den 20'ye kadar tüm olası satırları kontrol et
                     for (let j = 1; j <= 20; j++) {
                         const grupSelect = document.querySelector(`select[name="YP_GRUP_ID_${j}"]`);
-
                         if (grupSelect) {
                             // 1. Ana Grubu Seç (KAPORTA)
                             grupSelect.value = "2";
-
-                            // onchange olayını tetikle (Bu, yp_doldur fonksiyonunu çalıştırır)
                             grupSelect.dispatchEvent(new Event('change', { bubbles: true }));
-
                             // 2. Alt Grubu Seç (DİĞER)
-                            // Fonksiyonun alt menüyü doldurması için çok kısa bir bekleme ekliyoruz
                             await new Promise(resolve => setTimeout(resolve, 150));
-
                             const altSelect = document.querySelector(`select[name="YP_ID_${j}"]`);
                             if (altSelect) {
                                 altSelect.value = "0"; // Diğer seçeneği
@@ -2084,24 +1986,19 @@
                             }
                         }
                     }
-
                     if (count > 0) {
                         btnFillAll.innerText = `✔️ ${count} SATIR HAZIR`;
-                        setTimeout(() => { btnFillAll.innerText = "🚗 TÜMÜNÜ SEÇ"; }, 2000);
+						btnFillAll.style.backgroundColor = "#28a745";
+                        setTimeout(() => { btnFillAll.innerText = "🚗 TÜMÜNÜ SEÇ"; btnFillAll.style.cssText = "";}, 2000);
                     } else {
                         alert("Seçilecek kutu bulunamadı!");
                     }
-
                 } catch (err) {
                     console.error("Toplu seçim hatası:", err);
                     alert("İşlem sırasında bir hata oluştu.");
                 }
             };
-
-            // Butonu ekle
             contentArea.appendChild(btnFillAll);
-
-            // Butonları ekle
             contentArea.appendChild(btnPaste);
             contentArea.appendChild(btnCopy);
         }
@@ -2113,7 +2010,6 @@
         config.collapsedWidth = "200px";
         injectStyles();
         initPanel();
-
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
@@ -2121,13 +2017,11 @@
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Excell Panel";
         }
-
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Excel'den kopyalanan satırlar yapıştır ile sıralı şekilde yapıştırılabilir. Fiyat kolonu seçilmediyse 1 olarak girilir.</div>`;
             contentArea.style.display = "flex";
             contentArea.style.gap = "5px";
-
             // --- 1. BUTON: EXCEL'DEN YAPIŞTIR ---
             const btnPaste = document.createElement('button');
             btnPaste.className = 'ks-btn';
@@ -2135,17 +2029,12 @@
             btnPaste.onclick = async () => {
                 try {
                     const text = await navigator.clipboard.readText();
-                    // Satırları ayır ve boş satırları temizle
                     const rows = text.split(/\r?\n/).filter(line => line.trim() !== "");
-
-                    // DOM üzerindeki input gruplarını topla
                     let availableRows = [];
-                    for (let j = 0; j < 50; j++) { // Döngü limitini ihtiyacınıza göre artırabilirsiniz
+                    for (let j = 0; j < 50; j++) {
                         const kodField = document.querySelector(`input[name="kod[${j}]"]`);
                         const adField = document.querySelector(`input[name="ad[${j}]"]`);
                         const fiyatField = document.querySelector(`input[name="fiyat[${j}]"]`);
-
-                        // Eğer kod veya ad alanı varsa bu satırı işleme al
                         if (kodField || adField) {
                             availableRows.push({ kod: kodField, ad: adField, fiyat: fiyatField });
                         }
@@ -2164,37 +2053,29 @@
                             const valAd = columns[1] ? columns[1].trim() : "";
                             // Eğer 3. sütun varsa onu al, yoksa "1" yaz
                             const valFiyat = (columns[2] && columns[2].trim() !== "") ? columns[2].trim() : "1";
-
-                            // Inputlara değerleri bas
                             if (availableRows[index].kod) {
                                 availableRows[index].kod.value = valKod;
                                 availableRows[index].kod.dispatchEvent(new Event('input', { bubbles: true }));
                             }
-
                             if (availableRows[index].ad) {
                                 availableRows[index].ad.value = valAd;
                                 availableRows[index].ad.dispatchEvent(new Event('input', { bubbles: true }));
                             }
-
                             if (availableRows[index].fiyat) {
                                 availableRows[index].fiyat.value = valFiyat;
                                 availableRows[index].fiyat.dispatchEvent(new Event('input', { bubbles: true }));
-                                // Sizin sisteminizdeki özel formatlama fonksiyonunu tetiklemek için:
                                 if (typeof number_format === "function") {
                                     availableRows[index].fiyat.dispatchEvent(new Event('keyup', { bubbles: true }));
                                 }
                             }
                         }
                     });
-
-                    // Başarı geri bildirimi
                     btnPaste.innerText = "✔️ BAŞARIYLA DOLDURULDU";
                     btnPaste.style.backgroundColor = "#28a745";
                     btnPaste.style.color = "#fff";
                     setTimeout(() => {
                         btnPaste.innerText = "📋 EXCEL'DEN YAPIŞTIR";
-                        btnPaste.style.backgroundColor = "";
-                        btnPaste.style.color = "";
+                        btnPaste.style.cssText = "";
                     }, 2000);
 
                 } catch (err) {
@@ -2211,127 +2092,72 @@
         config.collapsedWidth = "150px";
         injectStyles();
         initPanel();
-
         const panel = document.getElementById('ks-master-panel');
         if (panel) {
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Excell Panel";
         }
-
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Tablodaki verileri Excel'e yapıştırmak için kopyalar.</div>`;
-            contentArea.style.display = "flex";
-            contentArea.style.flexDirection = "column";
-            contentArea.style.gap = "5px";
-
+            Object.assign(contentArea.style, { display: "flex", flexDirection: "column", gap: "5px" });
             // --- 1. BUTON: LİSTEYİ KOPYALA ---
             const btnCopy = document.createElement('button');
             btnCopy.className = 'ks-btn';
             btnCopy.innerText = "📂 LİSTEYİ KOPYALA";
             btnCopy.style.cursor = "pointer";
-
             btnCopy.onclick = async () => {
                 try {
-                    const rows = document.querySelectorAll('tr');
-                    let excelData = [];
-
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-
-                        // Satır en az 4 hücreli olmalı
-                        if (cells.length >= 4) {
-                            const rawKod = cells[1].innerText.trim();
-                            const ad = cells[2].innerText.trim();
-                            const fiyat = cells[3].innerText.trim();
-
-                            // KRİTİK FİLTRE: Parça kodu sadece rakamlardan mı oluşuyor?
-                            // (SCANIA gibi metinleri veya boşlukları eler)
-                            const isNumericKod = /^\d+$/.test(rawKod);
-
-                            if (isNumericKod && rawKod !== "") {
-                                excelData.push(`${rawKod}\t${ad}\t${fiyat}`);
+                    const excelData = Array.from(document.querySelectorAll('tr'))
+                        .map(row => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length >= 4) {
+                                const rawKod = cells[1].innerText.trim();
+                                if (/^\d+$/.test(rawKod) && rawKod !== "") {
+                                    return `${rawKod}\t${cells[2].innerText.trim()}\t${cells[3].innerText.trim()}`;
+                                }
                             }
-                        }
-                    });
-
-                    if (excelData.length === 0) {
-                        alert("Kopyalanacak temiz parça kodu bulunamadı!");
-                        return;
-                    }
-
-                    const finalString = excelData.join('\n');
-                    await navigator.clipboard.writeText(finalString);
-
-                    // Geri bildirim
+                            return null;
+                        })
+                        .filter(Boolean);
+                    if (!excelData.length) return alert("Kopyalanacak temiz parça kodu bulunamadı!");
+                    await navigator.clipboard.writeText(excelData.join('\n'));
                     btnCopy.innerText = "✔️ LİSTE HAZIR";
-                    btnCopy.style.backgroundColor = "#28a745";
-                    btnCopy.style.color = "#fff";
-
+                    Object.assign(btnCopy.style, { backgroundColor: "#28a745", color: "#fff" });
                     setTimeout(() => {
                         btnCopy.innerText = "📂 LİSTEYİ KOPYALA";
-                        btnCopy.style.backgroundColor = "";
-                        btnCopy.style.color = "";
+                        btnCopy.style.cssText = "";
                     }, 2000);
-
                 } catch (err) {
                     alert("Kopyalama başarısız!");
-                    console.error(err);
                 }
             };
-
             contentArea.appendChild(btnCopy);
         }
     }
     // Hızlı Referans açma Otohasar
-    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list.php")) {
-        config.bottom = "22px";
-        config.width = "150px";
-        config.collapsedWidth = "150px";
+    if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list.php")) {
+        Object.assign(config, { bottom: "22px", width: "150px", collapsedWidth: "150px" });
         injectStyles();
         initPanel();
-
         const panel = document.getElementById('ks-master-panel');
-        const panelContent = panel ? panel.querySelector('.ks-content') : null;
-        if (panel && panelContent) {
+        if (panel) {
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Aktifleştirici Panel";
         }
-
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `
-            <div class="ks-tooltip-container" onmouseover="handleHover(this)">
-                <button id="unlockSelectBtn" class="ks-btn" style="width:100%;">
-                    🔓 Her Şeyi Aktif Et
-                </button>
-                <div class="ks-tooltip-box">
-                    <strong>⚠️ Dikkat ⚠️</strong><br>
-                    Zorunda kalmadıkça bu buton özelliğini kullanmayınız.
-                    Site üzerindeki tüm etkileşimleri aktifleştirir (Buton, yazı kutusu, liste kutusu vs...).
-                </div>
-            </div>`;
-
-            document.getElementById('unlockSelectBtn').addEventListener('click', (e) => {
-                // 1. Disabled attribute'una sahip tüm elementleri bul
-                const disabledElements = document.querySelectorAll('[disabled], .disabled');
-
-                disabledElements.forEach(el => {
-                    el.disabled = false;
-                    el.removeAttribute('disabled');
-                    el.classList.remove('disabled');
-                    el.style.pointerEvents = 'auto';
-                    el.style.opacity = '1';
-                });
-
-                // 2. Readonly olanları düzenlenebilir yap
-                const readOnlyElements = document.querySelectorAll('[readonly]');
-                readOnlyElements.forEach(el => {
-                    el.readOnly = false;
-                    el.removeAttribute('readonly');
-                });
-
-            });
+                <div class="ks-tooltip-container">
+                    <button id="unlockSelectBtn" class="ks-btn" style="width:100%; cursor:pointer;">
+                        🔓 Her Şeyi Aktif Et
+                    </button>
+                    <div class="ks-tooltip-box">
+                        <strong>⚠️ Dikkat ⚠️</strong><br>
+                        Zorunda kalmadıkça kullanmayınız. Tüm etkileşimleri (buton, input vb.) açar.
+                    </div>
+                </div>`;
+            document.getElementById('unlockSelectBtn').addEventListener('click', unlockAllElements);
         }
     }
     // Hızlı Manuel Parça girişi
@@ -2349,7 +2175,6 @@
                 --transition-speed: 0.4s;
                 --toggle-loc: 250px;
             }
-
             #tm-panel {
                 position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
                 background: var(--panel-bg);
@@ -2362,15 +2187,13 @@
                 box-shadow: 5px 0 25px rgba(0,0,0,0.5);
                 border-right: 1px solid rgba(255, 255, 255, 0.1);
                 transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-                overflow-y: auto;
-                z-index: 0;
+                overflow-y: auto
+                z-index: 1;
             }
-
             /* Panel Kapalı Durumu */
             #tm-panel.closed {
                 transform: translateX(-260px);
             }
-
             /* Sayfa İçeriğini Kaydırma (Panel açıkken) */
             body {
                 transition: margin-left var(--transition-speed);
@@ -2379,12 +2202,11 @@
             body.panel-closed {
                 margin-left: 0 !important;
             }
-
             /* Kapatma / Açma Butonu (Toggle) */
             #tm-toggle {
                 position: fixed;
                 top: 20px;
-                left: var(--toggle-loc);
+                left: calc(var(--toggle-loc) + 15px);
                 width: 40px;
                 height: 50px;
                 background: var(--panel-bg);
@@ -2393,31 +2215,26 @@
                 border-radius: 0 8px 8px 0;
                 cursor: pointer;
                 color: #fff;
-                z-index: 1;
+                z-index: 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 box-shadow: 5px 0 25px rgba(0,0,0,0.5);
                 backdrop-filter: blur(${config.blur});
-
-                /* AÇILIRKEN: Yavaş geçiş (Panel açılırken toggle sağa yavaş gider) */
                 transition: left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             }
-
             /* KAPANIRKEN: Hızlı geçiş (closed sınıfı eklendiğinde toggle sola hızlı gider) */
             #tm-panel.closed + #tm-toggle {
                 left: 0px;
                 transition: left calc(var(--transition-speed) / 2) cubic-bezier(0.4, 0, 0.2, 1);
             }
-
             .tm-section-title {
                 font-size: 10px; text-transform: uppercase; color: #aaa;
                 letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);
                 padding-bottom: 5px; margin-top: 10px;
             }
-
             /* Giriş Alanları (Tam Genişlik) */
-            .tm-input-group { display: flex; flex-direction: column; gap: 8px; }
+            .tm-input-group { display: flex; flex-direction: column; gap: 5px; }
             #tm-panel input {
                 width: 100% !important; padding: 6px; border-radius: 8px;
                 border: 1px solid rgba(255,255,255,0.1);
@@ -2433,10 +2250,10 @@
 
             /* Butonlar (Daha küçük ve zarif) */
             .tm-button-grid {
-                display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+                display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
             }
             #tm-panel button {
-                padding: 6px 8px; border-radius: 6px; border: none;
+                padding: 5px 8px; border-radius: 6px; border: none;
                 cursor: pointer; font-size: 11px; font-weight: 600;
                 color: #fff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 display: flex; align-items: center; justify-content: center;
@@ -2448,9 +2265,7 @@
                 box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             }
             #tm-panel button:active { transform: translateY(0); }
-
             .btn-full { grid-column: span 2; padding: 12px !important; font-size: 13px !important; }
-
             /* İşlem Tipi (Modern Radio) */
             .radio-container {
                 display: flex; gap: 5px; background: rgba(255,255,255,0.05);
@@ -2464,7 +2279,6 @@
             .radio-container label:has(input:checked) {
                 background: var(--accent-blue);
             }
-
             .btn-new { background: #2196F3; }
             .btn-ok { background: #4CAF50; }
             .btn-orange { background: #FF9800; color: #000; }
@@ -2489,7 +2303,6 @@
             panel.id = "tm-panel";
             panel.innerHTML = `
             <button id="bYeni" class="btn-new btn-full">YENİ KAYIT</button>
-
             <div class="tm-section-title">PARÇA BİLGİLERİ</div>
             <div class="tm-input-group">
                 <input id="tm_kod" placeholder="Parça Kodu">
@@ -2499,7 +2312,6 @@
                     <input id="tm_adet" type="number" placeholder="Adet" value="1" style="width:70px !important;">
                 </div>
             </div>
-
             <div class="tm-section-title">İŞLEM TİPİ</div>
             <div class="radio-container">
                 <label><input type="radio" name="islemTipi" value="degisim" checked> DEĞİŞİM</label>
@@ -2515,7 +2327,6 @@
                     Açık olduğu sürece kaydetmeye çalışır.
                 </div>
             </div>
-
             <div class="tm-section-title">MANUEL GİRİŞ TÜRÜ</div>
 			<div class="ks-tooltip-container" onmouseover="handleHover(this)">
                 <div class="tm-button-grid">
@@ -2540,7 +2351,8 @@
             <div class="tm-button-grid">
                 <button id="b_onar" class="btn-rpr btn-full">GENEL ONARIM</button>
                 <button id="b_yan" class="btn-brown btn-full">EŞDEĞER ÇEVİR</button>
-				<div class="ks-tooltip-container" style="width:100%; onmouseover="handleHover(this)">
+            </div>
+			<div class="ks-tooltip-container" style="width:100%; onmouseover="handleHover(this)">
                    <button id="unlockSelectBtn" class="btn-dark btn-full" style="width:100%;">
                        🔓 Her Şeyi Aktif Et
                    </button>
@@ -2550,41 +2362,19 @@
                        Site üzerindeki tüm etkileşimleri aktifleştirir (Buton, yazı kutusu, liste kutusu vs...).
 				</div>
             </div>
-            </div>
             `;
             const toggleBtn = document.createElement("div");
             toggleBtn.id = "tm-toggle";
-            toggleBtn.innerHTML = "◀"; // Başlangıçta paneli gösteren ok
-
+            toggleBtn.innerHTML = "◀";
             document.body.appendChild(panel);
             document.body.appendChild(toggleBtn);
-
             /* ===== 3. PANEL LOGIC (Kapatma/Açma) ===== */
             toggleBtn.onclick = () => {
                 panel.classList.toggle("closed");
                 document.body.classList.toggle("panel-closed");
                 toggleBtn.innerHTML = panel.classList.contains("closed") ? "▶" : "◀";
             };
-            document.getElementById('unlockSelectBtn').addEventListener('click', (e) => {
-                // 1. Disabled attribute'una sahip tüm elementleri bul
-                const disabledElements = document.querySelectorAll('[disabled], .disabled');
-
-                disabledElements.forEach(el => {
-                    el.disabled = false;
-                    el.removeAttribute('disabled');
-                    el.classList.remove('disabled');
-                    el.style.pointerEvents = 'auto';
-                    el.style.opacity = '1';
-                });
-
-                // 2. Readonly olanları düzenlenebilir yap
-                const readOnlyElements = document.querySelectorAll('[readonly]');
-                readOnlyElements.forEach(el => {
-                    el.readOnly = false;
-                    el.removeAttribute('readonly');
-                });
-
-            });
+            document.getElementById('unlockSelectBtn').addEventListener('click', unlockAllElements);
             //adet kontrolü
             const adetInput = document.getElementById('tm_adet');
             if (adetInput) {
@@ -2675,33 +2465,23 @@
                 if (!eksikAlan) { submitForm(); setTimeout(() => { submitForm(); }, 400); }
             }
             const submitForm = () => {
-                hookDialogs();
                 const selectedRadio = document.querySelector('input[name="kayit_secim"]:checked');
                 if (!selectedRadio) {
-                    console.warn("Lütfen bir işlem tipi seçin.");
-                    return;
+                    console.warn("Lütfen bir işlem tipi seçin."); return;
                 }
                 const tip = selectedRadio.value;
                 if (tip === "kayit") {
                     const retrySubmit = setInterval(() => {
                         const currentSelection = document.querySelector('input[name="kayit_secim"]:checked');
-                        if (!currentSelection || currentSelection.value !== "kayit") {
-                            clearInterval(retrySubmit);
-                            return;
-                        }
+                        if (!currentSelection || currentSelection.value !== "kayit") { clearInterval(retrySubmit); return; }
                         if (typeof unsafeWindow.sbmt_frm === "function" && unsafeWindow.sbmt_frm()) {
                             let canSubmit = true;
-                            if (typeof unsafeWindow.doraSiparisSecenek === "function") {
-                                if (!unsafeWindow.doraSiparisSecenek()) { canSubmit = false; }
-                            }
-                            if (canSubmit && document.yedparforhasar) {
-                                document.yedparforhasar.submit(); clearInterval(retrySubmit);
-                            }
+                            if (typeof unsafeWindow.doraSiparisSecenek === "function") { if (!unsafeWindow.doraSiparisSecenek()) { canSubmit = false; } }
+                            if (canSubmit && document.yedparforhasar) { document.yedparforhasar.submit(); clearInterval(retrySubmit); }
                         }
                     }, 500);
                 } else if (tip === "nonkayit") {
-                    console.log("Otomatik kayıt devre dışı.");
-                    return;
+                    console.log("Otomatik kayıt devre dışı."); return;
                 }
             };
             const groups = ['islemTipi', 'kayit_secim'];
@@ -2710,9 +2490,7 @@
                     const savedValue = GM_getValue('saved_' + groupName);
                     if (savedValue) {
                         const radioToSelect = document.querySelector(`input[name="${groupName}"][value="${savedValue}"]`);
-                        if (radioToSelect) {
-                            radioToSelect.checked = true;
-                        }
+                        if (radioToSelect) { radioToSelect.checked = true; }
                     }
                 });
             }
@@ -2730,9 +2508,7 @@
                 // 1. Orijinal fonksiyonu çağır
                 if (typeof unsafeWindow.yeni_kayit === "function") unsafeWindow.yeni_kayit('');
                 // 2. Elemanları döngüye almadan önce filtrele (null olanları ele)
-                [refs.kod, refs.ad, refs.fiyat].filter(input => input !== null && input !== undefined).forEach(input => {
-                    input.value = "";
-                });
+                [refs.kod, refs.ad, refs.fiyat].filter(input => input !== null && input !== undefined).forEach(input => { input.value = ""; });
                 // 3. Blink efektini kaldır ve focus yap
                 if (refs.bYeni) refs.bYeni.classList.remove("blink");
                 if (refs.kod) refs.kod.focus();
@@ -2825,8 +2601,7 @@
             padding: 4px 4px; font-size: 11px; font-weight: bold; cursor: pointer;
             border-radius: ${config.borderRadius}; transition: background 0.2s; text-align: center;
         }
-        #multi-action-panel button:hover { background: #1abc9c; border-color: #16a085; }
-    `;
+        #multi-action-panel button:hover { background: #1abc9c; border-color: #16a085; } `;
         document.head.appendChild(style);
         const panel = document.createElement('div');
         panel.id = 'multi-action-panel';
@@ -2837,24 +2612,19 @@
             <button id="btnExcelCopy">📋 EXCEL İÇİN KOPYALA</button>
         `;
         document.body.appendChild(panel);
-
         /* ===== 2. GELİŞTİRİLMİŞ SEÇİM FONKSİYONU ===== */
         document.getElementById('btnHepsiniYap').addEventListener('click', () => {
             // 1. Tüm Grup selectlerini bul
             const grupSelectors = document.querySelectorAll(`select[id^="GRUP_ID"]`);
-
             grupSelectors.forEach(grupSel => {
                 // SADECE GRUP -1 İSE İŞLEM YAP
                 if (grupSel.value === "-1") {
-
                     // Satır ID'sini al (Örn: GRUP_ID265467 -> 265467)
                     const rowId = grupSel.id.replace('GRUP_ID', '');
                     const anaGrupSel = document.getElementById(`ANA_GRUP${rowId}`);
-
                     // GRUP'U DEĞİŞTİR
                     grupSel.value = "10";
                     grupSel.dispatchEvent(new Event('change', { bubbles: true }));
-
                     // GRUP DEĞİŞTİĞİ İÇİN AYNI SATIRDAKİ ANA GRUP'U DA DEĞİŞTİR
                     if (anaGrupSel) {
                         anaGrupSel.value = "777";
@@ -2871,11 +2641,9 @@
             if (radioSiparis) {
                 radioSiparis.focus(); // Bazı sistemler focus bekler
                 radioSiparis.checked = true; // Mantıksal seçim
-
                 // Hem click hem change olaylarını zorla tetikle
                 radioSiparis.dispatchEvent(new Event('click', { bubbles: true }));
                 radioSiparis.dispatchEvent(new Event('change', { bubbles: true }));
-
                 console.log("1. Radiobox işaretlendi ve tetiklendi.");
                 await wait(400); // Sistemin alt alanları açması için biraz daha uzun bekleme
             }
@@ -2896,7 +2664,6 @@
                 notlarArea.dispatchEvent(new Event('input', { bubbles: true }));
                 console.log("3. Not eklendi.");
             }
-
             alert("İşlemler sırasıyla tamamlandı!");
         });
         /* ===== KOPYALAMA FONKSİYONU (NAME/ID DESTEKLİ) ===== */
@@ -2949,11 +2716,8 @@
             config.collapsedWidth = "150px";
             injectStyles();
             initPanel();
-
             const text = document.body.innerText.toUpperCase();
             const url = location.href.toLowerCase();
-
-            // VARSAYILAN AYARLAR (Atlas, Doğa vb.)
             const varsayilan = {
                 EHLİYET: ['1'],
                 RUHSAT: ['7'],
@@ -2979,7 +2743,6 @@
                 VERGI: ['9', '221'],
                 MASAK: ['248']
             };
-
             const atlas = {
                 EHLİYET: ['1', '195', '196'],
                 RUHSAT: ['7', '92', '38'],
@@ -3007,8 +2770,6 @@
                 IHRACAT_REFAKAT: ['133'],
                 TASIT_BELGESI: ['177']
             };
-
-            // MAPFRE ÖZEL AYARLARI
             const mapfre = {
                 EHLİYET: ['121', '120'],
                 RUHSAT: ['143', '144'],
@@ -3034,8 +2795,6 @@
                 VERGI: ['9'],
                 MASAK: ['162']
             };
-
-            // MAPFRE ÖZEL AYARLARI
             const hepiyi = {
                 EHLİYET: ['1', '195', '196', '239'],
                 RUHSAT: ['7', '92', '38', '238'],
@@ -3061,11 +2820,8 @@
                 VERGI: ['9', '221', '136'],
                 MASAK: ['248']
             };
-
             return (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre : (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi : (text.includes("ATLAS") || url.includes("atlas")) ? atlas : varsayilan;
-
         };
-
         const ayarlar = getSistemAyarlari();
         // Tooltip Stil Tanımlaması
         const style = document.createElement('style');
@@ -3081,12 +2837,12 @@
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Resim Seçme";
             panelContent.innerHTML = `
-                    <div id="ks-action-container" style="display: flex; flex-direction: column; gap: 2px; padding: 4px;"></div>
-                    <hr style="border:0; border-top:1px solid #444; margin:8px 0;">
-                `;
+                    <div id="ks-action-container" style="display: flex; flex-direction: column; gap: 2px; padding: 2px;"></div>
+                    <div id="ks-nav-container" style="padding: 4px;"></div>`;
             const actionContainer = panelContent.querySelector('#ks-action-container');
-            const createMiniBtn = (text, color, targetSelector, val, tooltipTitle, tooltipDesc) => {
-                const container = document.createElement('div');
+            const navContainer = panelContent.querySelector('#ks-nav-container');
+            const createMiniBtn = (text, color, targetSelector, val, tooltipTitle, tooltipDesc, isScroll = false) => {
+                 const container = document.createElement('div');
                 container.className = 'ks-tooltip-container';
                 Object.assign(container.style, {
                     width: '100%',
@@ -3099,15 +2855,11 @@
                     background: color,
                     border: '0',
                     borderRadius: '4px',
-                    color: "white",
                     cursor: 'pointer',
-                    fontWeight: "bold",
                     padding: '3px 4px',
                     fontSize: '11px',
                     width: '100%',
                     display: 'block',
-                    textAlign: 'center',
-                    transition: 'transform 0.1s',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                     boxSizing: 'border-box'
                 });
@@ -3121,10 +2873,14 @@
                 tip.innerHTML = `<strong>${tooltipTitle}</strong><br>${tooltipDesc}`;
                 btn.onclick = (e) => {
                     e.preventDefault();
-                    document.querySelectorAll(targetSelector).forEach(sel => {
-                        sel.value = val;
-                        sel.dispatchEvent(new Event('change', { bubbles: true }));
-                    });
+                    if (isScroll) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        document.querySelectorAll(targetSelector).forEach(sel => {
+                            sel.value = val;
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                    }
                 };
                 container.appendChild(btn);
                 container.appendChild(tip);
@@ -3136,8 +2892,8 @@
             actionContainer.appendChild(createMiniBtn('1. EKSPERTİZ', '#27ae60', 'select[name^="PHOTO_CTG_ID_"]', '1', 'Kategori: Ekspertiz', 'Tümünü 1. Ekspertiz Resimleri yapar.'));
             actionContainer.appendChild(createMiniBtn('HASAR', '#2c3e50', 'select[name^="PHOTO_CTG_ID_"]', '13', 'Kategori: Hasar', 'Tümünü Hasar Resimleri yapar.'));
             actionContainer.appendChild(createMiniBtn('ONARIM', '#c0392b', 'select[name^="PHOTO_CTG_ID_"]', ayarlar.ONARIM_SONRASI, 'Kategori: Onarım', 'Tümünü Onarım Resimleri yapar.'));
+			navContainer.appendChild(createMiniBtn('▲ TEPEYE ÇIK', '#34495e', null, null, 'Navigasyon', 'Sayfayı en üste kaydırır.', true));
         }
-
         // 2. SATIR İÇİ PANELLER
         function injectRowPanels() {
             const evrakSelects = document.querySelectorAll('select[name^="EVRAK_ID_"]');
@@ -3150,10 +2906,7 @@
                 const noteArea = parentTd.querySelector('textarea[name^="HEADER_"]');
                 if (noteArea) {
                     const container = document.createElement('div');
-                    Object.assign(container.style, {
-                        background: '#f1f1f1', border: '1px solid #ccc', borderRadius: '3px',
-                        padding: '4px', marginBottom: '4px', marginTop: '6px'
-                    });
+                    Object.assign(container.style, { background: '#f1f1f1', border: '1px solid #ccc', borderRadius: '3px', padding: '4px', marginBottom: '4px', marginTop: '6px' });
                     const nameLabel = document.createElement('div');
                     nameLabel.innerText = "📁 " + fileName;
                     Object.assign(nameLabel.style, {
@@ -3216,12 +2969,8 @@
                             width: '45px', fontSize: '9px', padding: '2px 2px', cursor: 'pointer', background: btnData.color, color: 'white', border: 'none', borderRadius: '2px', fontWeight: 'bold',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)', transition: 'transform 0.1s, box-shadow 0.1s'
                         });
-                        btn.onmousedown = () => {
-                            btn.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.5)';
-                        };
-                        btn.onmouseup = () => {
-                            btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)';
-                        };
+                        btn.onmousedown = () => { btn.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.5)'; };
+                        btn.onmouseup = () => { btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)'; };
                         const tip = document.createElement('div');
                         tip.className = 'ks-tooltip-box';
                         tip.style.borderColor = btnData.color;
@@ -3229,9 +2978,7 @@
                         btn.onclick = (e) => {
                             e.preventDefault();
                             let nextVal = btnData.vals[0];
-                            if (btnData.vals.length > 1 && selectEl.value === btnData.vals[0]) {
-                                nextVal = btnData.vals[1];
-                            }
+                            if (btnData.vals.length > 1 && selectEl.value === btnData.vals[0]) { nextVal = btnData.vals[1]; }
                             selectEl.value = nextVal;
                             selectEl.dispatchEvent(new Event('change', { bubbles: true }));
                             /* //-- Evrak türünüde seçer
@@ -3560,7 +3307,6 @@
                 <span style="margin: 0 15px; color: #666;">|</span>
                 <span style="color: #666;">${displayDate}</span>
             `;
-
             panel.style.display = 'block';
         };
         const formatSbmNumber = (text) => {
@@ -3573,7 +3319,6 @@
             if (found) updatePanelContent(lastFormattedNumber);
             return formatted;
         };
-
         // --- 2. ANA İŞLEMCİLER ---
         const processNodes = (rootElement) => {
             const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT, null, false);
@@ -3840,7 +3585,7 @@
         }, true);
     }
     // Türkiye Sigorta
-    if (KS_SYSTEM === true && TRSIGORTA === true && location.href.includes("hasaroto.turkiyesigorta.com.tr")) {
+    if (KS_SYSTEM === true && TRSIGORTA === true && location.href.includes("hasaroto.turkiyesigorta.com.tr") && !location.href.includes("sign-in")) {
         const turkeyfix = `
 
         `;
@@ -3957,7 +3702,6 @@
                 }, 100);
                 return;
             }
-
             // --- ARAÇ SAHİBİ (İsim + Soyisim) ---
             // 1. MAĞDUR (VICTIM) KONTROLÜ
             const isVictimOwnerField = id.includes("victimcarownername") || name.includes("victimcarownername");
@@ -4000,7 +3744,6 @@
                 applyModernStyles();
             }
         }, 1000);
-
         const observer = new MutationObserver(() => {
             const overlays = document.querySelectorAll('.dx-overlay-wrapper.dx-overlay-shader');
             overlays.forEach(overlay => {
@@ -4042,10 +3785,6 @@
                     }
                 }
             });
-        });
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
         });
         observer.observe(document.body, { childList: true, subtree: true });
         function setDxValue(nameAttr, targetValue) {
@@ -4126,10 +3865,9 @@
             const content = target.querySelector('.dx-form-group-content');
             if (content) target.insertBefore(container, content);
         }
-        setTimeout(() => {
-            setInterval(init, 2000);
-        }, 1500);
-        const widthfornavbar = "230px";
+        setTimeout(() => { setInterval(init, 2000); }, 1500);
+        const widthfornavbar = "200px";
+		const panel_colorite = "rgba(230, 230, 230, 0.95)";
         // 1. CSS Ayarları
         const css = `
             #custom-nav-panel {
@@ -4138,67 +3876,61 @@
                 top: 54px !important;
                 width: ${widthfornavbar} !important;
                 height: calc(100% - 54px) !important;
-                background: rgba(0, 0, 10, 0.035) !important;
-                backdrop-filter: blur(15px) saturate(180%);
-                -webkit-backdrop-filter: blur(15px) saturate(180%);
-                border-left: 1px solid rgba(0, 0, 0, 0.08) !important;
-                box-shadow: -15px 0 15px -10px ${config.themeColor}33 !important;
+                padding: 20px 5px 15px 5px !important;
+				gap:2px;
+                background: ${panel_colorite} !important;
+				backdrop-filter: blur(20px) saturate(160%) contrast(100%);
+				-webkit-backdrop-filter: blur(20px) saturate(160%);
+                box-shadow: -6px 0px 8px 2px ${config.themeColor}33 !important;
                 z-index: 0 !important;
-                padding: 20px 15px 15px 15px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 overflow-y: auto !important;
                 font-family: 'Inter', 'Segoe UI', Roboto, sans-serif !important;
             }
-
             .nav-item-btn {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-
-                width: 90% !important;
-                min-height: 48px !important;
-
-                margin-left: auto !important;
-                margin-right: auto !important;
-                margin-bottom: 10px !important;
-                padding: 8px 16px !important;
-
-                background: rgba(0, 0, 15, 0.06) !important;
-                color: #444 !important;
+                width: 92% !important;
+                min-height: 40px !important;
+                max-height: 60px !important;
+                margin: 0 auto 10px auto !important;
+                padding: 8px 12px !important;
+                background: #ffffff !important;
+                color: #334155 !important;
                 text-decoration: none !important;
                 font-size: 13px !important;
-                font-weight: 500 !important;
-                border: 1px solid rgba(0,0,0,0.05) !important;
-                border-radius: 10px !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                font-weight: 600 !important;
+                border: 1px solid rgba(0, 170, 255, 0.15) !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 4px rgba(0, 170, 255, 0.05) !important;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
                 cursor: pointer !important;
-				box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3) !important;
-
-                /* Uzun metinler için koruma */
                 text-align: center !important;
-                line-height: 1.2 !important;
-                white-space: normal !important; /* Yükseklik sabitlendiği için metin alt satıra geçebilir */
+                line-height: 1.3 !important;
+                white-space: normal !important;
                 word-break: break-word !important;
             }
-
             .nav-item-btn:hover {
-                background: ${config.themeColor} !important;
-                color: #ffffff !important;
-                transform: translateY(-3px) !important; /* Modern bir dokunuş için yukarı kaydırma */
-                box-shadow: 0 8px 15px ${config.themeColor}44 !important;
-                border-color: transparent !important;
+                background: #f0f9ff !important;
+                color: ${config.themeColor} !important;
+                border-color: ${config.themeColor} !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 12px rgba(0, 170, 255, 0.12) !important;
             }
-			.nav-item-btn:active {
-                background: ${config.themeColor}44 !important;
-                border-color: ${config.Color} !important;
-                transform: scale(0.96) !important;
+            .nav-item-btn:active {
+                transform: scale(0.97) !important;
+                background: #e0f2fe !important;
+                box-shadow: none !important;
             }
             .btn-clicked {
-                background: ${config.themeColor}2b !important;
-                border-color: ${config.themeColor} !important;
-                transform: scale(0.96) !important;
+                background: ${config.themeColor} !important;
+                color: white !important;
+                border-color: transparent !important;
+                font-weight: 700 !important;
+                box-shadow: 0 4px 10px ${config.themeColor}66 !important;
             }
             .dx-drawer-wrapper {
                 padding-right: ${widthfornavbar} !important;
@@ -4206,30 +3938,43 @@
             #custom-nav-panel::-webkit-scrollbar { width: 4px; }
             #custom-nav-panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
             #custom-nav-panel::-webkit-scrollbar-thumb:hover { background: ${config.themeColor}; }
-			/* Sayfa Altına İnme Butonu */
-			#scroll-to-bottom-btn {
+			/* Sayfa Yönlendirme Butonları */
+			#scroll-to-bottom-btn, #scroll-to-top-btn {
 			    position: fixed !important;
-			    right: 10px !important;
-			    bottom: 30px !important;
-			    width: 45px !important;
-			    height: 45px !important;
+			    right: calc(${widthfornavbar} - 10px) !important;
+			    width: 40px !important;
+			    height: 40px !important;
 			    background: ${config.themeColor} !important;
+				box-shadow: 0px 0px 1px 4px ${panel_colorite}, -6px 0px 8px 2px ${config.themeColor}70 !important;
 			    color: white !important;
 			    border-radius: 50% !important;
 			    border: none !important;
 			    cursor: pointer !important;
-			    z-index: 10000 !important; /* Her şeyin en önünde */
-			    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+			    z-index: 1 !important;
 			    display: flex !important;
 			    align-items: center !important;
 			    justify-content: center !important;
 			    transition: all 0.3s ease !important;
 			    font-size: 20px !important;
 			}
-			#scroll-to-bottom-btn:hover {
-			    transform: translateY(-5px) !important;
-			    box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
-			    filter: brightness(1.1);
+			/* Yukarı Aşağı*/
+			#scroll-to-bottom-btn {
+			    bottom: 5px !important;
+			}
+			#scroll-to-top-btn {
+			    top: 64px !important;
+			}
+			#scroll-to-bottom-btn:hover, #scroll-to-top-btn:hover {
+			    background: #f0f9ff !important;
+			    color: ${config.themeColor} !important;
+			    border: 1px solid ${config.themeColor} !important;
+			    transform: translateY(-2px) !important;
+			    box-shadow: 0 6px 12px ${config.themeColor}66 !important;
+			}
+			#scroll-to-bottom-btn:active, #scroll-to-top-btn:active {
+			    transform: scale(0.97) !important;
+			    background: #e0f2fe !important;
+			    box-shadow: none !important;
 			}
 			/* Bildirim kutusunun (Stack) ana yerleşimi */
             .dx-toast-stack {
@@ -4266,7 +4011,6 @@
         const style = document.createElement('style');
         style.innerHTML = css;
         document.head.appendChild(style);
-        // 2. Alt Butonu Oluşturma
         function createBottomBtn() {
             if (document.getElementById('scroll-to-bottom-btn')) return;
             const btn = document.createElement('button');
@@ -4281,6 +4025,20 @@
             };
             document.body.appendChild(btn);
         }
+        function createTopBtn() {
+            if (document.getElementById('scroll-to-top-btn')) return;
+            const btn = document.createElement('button');
+            btn.id = 'scroll-to-top-btn';
+            btn.innerHTML = '↑'; // Yukarı ok işareti
+            btn.title = 'Sayfa Üstüne Çık';
+            btn.onclick = () => {
+                window.scrollTo({
+                    top: 0, // En tepeye
+                    behavior: 'smooth'
+                });
+            };
+            document.body.appendChild(btn);
+        }
         // 2. Menü Oluşturma ve Güncelleme Mantığı
         function updateMenu() {
             let panel = document.getElementById('custom-nav-panel');
@@ -4290,8 +4048,11 @@
                 document.body.appendChild(panel);
             }
             createBottomBtn();
-            const selectors = '.dx-item .accordion-header, .dx-item .dx-form-group-caption, .dx-box-item .accordion-header, accordion-header, .dx-box-item .dx-form-group-caption';
+            createTopBtn();
+            const selectors = '.accordion-header,.dx-field-item-content .dx-form-group-caption';
+			//'.dx-item .dx-form-group-caption, .dx-item .dx-box-item .accordion-header, .accordion-header,.accordion-header .accordion-item, .dx-box-item .dx-form-group-caption';
             let elements = Array.from(document.querySelectorAll(selectors));
+			elements = elements.filter(el => { return el.offsetParent !== null; });
             elements.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
             const currentHeadersText = elements.map(el => el.innerText.trim().split('\n')[0]).join('|');
             if (panel.dataset.lastHeaders === currentHeadersText) return;
@@ -4299,9 +4060,7 @@
             panel.innerHTML = '';
             let addedTexts = new Set();
             elements.forEach((el, index) => {
-                if (el.closest('.osem-tab-buttons') || el.classList.contains('tab-button')) {
-                    return;
-                }
+                if (el.closest('.osem-tab-buttons') || el.classList.contains('tab-button')) { return; }
                 const text = el.innerText.replace(/\s+/g, ' ').trim().split('\n')[0];
                 if (text.length < 3 || addedTexts.has(text)) return;
                 addedTexts.add(text);
@@ -4312,13 +4071,13 @@
                 btn.innerText = text;
 
                 btn.onclick = () => {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    /*const parent = el.closest('.dx-accordion-item') || el.parentElement;
-                    if (parent && !parent.classList.contains('dx-accordion-item-opened')) {
-                        el.click();
-                    }*/
+                    const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - 64;
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
                 };
-
                 panel.appendChild(btn);
             });
         }
@@ -4332,7 +4091,7 @@
             cleanupToasts();
         });
         window.addEventListener('load', () => { setTimeout(updateMenu, 1500); });
-        setInterval(updateMenu, 3000);
+        setInterval(updateMenu, 1000);
         setInterval(cleanupToasts, 3000);
         const startObserver = setInterval(() => {
             const target = document.querySelector('.dx-toast-stack');
@@ -4346,7 +4105,6 @@
     }
     // Sayfa bildirim öldürücü
     if (KS_SYSTEM === true && BILDIRIM === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
-
         // unsafeWindow kullanımı Tampermonkey'de sayfa JS'ine erişim için kritiktir
         const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
         let notificationCounts = {};
