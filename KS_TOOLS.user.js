@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.33
+// @version      1.34
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -747,7 +747,7 @@
                     <button id="autoSelectBtn" class="ks-btn" style="width:100%; height: 100%;">⚡ Ön Giriş</button>
                     <div class="ks-tooltip-box">
                         <strong>⚠️ Otomatik Giriş</strong><br>
-                        Kaza ihbar türü, Eksper, Alkol durumu ve Ehliyet sınıfını doğrulamayı unutmayın.
+                        Kaza ihbar türü, Eksper, Alkol durumu, Devir-Satış, Eksik/Aşkın Sigorta, Muafiyet, Taşınan Yük, Ehliyet sınıfı ve Ekspertiz tarihi gibi seçimleri doğrulamayı unutmayın.
                     </div>
                 </div>
                 <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%; height: 100%;" onclick="c('kaydet();')">💾 KAYDET</button>
@@ -981,7 +981,7 @@
                 else { rucuStatus = `<span style="background:#ff950022; color:#ff9500; border:1px solid #ff950044; padding:1px 6px; border-radius: ${config.borderRadius}; font-weight:bold; font-size:10px;">BELİRSİZ 🔘</span>`; }
                 html += `
                     <tr style="border-bottom:1px solid #333;">
-                        <td style="white-space:nowrap; width:100px;">Rücu Durumu:</td>
+                        <td style="white-space:nowrap; width:100px;">Rücu:</td>
                         <td style="text-align:right; padding:4px 0;">${rucuStatus}</td>
                     </tr>`;
 
@@ -992,7 +992,7 @@
                 else { pertStatus = `<span style="background:#2ecc7122; color:#2ecc71; border:1px solid #2ecc7144; padding:1px 6px; border-radius: ${config.borderRadius}; font-weight:bold; font-size:10px;">YOK 🟢</span>`; }
                 html += `
                     <tr style="border-bottom:1px solid #333;">
-                        <td style="white-space:nowrap; width:100px;">Pert Durumu:</td>
+                        <td style="white-space:nowrap; width:100px;">Pert:</td>
                         <td style="text-align:right; padding:4px 0;">${pertStatus}</td>
                     </tr>`;
                 // Renk ve Badge Oluşturma Fonksiyonu (Tekrarı önlemek için)
@@ -1359,15 +1359,7 @@
                     const el = $(id);
                     if (el) { el.checked = false; el.click(); }
                 };
-                ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'TESPIT_SEKLI0', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
-                setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
-                setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
-                setVal('ONARIM_SURESI', '10');
-                setVal('EKSPERTIZ_SURESI', '1');
-                setVal('KUSUR_ORANI', '100');
-                setVal('UZAKTAN_EKSPERTIZ', '2');
-                setVal('EHLIYET_SINIFI', 'B');
-                const setSelectText = (id, txt) => {
+				const setSelectText = (id, txt) => {
                     const el = $(id);
                     if (!el) return;
                     const opt = [...el.options].find(o => o.text.includes(txt));
@@ -1376,6 +1368,20 @@
                         el.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 };
+                ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'RUCU0','SAG1','HAS_DEVIR_SATIS0',
+				 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0','MUAFIYET0','EKSPERTIZ_YERI_SEHIR_DISI1',
+				 'HASAR_YERI0','TESPIT_SEKLI0','ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
+                setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
+                setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
+                setVal('ONARIM_SURESI', '10');
+                setVal('EKSPERTIZ_SURESI', '1');
+				setVal('KUSURLU', '0');
+                setVal('KUSUR_ORANI', '100');
+                setVal('UZAKTAN_EKSPERTIZ', '2');
+                setVal('EHLIYET_SINIFI', 'B');
+                setVal('EKSPERTIZ_TARIHLERI', `${getValue('IHBAR_TARIHI_GUN')}/${getValue('IHBAR_TARIHI_AY')}/${getValue('IHBAR_TARIHI_YIL')}`);
+				setVal('EKSPERTIZ_TALEP_TARIHI_GUN', getValue('IHBAR_TARIHI_GUN'));setVal('EKSPERTIZ_TALEP_TARIHI_AY', getValue('IHBAR_TARIHI_AY'));setVal('EKSPERTIZ_TALEP_TARIHI_YIL', getValue('IHBAR_TARIHI_YIL'));
+    			setVal('EKSPERTIZ_TARIHI_GUN', getValue('IHBAR_TARIHI_GUN'));setVal('EKSPERTIZ_TARIHI_AY', getValue('IHBAR_TARIHI_AY'));setVal('EKSPERTIZ_TARIHI_YIL', getValue('IHBAR_TARIHI_YIL'));
                 setSelectText('KAZA_IHBAR_TURU', 'ANLAŞMALI KAZA');
                 setSelectText('KANAAT', 'OLUMLUDUR');
                 console.log('✅ Otomatik seçimler tamamlandı.');
