@@ -109,9 +109,9 @@
 					resize: none;
                     width: ${config.collapsedWidth};
 				    min-width: ${config.collapsedWidth};
-                    height: 30px !important;
-                    min-height: 30px !important;
-                    max-height: 30px !important;
+                    height: 35px !important;
+                    min-height: 35px !important;
+                    max-height: 35px !important;
                     overflow: hidden !important;
                 }
 				.ks-draggable-panel:hover {
@@ -381,7 +381,6 @@
     const tooltip = document.createElement('div');
     tooltip.id = 'ks-dynamic-tooltip';
     document.body.appendChild(tooltip);
-
     document.addEventListener('mouseover', function (e) {
         const container = e.target.closest('.ks-tooltip-container');
         if (container) {
@@ -395,7 +394,6 @@
             }
         }
     });
-
     document.addEventListener('mousemove', function (e) {
         if (tooltip.classList.contains('visible')) {
             const gap = 15;
@@ -404,17 +402,12 @@
             let left = x - (tw / 2), top = y - th - gap;
             if (left < 10) left = 10;
             if (left + tw > window.innerWidth - 10) left = window.innerWidth - tw - 10;
-            if (top < 10) {
-                top = y + gap + 20;
-                tooltip.style.transform = 'translateY(-10px)';
-            } else {
-                tooltip.style.transform = 'translateY(0)';
-            }
+            if (top < 10) { top = y + gap + 20; tooltip.style.transform = 'translateY(-10px)';
+            } else { tooltip.style.transform = 'translateY(0)'; }
             tooltip.style.left = left + 'px';
             tooltip.style.top = top + 'px';
         }
     });
-
     document.addEventListener('mouseout', function (e) {
         if (e.target.closest('.ks-tooltip-container')) { tooltip.classList.remove('visible'); }
     });
@@ -422,14 +415,13 @@
     const SUCCESS_COLOR = '#00ff88';
     const PANEL_ID = 'ks-global-status-indicator';
     if (window.self === window.top) {
-        // 1. Stil Tanımı (Gelişmiş Animasyonlar)
+        // 1. Stil Tanımı
         if (!document.getElementById(PANEL_ID + '-style')) {
             const style = document.createElement("style");
             style.id = PANEL_ID + '-style';
             style.innerText = `
             #${PANEL_ID} {
                 position: fixed !important;
-                /* Hata düzeltildi: bottom ve right ayrıldı */
                 bottom: 0px !important;
                 right: ${config.right} !important;
                 padding: 2px 12px !important;
@@ -437,8 +429,8 @@
                 backdrop-filter: blur(${config.blur}) !important;
                 font-size: 11px !important;
                 font-weight: 800 !important;
-                /* Hata düzeltildi: z-index hesaplaması parantez içine alındı */
-                z-index: ${Number(config.zIndex) + 9999} !important;
+                font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+				z-index: ${Number(config.zIndex) + 9999} !important;
                 transform-origin: bottom right !important;
                 transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
                 overflow: visible !important;
@@ -450,19 +442,20 @@
             #${PANEL_ID}:hover {
                 transform: scale(1.1) !important;
                 border-radius: 10px !important;
+				color: rgba(100, 250, 100, 0.80) !important;
+				box-shadow: -1px -1px 10px ${config.themeColor} !important;
             }
 			@media print {
                 #${PANEL_ID} {
                     position: fixed !important;
                     bottom: 0px;
 				    right: 0px;
-				    /*display: none !important;*///komple gizler
+				    /*display: none !important;*/ //komple gizler
                 }
             }
             @keyframes ks-glow-pulse {
-                0% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
+                0%,100% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
                 50% { color: ${config.Color}; text-shadow: 0 0 2px ${config.themeColor}, 0 0 20px ${config.themeColor}; }
-                100% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
             }
         `;
             document.head.appendChild(style);
@@ -741,7 +734,6 @@
             panelContent.innerHTML = `
             <div id="panelContent" style ="color:#ffffff; text-align:center;">⏳ Yükleniyor...</div>
             <hr style="border:0; border-top:1px solid #444; margin:2px 0;">
-            <div style ="text-align:center; margin-bottom:8px; font-size:11px;"></div>
             <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; width: 100%;">
                 <div class="ks-tooltip-container" onmouseover="handleHover(this)">
                     <button id="autoSelectBtn" class="ks-btn" style="width:100%; height: 100%;">⚡ Ön Giriş</button>
@@ -782,8 +774,7 @@
                     <span>NOT</span>
                     <span id="note-status" style="font-size: 10px; opacity: 0.6;">Otomatik Kaydediliyor...</span>
                 </div>
-                <textarea id="page-note-input" style="width: 100%; height: 40px; background: #252525; color: #efefef; border: 1px solid #333; border-radius: ${config.borderRadius}; padding: 8px; font-size: 13px; line-height: 1.4; resize: vertical; outline: none; box-sizing: border-box; display: block;"
-                    placeholder="Buraya notunu bırakabilirsin..."></textarea>
+                <textarea id="page-note-input" style="width: 100%; height: 40px; background: #252525; color: black; border: 1px solid #333; border-radius: ${config.borderRadius}; padding: 2px; font-size: 12px; line-height: 1.2; resize: vertical; outline: none; box-sizing: border-box; display: block;" placeholder="Buraya notunu bırakabilirsin..."></textarea>
             </div>
             `;
             /* ===== 2. YARDIMCI FONKSİYONLAR ===== */
@@ -1178,172 +1169,141 @@
                         </td>
                     </tr>`;
                 html += `</table>`;
-                // --- 1. VERİ TOPLAMA VE URL PARAMETRE HAZIRLAMA ---
-                function buildTargetUrl() {
-                    const extractYear = (str) => {
-                        const match = String(str).match(/\b(19|20)\d{2}\b/);
-                        return match ? match[0] : "";
-                    };
+function buildTargetUrl() {
+    const extractYear = (str) => {
+        const match = String(str).match(/\b(19|20)\d{2}\b/);
+        return match ? match[0] : "";
+    };
 
-                    const sigortaSelect = document.getElementById('SIGORTA_SEKLI');
-                    const sigortaTipi = sigortaSelect ? sigortaSelect.value : "";
-                    let m = "", yRaw = "", kStr = "0";
+    // Model ve Yıl Alımı
+    const mInput = document.getElementById('HAS_MODEL_ADI') || document.getElementById('MODEL_ADI');
+    const yInput = document.getElementById('HAS_MODEL_YILI') || document.getElementById('MODEL_YILI');
+    let m = mInput ? (mInput.value || mInput.innerText || "").trim() : "";
+    let yRaw = yInput ? (yInput.value || yInput.innerText || "").trim() : "";
 
-                    if (sigortaTipi === "1") {
-                        const allTds = document.getElementsByTagName('td');
-                        for (let i = 0; i < allTds.length; i++) {
-                            if (allTds[i].innerText.includes("MAĞDUR ARAÇ")) {
-                                const parentTr = allTds[i].closest('tr');
-                                const dataTr = parentTr.nextElementSibling.querySelector('tr + tr');
-                                if (dataTr) {
-                                    m = (dataTr.cells[1].innerText + " " + dataTr.cells[2].innerText);
-                                    yRaw = dataTr.cells[3].innerText;
-                                }
-                                break;
-                            }
-                        }
+    m = m.replace(/\d{2}\/\d{2}\/\d{4}.*/g, '').replace(/\(\s*\d+\s*\)/g, '').replace(/\s+/g, ' ').trim();
+    const y = extractYear(yRaw);
+
+    // KM Alımı
+    const kInput = document.getElementById('HAS_KM');
+    let kStr = kInput ? (kInput.value || kInput.innerText || "0") : "0";
+    const k = parseInt(kStr.replace(/\D/g, '')) || 0;
+
+    if (!m) return null;
+    return {
+        model: m,
+        year: y,
+        kmMin: k >= 100 ? Math.floor(k * 0.80) : null,
+        kmMax: k >= 100 ? Math.ceil(k * 1.20) : null
+    };
+}
+
+async function startAutomatedSearch(isAnalyze) {
+    const resBox = document.getElementById('shb-res-box');
+    const data = buildTargetUrl();
+    if (!data) { resBox.innerHTML = "❌ Veri hatası!"; return; }
+    resBox.innerHTML = `<span style="color:#fff; font-size:9px; opacity:0.7;">🔍 Filtreleniyor...</span>`;
+
+    const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
+    const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
+
+    GM_xmlhttpRequest({
+        method: "GET",
+        url: googleUrl,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" },
+        onload: function (gRes) {
+            const gDoc = new DOMParser().parseFromString(gRes.responseText, "text/html");
+            const links = [...gDoc.querySelectorAll('a')];
+            const target = links.find(a => a.href.includes("sahibinden.com/") && !a.href.includes("/ilan/") && !a.href.includes("/detay"));
+
+            if (!target) { resBox.innerHTML = "⚠️ Kategori bulunamadı."; return; }
+
+            let shbUrlString = "";
+            try {
+                const urlObj = new URL(target.href);
+                shbUrlString = urlObj.pathname === "/url" ? urlObj.searchParams.get("q").split('&')[0] : target.href.split('&')[0];
+            } catch (e) { shbUrlString = target.href; }
+
+            const finalUrl = new URL(shbUrlString);
+
+            // --- DİNAMİK FİLTRELEME ---
+            finalUrl.searchParams.set("pagingSize", "50");
+
+            // Yıl Filtresi (a5_min ve a5_max senin istediğin HAS_MODEL_YILI)
+            if (data.year) {
+                finalUrl.searchParams.set("a5_min", data.year);
+                finalUrl.searchParams.set("a5_max", data.year);
+            }
+
+            // KM Filtresi (Opsiyonel: Eğer daraltmak istersen)
+            if (data.kmMin) {
+                finalUrl.searchParams.set("a4_min", data.kmMin);
+                finalUrl.searchParams.set("a4_max", data.kmMax);
+            }
+
+            // Analiz mi yapılacak yoksa direkt sayfa mı açılacak?
+            if (isAnalyze) fetchPricesFromShb(finalUrl.toString());
+            else unsafeWindow.open(finalUrl.toString(), '_blank');
+        }
+    });
+}
+
+function fetchPricesFromShb(url) {
+    const resBox = document.getElementById('shb-res-box');
+    GM_xmlhttpRequest({
+        method: "GET",
+        url: url,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" },
+        onload: function (res) {
+            const sDoc = new DOMParser().parseFromString(res.responseText, "text/html");
+            const rows = [...sDoc.querySelectorAll('tr.searchResultsItem')];
+            const dataList = [];
+
+            rows.forEach(tr => {
+                const titleEl = tr.querySelector('.classifiedTitle');
+                const priceEl = tr.querySelector('.searchResultsPriceValue');
+                const attrEls = tr.querySelectorAll('.searchResultsAttributeValue');
+
+                if (titleEl && priceEl && attrEls.length >= 2) {
+                    const price = parseInt(priceEl.innerText.replace(/\D/g, '')) || 0;
+                    if (price > 100000) { // Çöp ilanları ele
+                        dataList.push({
+                            title: titleEl.title.substring(0, 20),
+                            year: attrEls[0].innerText.trim(),
+                            km: attrEls[1].innerText.trim(),
+                            price: price
+                        });
                     }
-
-                    if (!m) {
-                        const mInput = document.getElementById('HAS_MODEL_ADI') || document.getElementById('MODEL_ADI');
-                        const yInput = document.getElementById('HAS_MODEL_YILI') || document.getElementById('MODEL_YILI');
-                        m = mInput ? (mInput.value || mInput.innerText || "").trim() : "";
-                        yRaw = yInput ? (yInput.value || yInput.innerText || "").trim() : "";
-                    }
-
-                    m = m.replace(/\d{2}\/\d{2}\/\d{4}.*/g, '').replace(/\(\s*\d+\s*\)/g, '').replace(/\s+/g, ' ').trim();
-                    const y = extractYear(yRaw);
-                    const kInput = document.getElementById('HAS_KM');
-                    kStr = kInput ? (kInput.value || kInput.innerText || "0") : "0";
-                    const k = parseInt(kStr.replace(/\D/g, '')) || 0;
-                    if (!m) return null;
-                    return {
-                        model: m,
-                        year: y,
-                        kmMin: k >= 100 ? Math.floor(k * 0.9) : null,
-                        kmMax: k >= 100 ? Math.ceil(k * 1.1) : null
-                    };
                 }
-                // --- 2. GOOGLE ÜZERİNDEN DOĞRU KATEGORİYİ BULMA ---
-                async function startAutomatedSearch(isAnalyze) {
-                    const resBox = document.getElementById('shb-res-box');
-                    const data = buildTargetUrl();
-                    if (!data) { resBox.innerHTML = "❌ Hata: Araç bilgileri çekilemedi!"; return; }
-                    resBox.innerHTML = `🔍 Google'da taranıyor: <b>${data.model}</b>...`;
-                    const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
-                    const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
+            });
 
-                    GM_xmlhttpRequest({
-                        method: "GET",
-                        url: googleUrl,
-                        headers: {
-                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0",
-                            "Accept": "text/html"
-                        },
-                        onload: function (gRes) {
-                            const gDoc = new DOMParser().parseFromString(gRes.responseText, "text/html");
-                            const links = [...gDoc.querySelectorAll('a')];
+            if (dataList.length > 0) {
+                const avg = Math.round(dataList.reduce((a, b) => a + b.price, 0) / dataList.length);
+                const closest = dataList.sort((a, b) => Math.abs(a.price - avg) - Math.abs(b.price - avg)).slice(0, 5);
 
-                            const target = links.find(a =>
-                                a.href.includes("sahibinden.com/") && !a.href.includes("/ilan/") && (a.href.includes("/otomobil") || a.href.includes("/ticari-araclar") || a.href.includes("/arazi-suv-pickup"))
-                            );
+                let html = `<div style="background: rgba(10,10,10,0.05); border: 1px solid #444; border-radius: 6px; padding: 5px; color: white; width: 100%; box-sizing: border-box;">`;
+                html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px; font-size:11px;"><b>Ort: ${avg.toLocaleString('tr-TR')} TL</b> <span style="color:#00ff88;">${dataList.length} İlan</span></div>`;
+                html += `<table style="width:100%; border-collapse:collapse; font-size:10px;">`;
 
-                            if (!target) {
-                                resBox.innerHTML = "⚠️ Google'da kategori bulunamadı. Lütfen 'Göz At' butonuyla manuel bakın.";
-                                return;
-                            }
+                closest.forEach(item => {
+                    html += `<tr style="border-bottom: 1px solid #222;">
+                        <td style="color: white; padding:3px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.title}</td>
+                        <td style="color: white; width:30px; text-align:center;">${item.year}</td>
+                        <td style="color: white; width:50px; text-align:center;">${item.km}</td>
+                        <td style="color:#00ff88; width:80px; text-align:right; font-weight:bold;">${item.price.toLocaleString('tr-TR')}</td>
+                    </tr>`;
+                });
+                html += `</table></div>`;
+                resBox.innerHTML = html;
+            } else {
+                resBox.innerHTML = `<a href="${url}" target="_blank" style="color:#ffcc00; font-size:10px;">Sonuç Bulunamadı (Kriterleri Genişlet)</a>`;
+            }
+        }
+    });
+}
 
-                            let finalLink = "";
-                            try {
-                                const urlObj = new URL(target.href);
-                                finalLink = urlObj.pathname === "/url" ? urlObj.searchParams.get("q").split('&')[0] : target.href.split('&')[0];
-                            } catch (e) { finalLink = target.href; }
-
-                            const isTicari = finalLink.includes("ticari-araclar");
-                            const yearKey = isTicari ? "a90178" : "a5";
-                            const kmKey = isTicari ? "a90180" : "a4";
-
-                            const shbUrl = new URL(finalLink);
-                            if (data.year) {
-                                shbUrl.searchParams.set(`${yearKey}_min`, data.year);
-                                shbUrl.searchParams.set(`${yearKey}_max`, data.year);
-                            }
-                            if (data.kmMin) {
-                                shbUrl.searchParams.set(`${kmKey}_min`, data.kmMin);
-                                shbUrl.searchParams.set(`${kmKey}_max`, data.kmMax);
-                            }
-
-                            if (isAnalyze) {
-                                fetchPricesFromShb(shbUrl.toString());
-                            } else {
-                                resBox.innerHTML = "🚀 Sayfa açılıyor...";
-                                unsafeWindow.open(shbUrl.toString(), '_blank');
-                            }
-                        },
-                        onerror: function () {
-                            if (typeof resBox !== 'undefined') {
-                                resBox.innerHTML = "⚠️ Google bağlantı hatası!";
-                            }
-                            resBox.innerHTML = "İstek bağlantı hatası oluştu.";
-                        }
-                    });
-                }
-                // --- 3. SAHİBİNDEN'DEN VERİ ÇEKME (KRİTİK GÜNCELLEME) ---
-                function fetchPricesFromShb(url) {
-                    const resBox = document.getElementById('shb-res-box');
-                    resBox.innerHTML = "📥 Analiz ediliyor (Lütfen bekleyin)...";
-
-                    GM_xmlhttpRequest({
-                        method: "GET",
-                        url: url,
-                        anonymous: false, // Çerezleri gönder
-                        cookie: true,
-                        headers: {
-                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                            "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-                            "Referer": "https://www.google.com/",
-                            "Sec-Fetch-Dest": "document",
-                            "Sec-Fetch-Mode": "navigate",
-                            "Sec-Fetch-Site": "cross-site",
-                            "Upgrade-Insecure-Requests": "1"
-                        },
-                        onload: function (res) {
-                            // Sahibinden bazen 200 dönse bile boş sayfa veya captcha gönderebilir
-                            const responseText = res.responseText.toLowerCase();
-
-                            if (responseText.includes("captcha") || responseText.includes("security-check") || res.status === 403) {
-                                resBox.innerHTML = `🛡️ <b>Veri Çekme Engellendi!</b><br><small>Sahibinden bot kontrolü uyguluyor. <a href="${url}" target="_blank" style="color:yellow; text-decoration:underline;">Buraya tıkla</a>, doğrulamayı geç ve butona tekrar bas.</small>`;
-                                return;
-                            }
-
-                            const sDoc = new DOMParser().parseFromString(res.responseText, "text/html");
-                            const priceElements = sDoc.querySelectorAll('.searchResultsPriceValue, .searchResultsPrice');
-
-                            // Fiyatları çek
-                            const prices = [...priceElements]
-                                .map(el => parseInt(el.innerText.replace(/\D/g, '')))
-                                .filter(n => n > 20000);
-
-                            if (prices.length > 0) {
-                                const avg = Math.round(prices.reduce((a, b) => a + b) / prices.length);
-                                resBox.innerHTML = `✅ <b>${prices.length} İlan</b> bulundu.<br>💰 Ort: <b>${avg.toLocaleString('tr-TR')} TL</b>`;
-                            } else {
-                                resBox.innerHTML = `❓ İlan listesi boş veya fiyatlar okunamadı.<br><a href="${url}" target="_blank" style="color:cyan; font-size:11px;">Manuel Kontrol Et</a>`;
-                            }
-                        },
-                        onerror: () => {
-                            // resBox'ı ID üzerinden doğrudan bulalım (PANEL_ID veya ilgili div ID'si neyse)
-                            const errorTarget = document.getElementById(PANEL_ID) || resBox;
-                            if (errorTarget) {
-                                errorTarget.innerHTML = "⚠️ Sahibinden bağlantısı koptu.";
-                            }
-                        }
-                    });
-                }
-                // --- 4. BUTONLAR ---
-                document.getElementById('btn-auto-analiz').onclick = () => startAutomatedSearch(true);
-                document.getElementById('btn-auto-look').onclick = () => startAutomatedSearch(false);
+document.getElementById('btn-auto-analiz').onclick = () => startAutomatedSearch(true);
+document.getElementById('btn-auto-look').onclick = () => startAutomatedSearch(false);
                 document.getElementById('panelContent').innerHTML = html;
             }
             /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
@@ -1369,7 +1329,7 @@
                     }
                 };
                 ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'RUCU0','SAG1','HAS_DEVIR_SATIS0',
-				 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0','MUAFIYET0','EKSPERTIZ_YERI_SEHIR_DISI1',
+				 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0','MUAFIYET0','EKSPERTIZ_YERI_SEHIR_DISI0',
 				 'HASAR_YERI0','TESPIT_SEKLI0','ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
                 setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
                 setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
@@ -2237,29 +2197,44 @@
             .tm-section-title {
                 font-size: 10px; text-transform: uppercase; color: #aaa;
                 letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);
-                padding-bottom: 5px; margin-top: 10px;
+                padding-bottom: 4px; margin-top: 4px;
             }
-            /* Giriş Alanları (Tam Genişlik) */
-            .tm-input-group { display: flex; flex-direction: column; gap: 5px; }
+            /* 1: Giriş Alanları (Modern & Yüksek Kontrast) */
+            .tm-input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
             #tm-panel input {
-                width: 100% !important; padding: 6px; border-radius: 8px;
-                border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.1); color: black;
-                outline: none; transition: all 0.3s ease;
-                box-sizing: border-box; font-size: 12px;
+                width: 100% !important;
+                padding: 6px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                background: #ffffff;
+                color: #333;
+                outline: none;
+                transition: all 0.2s ease-in-out;
+                box-sizing: border-box;
+                font-size: 12px;
+                font-weight: 400;
+            }
+            #tm-panel input::placeholder {
+                color: #999;
             }
             #tm-panel input:focus {
-                background: rgba(255,255,255,0.2);
+                background: #fff;
                 border-color: var(--accent-blue);
-                box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.3);
+                box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+                transform: translateY(-1px);
             }
-
-            /* Butonlar (Daha küçük ve zarif) */
+            #tm-panel input[type="number"] {
+                text-align: center;
+            }
             .tm-button-grid {
                 display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
             }
             #tm-panel button {
-                padding: 5px 8px; border-radius: 6px; border: none;
+                padding: 6px 8px; border-radius: 6px; border: none;
                 cursor: pointer; font-size: 11px; font-weight: 600;
                 color: #fff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 display: flex; align-items: center; justify-content: center;
@@ -2271,34 +2246,72 @@
                 box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             }
             #tm-panel button:active { transform: translateY(0); }
-            .btn-full { grid-column: span 2; padding: 12px !important; font-size: 13px !important; }
-            /* İşlem Tipi (Modern Radio) */
             .radio-container {
-                display: flex; gap: 5px; background: rgba(255,255,255,0.05);
-                padding: 3px; border-radius: 8px;
+                display: flex;
+                background: #e2e8f0;
+                padding: 4px;
+                border-radius: 10px;
+                border: 0px solid #e2e8f0;
             }
             .radio-container label {
-                flex: 1; text-align: center; padding: 4px; border-radius: 8px;
-                font-size: 11px; cursor: pointer; transition: 0.3s;
+                flex: 1;
+                text-align: center;
+                padding: 2px 2px; /* Daha geniş tıklama alanı */
+                border-radius: 7px;
+                font-size: 11px;
+                font-weight: 600;
+                color: black;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
             }
-            .radio-container input { display: none; }
+            .radio-container input {
+                display: none;
+            }
             .radio-container label:has(input:checked) {
                 background: var(--accent-blue);
+                color: white;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                transform: scale(1.02);
             }
-            .btn-new { background: #2196F3; }
-            .btn-ok { background: #4CAF50; }
-            .btn-orange { background: #FF9800; color: #000; }
-            .btn-purple { background: purple; color: #000; }
-            .btn-rpr { background: #FF5722; }
-            .btn-danger { background: #F44336; color: white; }     /* Kırmızı - İptal/Sil */
-            .btn-info { background: #00BCD4; color: black; }       /* Turkuaz - Bilgi */
-            .btn-dark { background: #37474F; color: white; }       /* Antrasit - Arşiv */
-            .btn-lime { background: #CDDC39; color: black; }       /* Lime - Taslak */
-            .btn-amber { background: #FFC107; color: black; }      /* Kehribar - Dikkat */
-            .btn-indigo { background: #3F51B5; color: white; }     /* İndigo - Paylaş/Gönder */
-            .btn-teal { background: #009688; color: white; }       /* Su Yeşili - Güncelle */
-            .btn-brown { background: #795548; color: white; }      /* Kahve - Geçmiş/Log */
-            .btn-gold { background: #D4AF37; color: black; }       /* Altın - Premium/Öncelikli */
+            .radio-container label:not(:has(input:checked)):hover {
+                background: rgba(255, 255, 255, 0.5);
+                color: #334155;
+            }
+			.red-alrt-bg {
+			    background: #e30707 !important;
+			    border: none !important;
+			}
+
+			.white-text {
+			    color: #ffffff !important;
+			    font-weight: bold !important;
+			}
+
+			/* Seçili olduğunda metin renginin kaybolmaması için */
+			.radio-container.red-alrt-bg label:has(input:checked) {
+			    background: rgba(255, 255, 255, 0.85) !important;
+			    color: black !important;
+			}
+
+            .btn-full { grid-column: span 1; padding: 10px !important; font-size: 13px !important; }
+            .btn-new    { background: #0078D4 !important; color: white !important; } /* Modern Mavi */
+            .btn-ok     { background: #28a745 !important; color: white !important; } /* Güvenli Yeşil */
+            .btn-orange { background: #ff8c00 !important; color: white !important; } /* Canlı Turuncu */
+            .btn-purple { background: #8e44ad !important; color: white !important; } /* Derin Mor */
+            .btn-rpr    { background: #e67e22 !important; color: white !important; } /* Onarım Turuncusu */
+            .btn-danger { background: #dc3545 !important; color: white !important; } /* Parlak Kırmızı */
+            .btn-info   { background: #00afc4 !important; color: white !important; } /* Turkuaz/Siyan */
+            .btn-dark   { background: #2c3e50 !important; color: white !important; } /* Lacivert/Siyah */
+            .btn-lime   { background: #84cc16 !important; color: black !important; } /* Neon Limon */
+            .btn-amber  { background: #f59e0b !important; color: black !important; } /* Kehribar */
+            .btn-indigo { background: #6366f1 !important; color: white !important; } /* İndigo */
+            .btn-teal   { background: #14b8a6 !important; color: white !important; } /* Su Yeşili */
+            .btn-brown  { background: #a855f7 !important; color: white !important; } /* Alternatif: Parlak Menekşe */
+            .btn-gold   { background: #fbbf24 !important; color: black !important; } /* Altın Sarısı */
 
             @keyframes blink { 0%, 100% { background: #D4AF37; opacity: 1; } 50% { background: #3F51B5; opacity: 0.5; } }
             .blink { animation: blink 1s infinite; background: #FF9800; }
@@ -2324,16 +2337,27 @@
                 <label><input type="radio" name="islemTipi" value="onarim"> ONARIM</label>
             </div>
 			<div class="ks-tooltip-container" onmouseover="handleHover(this)">
-                <div class="radio-container" style="background: var(--accent-red);">
-                    <label> <input type="radio" name="kayit_secim" value="kayit" checked> OTOM. KAYDET </label>
-                    <label> <input type="radio" name="kayit_secim" value="nonkayit"> KAYDETME </label>
+            	<div class="radio-container">
+                    <label> <input type="radio" name="kod_secim" value="kodsuz" checked> KODSUZ  </label>
+                    <label> <input type="radio" name="kod_secim" value="esdeger"> EŞDEĞER </label>
+                    <label> <input type="radio" name="kod_secim" value="bos"> BOŞ </label>
+                </div>
+                <div class="ks-tooltip-box">
+                    <strong>Parça Türü</strong><br>
+                    Seçim türüne göre otomatik doldurur.
+                </div>
+            </div>
+			<div class="ks-tooltip-container" onmouseover="handleHover(this)">
+                <div class="radio-container red-alrt-bg">
+                    <label class="white-text"> <input type="radio" name="kayit_secim" value="kayit" checked> OTOM. KAYDET </label>
+                    <label class="white-text"> <input type="radio" name="kayit_secim" value="nonkayit"> KAYDETME </label>
                 </div>
                 <div class="ks-tooltip-box">
                     <strong>Otomatik Kayıt</strong><br>
                     Açık olduğu sürece kaydetmeye çalışır.
                 </div>
             </div>
-            <div class="tm-section-title">MANUEL GİRİŞ TÜRÜ</div>
+            <div class="tm-section-title">GİRİŞ TÜRÜ</div>
 			<div class="ks-tooltip-container" onmouseover="handleHover(this)">
                 <div class="tm-button-grid">
                     <button id="b_kpon" class="btn-ok">KAPORTA ÖN</button>
@@ -2345,21 +2369,24 @@
                     <button id="b_cam" class="btn-indigo">CAM</button>
                     <button id="b_doseme" class="btn-gold">DÖŞEME KİLİT</button>
                     <button id="b_lastık" class="btn-dark">LASTİK</button>
+                    <button id="b_civata" class="btn-dark">CİVATA</button>
+                    <button id="b_conta" class="btn-dark">CONTA</button>
+                    <button id="b_klips" class="btn-dark">KLİPS</button>
                     <button id="b_mot" class="btn-orange">MOTORSİKLET</button>
                     <button id="b_dorse" class="btn-teal">DORSE</button>
                 </div>
                 <div class="ks-tooltip-box">
                     <strong>Otomatik seçici</strong><br>
-                    Butonlar kategori listelerinden otomatik seçip hızlı giriş yapar.
+                    Butonlar kategori listelerinden otomatik seçip hızlı giriş yapar. Eğer parça bilgileri bölümü boş olursa sadece kategori seçer.
                 </div>
             </div>
             <div class="tm-section-title">DİĞER İŞLEMLER</div>
             <div class="tm-button-grid">
-                <button id="b_onar" class="btn-rpr btn-full">GENEL ONARIM</button>
-                <button id="b_yan" class="btn-brown btn-full">EŞDEĞER ÇEVİR</button>
+                <button id="b_onar" class="btn-rpr">GENEL ONARIM</button>
+                <button id="b_yan" class="btn-brown">EŞDEĞERE ÇEVİR</button>
             </div>
-			<div class="ks-tooltip-container" style="width:100%; onmouseover="handleHover(this)">
-                   <button id="unlockSelectBtn" class="btn-dark btn-full" style="width:100%;">
+			<div class="ks-tooltip-container" style="width:100%;" onmouseover="handleHover(this)">
+                   <button id="unlockSelectBtn" class="btn-info btn-full" style="width:100%;">
                        🔓 Her Şeyi Aktif Et
                    </button>
                    <div class="ks-tooltip-box">
@@ -2368,7 +2395,7 @@
                        Site üzerindeki tüm etkileşimleri aktifleştirir (Buton, yazı kutusu, liste kutusu vs...).
 				</div>
             </div>
-            `;
+            `; /* btn-full tam doldurur */
             const toggleBtn = document.createElement("div");
             toggleBtn.id = "tm-toggle";
             toggleBtn.innerHTML = "◀";
@@ -2448,11 +2475,7 @@
             const MainFields = () => {
                 degisonar();
                 const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
-
-                if (eksikAlan) {
-                    //alert(`Lütfen eksik alanları doldurun: ${eksikAlan.label}`);
-                    return;
-                }
+                if (eksikAlan) { /*alert(`Lütfen eksik alanları doldurun: ${eksikAlan.label}`);*/ return; }
                 if ($("PARCA_KODU")) $("PARCA_KODU").value = refs.kod.value.toUpperCase();
                 if ($("ADET")) $("ADET").value = refs.adet.value;
                 if ($("ADI")) $("ADI").value = refs.ad.value.toUpperCase();
@@ -2464,17 +2487,26 @@
             const SideFields = async (dom, dem) => {
                 await selectValue("GRUP_ID", dom);
                 await selectValue("ANA_GRUP", dem);
-                await selectValue("SISTEM_NOTU_ID", "2");
-                if ($("NOTLAR")) $("NOTLAR").value = "KODSUZ PARÇA";
-                selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
+                const radio = document.querySelector('input[name="kod_secim"]:checked')?.value;
+                const notlar = $("NOTLAR");
+                if (radio === "kodsuz") {
+                    await selectValue("SISTEM_NOTU_ID", "2");
+                    if (notlar) notlar.value = "KODSUZ PARÇA";
+                    selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
+                } else if (radio === "esdeger") {
+                    await selectValue("SISTEM_NOTU_ID", "13");
+                    if (notlar) notlar.value = "";
+                    selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
+                } else if (radio === "bos") {
+                    await selectValue("SISTEM_NOTU_ID", "-1");
+                    if (notlar) notlar.value = "";
+                    selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
+                }
                 const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
                 if (!eksikAlan) { submitForm(); setTimeout(() => { submitForm(); }, 400); }
             }
             const submitForm = () => {
                 const selectedRadio = document.querySelector('input[name="kayit_secim"]:checked');
-                if (!selectedRadio) {
-                    console.warn("Lütfen bir işlem tipi seçin."); return;
-                }
                 const tip = selectedRadio.value;
                 if (tip === "kayit") {
                     const retrySubmit = setInterval(() => {
@@ -2490,7 +2522,7 @@
                     console.log("Otomatik kayıt devre dışı."); return;
                 }
             };
-            const groups = ['islemTipi', 'kayit_secim'];
+            const groups = ['islemTipi', 'kayit_secim','kod_secim'];
             function loadSelections() {
                 groups.forEach(groupName => {
                     const savedValue = GM_getValue('saved_' + groupName);
@@ -2507,38 +2539,13 @@
                     console.log(`[Hafıza] ${event.target.name} güncellendi: ${event.target.value}`);
                 }
             });
-
             /* ===== 5. EVENT HANDLERS ===== */
-            // Yeni Butonu & Temizleme
             refs.bYeni.onclick = () => {
-                // 1. Orijinal fonksiyonu çağır
                 if (typeof unsafeWindow.yeni_kayit === "function") unsafeWindow.yeni_kayit('');
-                // 2. Elemanları döngüye almadan önce filtrele (null olanları ele)
                 [refs.kod, refs.ad, refs.fiyat].filter(input => input !== null && input !== undefined).forEach(input => { input.value = ""; });
-                // 3. Blink efektini kaldır ve focus yap
                 if (refs.bYeni) refs.bYeni.classList.remove("blink");
                 if (refs.kod) refs.kod.focus();
             };
-            /*
-                const sipSec0 = await waitFor(() => $("SIP_SEC_0"));
-                sipSec0.checked = true;
-                await selectValue("SIPARIS_VERMEME_SEBEP_ID", "9");
-                if ($("NOTLAR_SIPARIS")) $("NOTLAR_SIPARIS").value = "TEDARİK YOK";
-                submitForm();
-                <button id="b_kpon" class="btn-ok">KAPORTA ÖN</button>
-                <button id="b_kpyn" class="btn-ok">KAPORTA YAN</button>
-                <button id="b_kpar" class="btn-ok">KAPORTA ARKA</button>
-                <button id="b_kptv" class="btn-ok">KAPORTA TAVAN</button>
-                <button id="b_mek" class="btn-purple">MEKANİK</button>
-                <button id="b_elk" class="btn-purple">ELEKTRİK</button>
-                <button id="b_cam" class="btn-indigo">CAM</button>
-                <button id="b_doseme" class="btn-gold">DÖŞEME KİLİT</button>>
-                <button id="b_lastık" class="btn-dark">LASTİK</button>
-                <button id="b_mot" class="btn-orange">MOTORSİKLET</button>
-                <button id="b_dorse" class="btn-teal">DORSE</button>
-                <button id="b_onar" class="btn-rpr btn-full">GENEL ONARIM</button>
-                <button id="b_yan" class="btn-brown btn-full">EŞDEĞER ÇEVİR</button>
-            */
             $("b_kpon").onclick = async () => { await MainFields(); await SideFields("10", "777"); };
             $("b_kpyn").onclick = async () => { await MainFields(); await SideFields("11", "852"); };
             $("b_kpar").onclick = async () => { await MainFields(); await SideFields("12", "898"); };
@@ -2549,15 +2556,15 @@
             $("b_mot").onclick = async () => { await MainFields(); await SideFields("29", "554"); };
             $("b_doseme").onclick = async () => { await MainFields(); await SideFields("5", "580"); };
             $("b_lastık").onclick = async () => { await MainFields(); await SideFields("19", "520"); };
+            $("b_civata").onclick = async () => { await MainFields(); await SideFields("25", "537"); };
+            $("b_conta").onclick = async () => { await MainFields(); await SideFields("36", "1108"); };
+            $("b_klips").onclick = async () => { await MainFields(); await SideFields("24", "536"); };
             $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); const sipSec2 = await waitFor(() => $("SIP_SEC_2")); sipSec2.checked = true; };
-
             $("b_onar").onclick = async () => {
                 const fiyat = refs.fiyat.value.replace(",", ".");
                 if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
                 if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
-
                 await selectValue("GRUP_ID", "6"); await selectValue("ANA_GRUP", "495");
-                submitForm();
             };
             $("b_yan").onclick = async () => {
                 const fiyat = refs.fiyat.value.replace(",", ".");
@@ -2572,26 +2579,30 @@
                 else refs.bYeni.classList.remove("blink");
             }, 1000);
         }
-        // Başlatıcı
-        if (document.readyState === "complete") {
-            initPanel();
-        }
-        else {
-            unsafeWindow.addEventListener('load', initPanel);
-        }
-        // Sayfa yüklendikten 1 saniye sonra kontrol eder
-        setTimeout(() => {
-            const checkTarget = document.getElementById("SUREKLI");
-
-            // Element varsa VE seçili DEĞİLSE tıkla
-            if (checkTarget && !checkTarget.checked) {
-                checkTarget.click();
-                console.log("Sürekli checkbox aktif edildi.");
-            } else if (checkTarget && checkTarget.checked) {
-                console.log("Sürekli checkbox zaten aktif, işlem yapılmadı.");
-            }
-        }, 1000);
-    }
+       const init = () => {
+    	    if (typeof initPanel === 'function') initPanel();
+    	    setTimeout(() => {
+    	        const checkTarget = document.getElementById("SUREKLI");
+    	        if (checkTarget && !checkTarget.checked) checkTarget.click();
+    	    }, 1000);
+    	};
+    	const focusTarget = () => {
+    	    const input = document.getElementById('tm_kod');
+    	    if (input) {
+    	        input.focus();
+    	        input.select();
+    	        return true;
+    	    }
+    	    return false;
+    	};
+    	if (document.readyState === "complete") init();
+    	else unsafeWindow.addEventListener('load', init);
+    	const observer = new MutationObserver(() => {
+    	    if (focusTarget()) observer.disconnect();
+    	});
+    	observer.observe(document.documentElement, { childList: true, subtree: true });
+    	["load", "focus"].forEach(ev => window.addEventListener(ev, () => setTimeout(focusTarget, 200)));
+    	}
     // Hızlı Çoklu Parça girişi
     if (KS_SYSTEM === true && MANUEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
         /* ===== 1. PANEL VE STİLLER ===== */
@@ -3446,97 +3457,92 @@
         setTimeout(initSbmDownloadPanel, 2000);
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
-    if (KS_SYSTEM === true && SAHIBINDEN === true && location.href.includes("sahibinden.com")) {
-        config.bottom = "22px";
-        config.width = "200px";
-        config.collapsedWidth = "200px";
-        injectStyles(); initPanel();
-        const contentArea = document.querySelector('.ks-content');
-        /* ================= AYARLAR & STATE ================= */
-        let lastState = "";
-        contentArea.id = 'sahibinden-modern-panel';
-        Object.assign(contentArea.style,
-            { minWidth: '200px', pointerEvents: 'none' });
-        if (contentArea) {
-            contentArea.innerHTML = '🔍 Veriler analiz ediliyor...';
-            const getColumnIndex = (names) => {
-                const headers = document.querySelectorAll('table thead td, table thead th');
-                return Array.from(headers).findIndex(h => names.some(n => h.innerText.trim().toLowerCase() === n.toLowerCase()));
-            };
-            /* ================= HESAPLAMA MANTIĞI ================= */
-            function hesapla() {
-                const fIdx = getColumnIndex(['Fiyat', 'Price']);
-                const kIdx = getColumnIndex(['KM', 'Mileage']);
-                const yIdx = getColumnIndex(['Yıl', 'Year']);
-                if (fIdx === -1) { contentArea.innerHTML = '⚠️ Fiyat sütunu bulunamadı'; return; }
-                const rows = document.querySelectorAll('table tbody tr:not(.nativeAd)');
-                let fTop = 0, fAd = 0, fMin = Infinity, fMax = 0;
-                let kmTop = 0, kmAd = 0, kmMin = Infinity, kmMax = 0;
-                const yilSeti = new Set();
-                rows.forEach(row => {
-                    const cells = row.cells;
-                    if (!cells || cells.length < fIdx) return;
-                    const rawFiyat = cells[fIdx].innerText.replace(/[^\d]/g, '');
-                    const vFiyat = parseFloat(rawFiyat);
-                    if (!isNaN(vFiyat) && vFiyat > 0) {
-                        fTop += vFiyat;
-                        fAd++;
-                        if (vFiyat < fMin) fMin = vFiyat;
-                        if (vFiyat > fMax) fMax = vFiyat;
-                    }
-                    // KM İşleme
-                    if (kIdx !== -1 && cells[kIdx]) {
-                        const vKm = parseInt(cells[kIdx].innerText.replace(/[^\d]/g, ''), 10);
-                        if (!isNaN(vKm)) {
-                            kmTop += vKm;
-                            kmAd++;
-                            if (vKm < kmMin) kmMin = vKm;
-                            if (vKm > kmMax) kmMax = vKm;
-                        }
-                    }
-                    // Yıl İşleme
-                    if (yIdx !== -1 && cells[yIdx]) {
-                        const vYil = parseInt(cells[yIdx].innerText.trim(), 10);
-                        if (!isNaN(vYil)) yilSeti.add(vYil);
-                    }
-                });
-                if (fAd === 0) return;
-                // Değişiklik kontrolü (Aynı veriyi tekrar render etme)
-                const currentState = `${fAd}-${fTop}-${kmTop}`;
-                if (lastState === currentState) return;
-                lastState = currentState;
-                const fOrt = Math.round(fTop / fAd).toLocaleString('tr-TR');
-                const kmOrt = kmAd ? Math.round(kmTop / kmAd).toLocaleString('tr-TR') : '-';
-                const yillar = [...yilSeti].sort((a, b) => a - b);
-                const yilText = yillar.length > 0 ? (yillar.length > 2 ? `${yillar[0]} - ${yillar.at(-1)}` : yillar.join(' / ')) : '-';
-                /* ================= PANEL RENDER ================= */
-                contentArea.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <b style="color:#ffce44">📊 İstatistikler</b>
-                <span style="background:#555; padding:2px 6px; borderRadius:4px; fontSize:10px;">${fAd} İlan</span>
-            </div>
-            <div style="display:grid; gap:4px; font-size:13px;">
-                <div>💰 <b>Ort:</b> ${fOrt} TL</div>
-                <div>🛣️ <b>Ort:</b> ${kmOrt} km</div>
-                <div>📅 <b>Yıl:</b> ${yilText}</div>
-            </div>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; opacity:0.8;">
-                <div>Min: ${fMin.toLocaleString('tr-TR')} TL / ${kmMin === Infinity ? 0 : kmMin.toLocaleString('tr-TR')} km</div>
-                <div>Max: ${fMax.toLocaleString('tr-TR')} TL / ${kmMax.toLocaleString('tr-TR')} km</div>
-            </div>
-        `;
-            }
-            /* ================= BAŞLATICI ================= */
-            const init = () => {
-                if (document.querySelector('table')) {
-                    if (!document.body.contains(contentArea)) document.body.appendChild(contentArea);
-                    hesapla(); setInterval(hesapla, 2000);
-                }
-                else { setTimeout(init, 500); }
-            };
-            init();
-        }
+   if (KS_SYSTEM && SAHIBINDEN && location.href.includes("sahibinden.com")) {
+	if (!location.search.includes("pagingSize=50")) {
+        const url = new URL(location.href);
+        url.searchParams.set("pagingSize", "50");
+        location.replace(url.href);
     }
+    config.bottom = "22px";
+    config.width = "200px";
+    config.collapsedWidth = "200px";
+    injectStyles();
+    initPanel();
+    const contentArea = document.querySelector('.ks-content');
+    let lastState = "";
+    if (contentArea) {
+        contentArea.id = 'sahibinden-modern-panel';
+        Object.assign(contentArea.style, { minWidth: '200px', pointerEvents: 'none' });
+        contentArea.innerHTML = '🔍 Veriler analiz ediliyor...';
+        const getColumnIndex = (names) => {
+            const headers = document.querySelectorAll('table thead td, table thead th');
+            return Array.from(headers).findIndex(h => names.some(n => h.innerText.trim().toLowerCase() === n.toLowerCase()));
+        };
+        function hesapla() {
+            const fIdx = getColumnIndex(['Fiyat', 'Price']);
+            const kIdx = getColumnIndex(['KM', 'Mileage']);
+            const yIdx = getColumnIndex(['Yıl', 'Year']);
+            if (fIdx === -1) { contentArea.innerHTML = '⚠️ Fiyat sütunu bulunamadı'; return; }
+            const rows = document.querySelectorAll('table tbody tr:not(.nativeAd)');
+            let fTop = 0, fAd = 0, fMin = Infinity, fMax = 0;
+            let kmTop = 0, kmAd = 0, kmMin = Infinity, kmMax = 0;
+            const yilSeti = new Set();
+            rows.forEach(row => {
+                const cells = row.cells;
+                if (!cells || cells.length <= Math.max(fIdx, kIdx, yIdx)) return;
+                const vFiyat = parseFloat(cells[fIdx].innerText.replace(/[^\d]/g, ''));
+                if (vFiyat > 0) {
+                    fTop += vFiyat; fAd++;
+                    if (vFiyat < fMin) fMin = vFiyat;
+                    if (vFiyat > fMax) fMax = vFiyat;
+                }
+                if (kIdx !== -1) {
+                    const vKm = parseInt(cells[kIdx].innerText.replace(/[^\d]/g, ''), 10);
+                    if (!isNaN(vKm)) {
+                        kmTop += vKm; kmAd++;
+                        if (vKm < kmMin) kmMin = vKm;
+                        if (vKm > kmMax) kmMax = vKm;
+                    }
+                }
+                if (yIdx !== -1) {
+                    const vYil = parseInt(cells[yIdx].innerText.trim(), 10);
+                    if (!isNaN(vYil)) yilSeti.add(vYil);
+                }
+            });
+            if (fAd === 0) return;
+            const currentState = `${fAd}-${fTop}-${kmTop}`;
+            if (lastState === currentState) return;
+            lastState = currentState;
+            const fOrt = Math.round(fTop / fAd).toLocaleString('tr-TR');
+            const kmOrt = kmAd ? Math.round(kmTop / kmAd).toLocaleString('tr-TR') : '-';
+            const yillar = [...yilSeti].sort((a, b) => a - b);
+            const yilText = yillar.length > 0 ? (yillar.length > 2 ? `${yillar[0]} - ${yillar.at(-1)}` : yillar.join(' / ')) : '-';
+            contentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <b style="color:#ffce44">📊 İstatistikler</b>
+                    <span style="background:#555; padding:2px 6px; border-radius:4px; font-size:10px;">${fAd} İlan</span>
+                </div>
+                <div style="display:grid; gap:4px; font-size:13px;">
+                    <div>💰 <b>Ort:</b> ${fOrt} TL</div>
+                    <div>🛣️ <b>Ort:</b> ${kmOrt} km</div>
+                    <div>📅 <b>Yıl:</b> ${yilText}</div>
+                </div>
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; opacity:0.8;">
+                    <div>Min: ${fMin.toLocaleString('tr-TR')} TL / ${kmMin === Infinity ? 0 : kmMin.toLocaleString('tr-TR')} km</div>
+                    <div>Max: ${fMax.toLocaleString('tr-TR')} TL / ${kmMax.toLocaleString('tr-TR')} km</div>
+                </div>`;
+        }
+        const init = () => {
+            if (document.querySelector('table')) {
+                hesapla();
+                setInterval(hesapla, 2000);
+            } else {
+                setTimeout(init, 500);
+            }
+        };
+        init();
+    }
+}
     // Whatsapp Resim indirme
     if (KS_SYSTEM === true && WHATSAPP === true && location.href.includes("web.whatsapp.com")) {
         function getFileName() {
@@ -4035,13 +4041,10 @@
             if (document.getElementById('scroll-to-top-btn')) return;
             const btn = document.createElement('button');
             btn.id = 'scroll-to-top-btn';
-            btn.innerHTML = '↑'; // Yukarı ok işareti
+            btn.innerHTML = '↑';
             btn.title = 'Sayfa Üstüne Çık';
             btn.onclick = () => {
-                window.scrollTo({
-                    top: 0, // En tepeye
-                    behavior: 'smooth'
-                });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
             document.body.appendChild(btn);
         }
@@ -4071,7 +4074,6 @@
                 if (text.length < 3 || addedTexts.has(text)) return;
                 addedTexts.add(text);
                 if (!el.id) el.id = 'scroll-target-' + index;
-
                 const btn = document.createElement('button');
                 btn.className = 'nav-item-btn';
                 btn.innerText = text;
@@ -4079,23 +4081,16 @@
                 btn.onclick = () => {
                     const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
                     const offsetPosition = elementPosition - 64;
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
+                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
                 };
                 panel.appendChild(btn);
             });
         }
         function cleanupToasts() {
             const stack = document.querySelector('.dx-toast-stack');
-            if (stack && stack.children.length > 3) {
-                stack.removeChild(stack.firstChild);
-            }
+            if (stack && stack.children.length > 3) { stack.removeChild(stack.firstChild); }
         }
-        const obssserver = new MutationObserver(() => {
-            cleanupToasts();
-        });
+        const obssserver = new MutationObserver(() => { cleanupToasts(); });
         window.addEventListener('load', () => { setTimeout(updateMenu, 1500); });
         setInterval(updateMenu, 1000);
         setInterval(cleanupToasts, 3000);
@@ -4134,9 +4129,7 @@
             notifyDiv.style.opacity = '1';
             if (w.tmNotifyTimeout) clearTimeout(w.tmNotifyTimeout);
             w.tmNotifyTimeout = setTimeout(() => {
-                if (document.getElementById('tm-notify-bar')) {
-                    document.getElementById('tm-notify-bar').style.opacity = '0';
-                }
+                if (document.getElementById('tm-notify-bar')) { document.getElementById('tm-notify-bar').style.opacity = '0'; }
             }, 3000);
         };
         const rawAlert = w.alert.bind(w);
