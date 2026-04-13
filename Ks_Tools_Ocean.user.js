@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.6
+// @version      1.7
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -46,7 +46,7 @@
             text-align: left !important;
             border-collapse: separate !important;
             table-layout: auto !important;
-            max-width: 100vw !important; /* Ekran genişliğini asla geçemez */
+            max-width: 100vw !important;
         }
         /* Boşluk yapan ve tasarımı bozan hücreleri/resimleri gizle */
         td[width="273"], td[height="67"], td[background*="new_10.gif"],
@@ -54,7 +54,6 @@
         img[src*="new_10.gif"], img[src*="new_02.gif"], object, embed {
             display: none ;
         }
-
         /* 2. HEADER & KURUMSAL BAŞLIK */
         td[bgcolor="#000066"], td[bgcolor="#FF0000"] {
             background-color: var(--maim) ;
@@ -74,7 +73,6 @@
            padding: 25px 50px;
            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
        }
-
        /* Üstte Görünen Site Adı */
        .hosgeldin::before {
            content: var(--site-adi, " - "); /* JS'den gelen isim */
@@ -89,12 +87,10 @@
            opacity: 0.7;
            transition: all 0.4s ease;
        }
-
        .hosgeldin:hover::before {
            opacity: 1;
            text-shadow: 0 0 8px var(--primary);
        }
-
        /* Panel Kapsayıcısı */
       .modern-nav-container {
           display: flex;
@@ -103,12 +99,9 @@
           padding: 12px 40px;
           justify-content: center;
           align-items: center;
-
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
           backdrop-filter: blur(20px) saturate(180%);
           -webkit-backdrop-filter: blur(20px) saturate(180%);
-
-          /* Kenarlık: Daha ince ve yukarıdan ışık vuruyormuş gibi 
           border: 1px solid rgba(255, 255, 255, 0.7);
           border-top: 1.5px solid rgba(255, 255, 255, 0.9);*/
           border-radius: 24px;
@@ -157,7 +150,6 @@
            transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
            opacity: 0;
        }
-
        .modern-link:hover::after {
            width: 100%;
            opacity: 1;
@@ -166,8 +158,6 @@
            transform: translateY(-1px) scale(0.98);
            transition: 0.1s;
        }
-
-       /* Logout - Spesifik Stil */
        .modern-link[href*="logout"] {
            color: var(--reddo) !important;
            opacity: 0.9;
@@ -206,8 +196,6 @@
             background-color: rgba(255, 255, 255, 0.6) !important;
             border-radius: 4px !important;
         }
-
-        /* Metin içindeki linklerin (dosya no vb.) rengini sabitle */
         .yazi a, .yazi b {
             color: var(--accent) !important;
             text-decoration: underline !important;
@@ -215,7 +203,6 @@
 
         /* 3. NAVİGASYON İKONLARI (STABİL DÜZEN) */
         tr[background*="new_18.gif"] { background: var(--maim); background-image: none;}
-
         tr[background*="new_18.gif"] table[width="760"] {
             align-items: center !important;
             justify-content: center !important;
@@ -225,14 +212,12 @@
             border-radius: 12px; /* Köşeleri biraz daha yuvarladık */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);/* Derinlik katmak için hafif gölge (Asıl yumuşaklığı bu verir) */
         }
-
         tr[background*="new_18.gif"] img { /* İkonlar */
             width: 50px ;
             border: 1px solid rgba(0, 0, 0, 0.1); /* Daha ince ve yarı saydam kenarlık */
             border-radius: 12px; /* Köşeleri biraz daha yuvarladık */
             height: auto ;
         }
-
         .eksper_menu {
             color: color-mix(in srgb, var(--accent), black 25%);
             transition: all 0.3s ease;
@@ -266,90 +251,19 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         }
-
-        /* Başlık içindeki linkler (Sipariş, İade vb. "check_all" linkleri) */
         .koyubaslik a {
             color: var(--maim) !important;
             text-decoration: none !important;
             border-bottom: 1px dashed rgba(255, 255, 255, 0.5) !important;
             transition: all 0.2s !important;
         }
-
         .koyubaslik a:hover {
             color: var(--primary-light) !important;
             border-bottom-style: solid !important;
         }
-
-        /* Tablo satırına genel bir derinlik kat */
         tr:has(> .koyubaslik) {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-
-        /* 5. BUTONLAR: MODERN & ANİMASYONLU */
-        .buton01, .BTNKIRMIZI, .BUTON06, input[type="submit"], input[type="button"] {
-            height: 20px !important;
-            font-size: 10px !important;
-            font-weight: 500 !important;
-            border-radius: 3px !important;
-            border: none !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
-
-            /* Animasyon Hazırlığı */
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            overflow: hidden !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.5px !important;
-        }
-
-        /* HOVER: Üzerine gelince parlaması ve hafif yukarı kalkma hissi */
-        .buton01:hover, .BTNKIRMIZI:hover, .BUTON06:hover,
-        input[type="submit"]:hover, input[type="button"]:hover {
-            filter: brightness(1.1) !important;
-            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3) !important;
-            transform: translateY(-1px) !important; /* Boyutu büyütmez, sadece konumunu 1px kaydırır */
-        }
-
-        /* ACTIVE: Basılma efekti (tıklayınca içeri göçer) */
-        .buton01:active, .BTNKIRMIZI:active, .BUTON06:active,
-        input[type="submit"]:active, input[type="button"]:active {
-            transform: translateY(1px) !important;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        .BTNKIRMIZI {
-            background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important;
-        }
-        .BTNKIRMIZI:hover {
-            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3) !important;
-        }
-
-        /* 5.1 ÖZEL KAYDET BUTONU (KIRMIZI & ANİMASYONLU) */
-        #btnKaydet2, input[name="btnKaydet2"], input[value="KAYDET"] {
-            background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--reddo-dark) !important;
-            box-shadow: 0 2px 5px rgba(255, 71, 87, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        }
-
-        /* Kaydet Hover: Kırmızı parlama */
-        #btnKaydet2:hover, input[name="btnKaydet2"]:hover, input[value="KAYDET"]:hover {
-            filter: brightness(1.2) !important;
-            box-shadow: 0 0 12px rgba(255, 71, 87, 0.7) !important; /* Kırmızı Neon Parlaması */
-            transform: translateY(-1px) scale(1.02) !important; /* Çok hafif bir sıçrama efekti */
-        }
-
-        /* Kaydet Click: Basılma hissi */
-        #btnKaydet2:active, input[name="btnKaydet2"]:active {
-            transform: translateY(1px) scale(0.98) !important;
-            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3) !important;
-        }
-
         /* 5.2 ÖZEL AÇIK RENKLİ BUTONLAR (YENİ KAYIT, MOBİL ONARIM, TEDARİK) */
         input[value="YENİ KAYIT"],
         input[value="MOBİL ONARIM"],
@@ -367,62 +281,82 @@
         input[value="TOPLU FOTOĞRAF EKLE HTML5 (YENİ)"],
         input[value=" ARAÇ DONANIM&TEKNİK BİLGİSİ "],
         input[value="TED. PARÇA LİSTESİ"] {
-            background: linear-gradient(180deg, var(--accent) 0%, #1f442a 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--accent) !important;
-            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+            background: linear-gradient(180deg, var(--accent) 0%, #1f442a 100%);
+            color: var(--maim);
+            border: 1px solid var(--accent);
+            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
         }
         input[value="İHBAR YAZDIR"] {
-            background: linear-gradient(180deg, #434f53 0%, #1f442a 100%) !important;
-            color: var(--maim) !important;
-            border: 1px solid var(--accent) !important;
-            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+            background: linear-gradient(180deg, #434f53 0%, #1f442a 100%);
+            color: var(--maim);
+            border: 1px solid var(--accent);
+            box-shadow: 0 2px 5px #293b41, inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
-
-        /* Inputlar */
-        input[type="text"], select {
-            background: var(--primary-light);
-            border: 1px solid var(--border-soft) ;
-            border-radius: 4px ;
+        input, select, textarea, .box01, .select01, .textarea {
+            background-color: var(--primary-light) !important;
+            border: 1px solid var(--border-soft) !important;
+            border-radius: 4px !important;
+            box-sizing: border-box !important;
+            color: var(--texto) !important;
+            outline: none !important;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease !important;
         }
-        /* 7.1 READONLY & DISABLED FOCUS DURUMU (SEÇİLDİĞİNDE DEĞİŞMESİN) */
-        input:disabled,
-        select:disabled,
-        textarea:disabled,
-        input[readonly],
-        select[readonly],
-        textarea[readonly],
-        .box_disabled, input:disabled,
-        input[readonly]:focus,
-        input:disabled:focus,
-        textarea[readonly]:focus,
-        textarea:disabled:focus {
-            background-color: var(--disabled) !important; /* Koyu gri/mavi tonu */
-            color: var(--maim) !important;            /* Açık gri/beyaz yazı */
-            border-color: var(--disabled) !important;    /* Kenarlık rengini de koyulaştır */
-            cursor: not-allowed !important;       /* Yasak işareti imleci */
-            opacity: 1 !important;                /* Bazı tarayıcılardaki solukluğu engeller */
-
+        input:hover, select:hover, textarea:hover, .box01:hover, .select01:hover {
+            border-color: var(--accent) !important;
+            background-color: var(--maim) !important;
         }
-
-        /* Metin seçildiğinde (farenin sol tıkıyla tarama yapıldığında) oluşacak renkler */
-        input[readonly]::selection,
-        input:disabled::selection {
-            background-color: var(--maim) !important;    /* Seçilen kısmın arka planı yazı renginiz olsun */
-            color: var(--disabled) !important;           /* Seçilen kısmın yazısı koyu kalsın */
+        input:focus, select:focus, textarea:focus, .box01:focus, .select01:focus {
+            outline: none !important;
+            border-color: var(--primary) !important;
+            color: var(--texto) !important;
+            box-shadow: 0 0 5px 2px rgba(20, 80, 120, 0.55) !important;
+            background-color: var(--white) !important;
         }
+        select option {
+            background-color: var(--white) !important;
+            color: var(--texto) !important;
+        }
+       /* 7.1 READONLY & DISABLED */
+		input:disabled,
+		select:disabled,
+		textarea:disabled,
+		input[readonly],
+		select[readonly],
+		textarea[readonly],
+		.box_disabled,
+		input[readonly]:focus,
+		input:disabled:focus,
+		textarea[readonly]:focus,
+		textarea:disabled:focus {
+		    background-color: var(--disabled) !important;
+		    color: var(--white) !important;
+		    border-color: var(--disabled) !important;
+		    cursor: not-allowed !important;
+		    opacity: 1 !important;
+		    box-shadow: none !important;
+		    transform: none !important;
+		}
+		input[readonly]::selection,
+		input:disabled::selection,
+		textarea[readonly]::selection,
+		textarea:disabled::selection {
+		    background-color: var(--primary) !important;
+		    color: var(--white) !important;
+		}
+		input:disabled::placeholder,
+		input[readonly]::placeholder {
+		    color: rgba(240, 249, 255, 0.5) !important;
+		}
 
         /* 8. ICON HOVER NEON EFFECT */
         td[align="center"] a:hover img {
             filter: drop-shadow(0 0 8px rgba(52, 152, 219, 0.8))
                     drop-shadow(0 0 12px rgba(52, 152, 219, 0.4)) !important;
-            transform: scale(1.1) !important; /* Hafifçe büyüterek etkileşimi artırır */
+            transform: scale(1.1) !important;
             transition: all 0.2s ease-in-out !important;
         }
-
-        /* Tıklanabilir alanı daha belirgin yapmak için opsiyonel */
         td[align="center"] a {
 		    filter: brightness(1.2) !important;
             display: inline-block !important;
@@ -453,104 +387,88 @@
             border: none !important;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
         }
-        /* 4. INPUTLAR & FORM ELEMANLARI */
-        input, select, textarea, .box01, .select01, .textarea {
-            background-color: color-mix(in srgb, var(--maim), white 70%) !important;
-            border: 1px solid var(--border-soft) !important;
-            border-radius: 4px !important;
-            box-sizing: border-box !important;
-            animation: inputEntry 0.6s ease-out;
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
-        }
-
-        /* Odaklanma (Tıklama) Animasyonu: Cafcaflı değil, pürüzsüz bir vurgu */
-        input:focus, select:focus, textarea:focus {
-            outline: none !important;
-            border-color: var(--reddo-light) !important;
-            box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.08) !important;
-            background-color: white !important;
-            animation: inputEntry 0.6s ease-out;
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease !important;
-        }
-
         input[size="85"], .textarea_buyuk, input[name*="YP_"] { min-width: 150px !important; transition: min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important; }
         input[size="85"]:focus { min-width: 200px !important; }
 
-        /* 5. BUTONLAR (TAM UYUMLU) */
-        .BUTON01, .BUTON02, .BUTON03, .BUTON06, .BTNKIRMIZI, .BUTON_YESIL, input[type="submit"] {
-            height: 24px !important;
-            border-radius: 4px !important;
-            text-transform: uppercase !important;
-            cursor: pointer !important;
-            transition: all 0.2s !important;
+        /* 5. BUTONLAR: MODERN & ANİMASYONLU */
+        .buton01, .BUTON01, .BUTON02, .BUTON03, .BUTON06, .BTNKIRMIZI, .BUTON_YESIL, .buton02, .buton03, #SASI_MDL,
+        input[type="submit"], input[type="button"], #btnKaydet1, #btnKaydet2,
+        input[value="KAYDET"], input[value="Ok"], input[value=" Ok "], input[name="btnALL"] {
+            height: 22px !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            border-radius: 3px !important;
             border: none !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
+            cursor: pointer !important;
+            position: relative !important;
+            outline: none !important;
+            text-transform: uppercase !important;
+            color: var(--white) !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2) !important;
         }
-		input.buton01[value="Ok"],input.buton01[value=" Ok "] {
-		    background: var(--reddo) !important;
-		    color: white !important;
-		    transition: all 0.3s ease !important;
-		    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3) !important;
-		}
-		input.buton01[value="Ok"]:hover,input.buton01[value=" Ok "]:hover {
-		    background: var(--reddo-light) !important;
-		    transform: translateY(-2px) scale(1.05) !important;
-		    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4) !important;
-		}
+        /* VARSAYILAN RENKLER */
+        .buton01, .BUTON01, .buton02 { background: var(--primary) !important; }
+        .BTNKIRMIZI, .BUTON02, .BUTON03, .buton03, #btnKaydet1, #btnKaydet2, #SASI_MDL, input[name="btnALL"], input[value="KAYDET"], input[value="Ok"], input[value=" Ok "] { background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important; }
+        .BUTON06, .BUTON_YESIL { background: #27ae60 !important; }
+        /* MAVİ BUTONLAR HOVER */
+        .buton01:hover, .BUTON01:hover, .buton02:hover,
+        input[type="submit"]:not(.BUTON02):not(.BUTON03):not(.buton03):not(.BTNKIRMIZI):not(#btnKaydet1):not(#btnKaydet2):not(.BUTON06):not(.BUTON_YESIL):not(#SASI_MDL):not([name="btnALL"]):hover,
+        input[type="button"]:not(.BUTON02):not(.BUTON03):not(.buton03):not(.BTNKIRMIZI):not(#btnKaydet1):not(#btnKaydet2):not(.BUTON06):not(.BUTON_YESIL):not(#SASI_MDL):not([name="btnALL"]):hover {
+            background: var(--accent) !important;
+            filter: brightness(1.1) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+        }
+        /* KIRMIZI BUTONLAR HOVER */
+        .BUTON02:hover, .BUTON03:hover, .buton03:hover, .BTNKIRMIZI:hover, #btnKaydet1:hover, #btnKaydet2:hover, #SASI_MDL:hover, input[name="btnALL"]:hover,
+        input[value="Ok"]:hover, input[value=" Ok "]:hover, input[value="KAYDET"]:hover {
+            background: var(--reddo-light) !important;
+            filter: brightness(1.15) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(208, 15, 15, 0.4) !important;
+        }
+        /* YEŞİL BUTONLAR HOVER */
+        .BUTON06:hover, .BUTON_YESIL:hover {
+            background: #2ecc71 !important;
+            filter: brightness(1.1) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.4) !important;
+        }
+        /* FOCUS & ACTIVE */
+        .buton01:active, .BUTON01:active, .BUTON02:active, .BUTON03:active, .buton03:active, .BUTON06:active, .BTNKIRMIZI:active, .BUTON_YESIL:active, #SASI_MDL:active, input[name="btnALL"]:active {
+            transform: translateY(1.5px) scale(0.96) !important;
+            filter: brightness(0.8) !important;
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.4) !important;
+        }
 
-        /* Mavi Butonlar */
-        .BUTON01 { background: var(--primary) !important; color: var(--maim) !important; }
-        .BUTON02, .BUTON03, .BTNKIRMIZI { background: #e74c3c !important; color: var(--maim) !important; }
-        .BUTON06, .BUTON_YESIL { background: #27ae60 !important; color: var(--maim) !important; }
-        .BUTON01:hover, .BTNKIRMIZI:hover { filter: brightness(1.2) !important; transform: translateY(-1px) !important; }
-
-        /* 6. LİNKLER - Genel Yapı */
+        /* LİNKLER VE ÖZEL DURUMLAR */
         a, .link, .link01, .linkyp, .dosya_menu, .menu {
             color: var(--accent) !important;
-            filter: brightness(1.15);
             text-decoration: none !important;
-            border-bottom: none !important;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.175) !important;
+            transition: all 0.2s ease !important;
             display: inline-block;
         }
-        a:hover, .link:hover, .link01:hover, .linkyp:hover, .dosya_menu:hover, .menu:hover {
+        a:hover, .link:hover, .link01:hover, .linkyp:hover {
             color: var(--reddo) !important;
-            text-decoration: none !important;
-            border-bottom: none !important;
-
-            /* Animasyon efektleri */
-            transform: scale(1.02) translateY(-1px) !important;
-            filter: brightness(1.1);
-
-            /* Alt çizgiyi yapan ghost elementler varsa temizle */
-        }
-        a::after, a::before {
-            display: none !important;
+            transform: scale(1.02) !important;
         }
 
-        /* 7. ÖZEL DURUMLAR */
         .cizgi { background-color: var(--border-soft) !important; height: 1px !important; }
-        .hosgeldin { color: var(--primary) !important; font-size: 14px !important; border-left: 4px solid var(--primary) !important; }
-        .acik_yansanayi { background-color: #ffeb3b !important; color: #856404 !important; }
-        .kirmizi, .kirmizi1 { color: #e74c3c !important; }
-		td.tb[background*="baslik_img02.gif"] {
-		    color: var(--accent) !important; /* Tam siyah yapar */
-		}
+        .hosgeldin { color: var(--primary) !important; border-left: 4px solid var(--primary) !important; padding-left: 5px; }
+        td.tb[background*="baslik_img02.gif"] { color: var(--accent) !important; font-weight: bold; }
 
-        /* Animasyonlu Buton */
         #btnStream { animation: blinkingText 1.5s infinite !important; }
-        @keyframes fadeInSmooth { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes inputEntry { from { opacity: 0; filter: brightness(1.2); } to { opacity: 1; filter: brightness(1); } }
-
-		/* 1. Butonun Ana Stil Ayarları (Daha sade ve profesyonel) */
         a[onclick*="document.yedparforhasar.submit"] {
-            display: inline-flex !important; /* İçeriği merkeze almak için */
+            display: inline-flex !important;
             align-items: center;
             justify-content: center;
-            min-width: 100px; /* Yazı sığsın diye genişlik */
-            height: 20px;     /* Sabit yükseklik */
+            min-width: 100px;
+            height: 20px;
 			padding: 3px;
             background: #d32f2f !important;
 			color: #ffffff !important;
@@ -578,8 +496,8 @@
             background: linear-gradient(180deg, #ff0000 0%, #b71c1c 100%) !important;
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
+		/*TEDARİK BÖLÜMÜ*/
         .tm-tedarik-container {
-            /* Genişlik ayarları */
             /*width: 100% !important;
             min-width: 600px !important;*/
             background: var(--maim) !important;
@@ -653,31 +571,19 @@
     const formatTedarikciler = () => {
         const targetFont = Array.from(document.querySelectorAll('td.text font, td font, td.text'))
             .find(el => el.innerText.includes('BU DOSYA TEDARİĞE UYGUNDUR'));
-
         if (!targetFont) return;
-
         const parentTd = targetFont.closest('td');
         if (parentTd.dataset.processed === "true") return;
-
-        // 1. Orijinal içeriği yedekle
         const originalContent = parentTd.innerHTML;
-
-        // 2. Veriyi işle
         let cleanText = targetFont.innerText.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ');
         let content = cleanText.split('BU DOSYA TEDARİĞE UYGUNDUR:')[1] || "";
         let firms = content.split(/,(?![^\(]*\))/).map(item => {
             item = item.trim();
-            // Oranı yakala: (%35.00)
             const rateMatch = item.match(/\((%\d+\.\d+)\)/);
             const rate = rateMatch ? rateMatch[1] : "%0.00";
-
-            // Firma adını temizle (yüzde kısmını kaldır)
             const name = item.replace(/\(%\d+\.\d+\)/, '').trim();
-
             return { name, rate };
         }).filter(f => f.name.length > 2);
-
-        // 3. Dinamik Renk Belirleme Fonksiyonu
         const getRateClass = (rateStr) => {
             const numericRate = parseFloat(rateStr.replace('%', ''));
             if (numericRate >= 60) {
@@ -688,16 +594,12 @@
                 return 'tm-zero'; // %0 için
             }
         };
-
-        // 4. Modern Liste HTML'ini oluştur
         const itemsHtml = firms.map(f => `
             <div class="tm-tedarik-item" style="display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0;">
                 <span class="tm-firm-name" style="font-size: 12px;">${f.name}</span>
                 <span class="tm-firm-rate ${getRateClass(f.rate)}" style="font-weight: bold; min-width: 60px; text-align: right;">${f.rate}</span>
             </div>
         `).join('');
-
-        // 5. Wrapper ve Buton
         const modernHtml = `
             <div class="tm-tedarik-wrapper">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
@@ -718,11 +620,9 @@
 
         parentTd.innerHTML = modernHtml;
         parentTd.dataset.processed = "true";
-        // Toggle Buton Fonksiyonu
         const toggleBtn = document.getElementById('view-toggle-btn');
         const modernDiv = document.getElementById('modern-view');
         const originalDiv = document.getElementById('original-view');
-
         toggleBtn.addEventListener('click', function (e) {
             e.preventDefault();
             if (modernDiv.style.display === "none") {
@@ -747,18 +647,12 @@
             link.className = 'modern-link';
             link.innerText = area.alt;
             link.href = area.href;
-
             if (area.onclick) link.setAttribute('onclick', area.getAttribute('onclick'));
-
             nav.appendChild(link);
         });
-        // Eski resmi bul ve yeni panelle değiştir
         const oldImg = document.querySelector('img[usemap="#linkmap"]');
-        if (oldImg) {
-            oldImg.parentNode.replaceChild(nav, oldImg);
-        } else {
-            map.parentNode.insertBefore(nav, map);
-        }
+        if (oldImg) { oldImg.parentNode.replaceChild(nav, oldImg);
+        } else { map.parentNode.insertBefore(nav, map); }
         map.remove();
     }
     const mapfrefix = `
