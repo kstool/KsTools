@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.37
+// @version      1.38
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -28,22 +28,14 @@
     const url = unsafeWindow.location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
-    if (blockedGroups.some(word => url.includes(word))) { return; }
-    // 1. PANEL AYARLARI (Boyutlar ve Durum)
+    if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
-        bottom: '22px',
-        right: '0px',
-        width: '270px',
-        collapsedWidth: '270px',
-        themeColor: '#1cb2cd',
-        Color: 'white',
+        bottom: '22px', right: '0px', width: '270px', collapsedWidth: '270px',
+        themeColor: '#1cb2cd', Color: 'white', borderRadius: '4px', blur: '15px',
         isCollapsed: false,
-        zIndex: 3169999,
-        borderRadius: '4px',
-        blur: '15px',
-        wasDragging: false
+        wasDragging: false,
+        zIndex: 3169999
     };
-
     const themes = {
         'online.sbm.org': 'white', // SBM Beyaz
         'otohasar.hepiyi': '#55ac05', // Hepiyi Turuncu/Kırmızı
@@ -293,13 +285,8 @@
         const panel = document.createElement('div');
         panel.className = 'ks-draggable-panel';
         panel.id = 'ks-master-panel';
-        panel.innerHTML = `
-            <div class="ks-content" id="ks-content">Loading...</div>
-            <div class="ks-header" id="ks-header" style="border-top: 1px solid #333; border-bottom: none;">
-                <h4>PANEL</h4>
-                <span style="font-size: 10px; opacity: 0.5;">▲</span>
-            </div>
-        `;
+        panel.innerHTML = `<div class="ks-content" id="ks-content">Loading...</div>
+		<div class="ks-header" id="ks-header" style="border-top: 1px solid #333; border-bottom: none;"><h4>PANEL</h4> <span style="font-size: 10px; opacity: 0.5;">▲</span></div>`;
         document.body.appendChild(panel);
         const content = document.getElementById('ks-content');
         const header = document.getElementById('ks-header');
@@ -312,7 +299,7 @@
             dragThreshold: 5
         };
 
-        const setTransition = (t) => panel.style.transition = t;
+        const setTransition = (t) => { panel.style.transition = t };
         const startDragging = (e) => {
             state.isDragging = true;
             panel.dataset.wasDragging = 'false';
@@ -340,7 +327,7 @@
             if (!state.isDragging) return;
             state.isDragging = false;
             setTransition('width 0.3s ease, height 0.3s ease');
-            setTimeout(() => panel.dataset.wasDragging = 'false', 200);
+            setTimeout(() => { panel.dataset.wasDragging = 'false'; }, 200);
         };
         // --- B. KÜÇÜLTME/BÜYÜTME ---
         header.addEventListener('click', () => {
@@ -708,7 +695,7 @@
         });
     };
     // Hızlı ve Panel takipli Ön giriş
-    if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
+    if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
         /* ===== 1. PANEL VE STİL ===== */
         injectStyles(); initPanel();
         const panel = document.getElementById('ks-master-panel');
@@ -861,7 +848,7 @@
             /* ===== 4. PANEL GÜNCELLEME ===== */
             function updatePanel() {
                 let html = '<table style="width:100%; border-collapse:collapse; font-size:13px; color:white;">';
-                if (ANALIZPANEL_pol === true) {
+                if (ANALIZPANEL_pol) {
                     const hasar = getDate('HASAR_TARIHI');
                     const bas = getDate('SB_POLICE_BAS');
                     const bitis = getDate('SB_POLICE_BITIS');
@@ -946,7 +933,7 @@
                                 ${selectedText}
                             </span>`;
 
-                    if (ANALIZPANEL_sgs === true) {
+                    if (ANALIZPANEL_sgs) {
                         html += `
                             <tr style="border-bottom: 1px solid #333;">
                                 <td style="padding:4px 0;">Sigorta Şekli:</td>
@@ -956,7 +943,7 @@
                             </tr>`;
                     }
                 }
-                if (ANALIZPANEL_rc === true) {
+                if (ANALIZPANEL_rc) {
                     // --- 1. RÜCU DURUMU ---
                     const rucuVar = document.getElementById('RUCU1')?.checked;
                     const rucuYok = document.getElementById('RUCU0')?.checked;
@@ -971,7 +958,7 @@
                             <td style="text-align:right; padding:4px 0;">${rucuStatus}</td>
                         </tr>`;
                 }
-                if (ANALIZPANEL_pert === true) {
+                if (ANALIZPANEL_pert) {
                     // --- 2. PERT DURUMU ---
                     const pertVar = document.getElementById('pert')?.checked || false;
                     let pertStatus = "";
@@ -1002,7 +989,7 @@
                             ${text.toUpperCase()}
                         </span>`;
                 };
-                if (ANALIZPANEL_hsr === true) {
+                if (ANALIZPANEL_hsr) {
                     const ihbarElement = document.getElementById('KAZA_IHBAR_TURU');
                     const hasarElement = document.getElementById('HASAR_SEKLI');
                     // --- 1. MANTIK: İHBAR TÜRÜ ---
@@ -1042,7 +1029,7 @@
                             </tr>`;
                     }
                 }
-                if (ANALIZPANEL_srtp === true) {
+                if (ANALIZPANEL_srtp) {
                     const servisAdi = getValue('SERVIS_ADI');
                     if (servisAdi) {
                         const isYetkili = document.getElementsByName('SERVIS_TUR_ID1')[0]?.checked;
@@ -1132,7 +1119,7 @@
                 // --- 2. HTML OLUŞTURMA ---
                 html += `<style>@keyframes ksBlink { 0%{opacity:1} 50%{opacity:0.3} 100%{opacity:1} }</style>`;
                 html += `<table style="width:100%; border-collapse:collapse; font-size:12px; color:white; line-height:1.2;">`;
-                if (ANALIZPANEL_mull === true) {
+                if (ANALIZPANEL_mull) {
                     html += `
                     <tr>
                         <td style="width:100px; padding:4px 0;">Sigorta Muallak:</td>
@@ -1141,7 +1128,7 @@
                         </td>
                     </tr>`;
                 }
-                if (ANALIZPANEL_ryc === true) {
+                if (ANALIZPANEL_ryc) {
                     html += `
                     <tr style="border-top:1px solid #333;">
                         <td style="width:100px; padding:4px 0;">Piyasa/Rayiç:</td>
@@ -1150,7 +1137,7 @@
                         </td>
                     </tr>`;
                 }
-                if (ANALIZPANEL_rycorn === true) {
+                if (ANALIZPANEL_rycorn) {
                     html += `
                         <tr>
                             <td style="width:100px; padding:4px 0;">Eksper Muallak:</td>
@@ -1196,8 +1183,8 @@
                     return {
                         model: m,
                         year: y,
-                        kmMin: k >= 100 ? Math.floor(k * 0.80) : null,
-                        kmMax: k >= 100 ? Math.ceil(k * 1.20) : null
+                        kmMin: k >= 100 ? Math.floor(k * 0.85) : null,
+                        kmMax: k >= 100 ? Math.ceil(k * 1.15) : null
                     };
                 }
 
@@ -1205,7 +1192,7 @@
                     const resBox = document.getElementById('shb-res-box');
                     const data = buildTargetUrl();
                     if (!data) { resBox.innerHTML = "❌ Veri hatası!"; return; }
-                    resBox.innerHTML = `<span style="color:#fff; font-size:9px; opacity:0.7;">🔍 Filtreleniyor...</span>`;
+                    resBox.innerHTML = `<span style="color:#fff; font-size:11px; opacity:0.7;">🔍 Filtreleniyor...</span>`;
                     const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
                     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
                     GM_xmlhttpRequest({
@@ -1223,19 +1210,20 @@
                                 shbUrlString = urlObj.pathname === "/url" ? urlObj.searchParams.get("q").split('&')[0] : target.href.split('&')[0];
                             } catch (e) { shbUrlString = target.href; }
                             const finalUrl = new URL(shbUrlString);
-                            // --- DİNAMİK FİLTRELEME ---
                             finalUrl.searchParams.set("pagingSize", "50");
-                            // Yıl Filtresi (a5_min ve a5_max senin istediğin HAS_MODEL_YILI)
+                            finalUrl.searchParams.set("sorting", "km-nu_asc");
                             if (data.year) {
                                 finalUrl.searchParams.set("a5_min", data.year);
                                 finalUrl.searchParams.set("a5_max", data.year);
+                                finalUrl.searchParams.set("a90178_min", data.year);
+                                finalUrl.searchParams.set("a90178_max", data.year);
                             }
-                            // KM Filtresi (Opsiyonel: Eğer daraltmak istersen)
                             if (data.kmMin) {
                                 finalUrl.searchParams.set("a4_min", data.kmMin);
                                 finalUrl.searchParams.set("a4_max", data.kmMax);
+                                finalUrl.searchParams.set("a90180_min", data.kmMin);
+                                finalUrl.searchParams.set("a90180_max", data.kmMax);
                             }
-                            // Analiz mi yapılacak yoksa direkt sayfa mı açılacak?
                             if (isAnalyze) fetchPricesFromShb(finalUrl.toString());
                             else unsafeWindow.open(finalUrl.toString(), '_blank');
                         }
@@ -1252,17 +1240,17 @@
                             const sDoc = new DOMParser().parseFromString(res.responseText, "text/html");
                             const rows = [...sDoc.querySelectorAll('tr.searchResultsItem')];
                             const dataList = [];
-
                             rows.forEach(tr => {
                                 const titleEl = tr.querySelector('.classifiedTitle');
                                 const priceEl = tr.querySelector('.searchResultsPriceValue');
                                 const attrEls = tr.querySelectorAll('.searchResultsAttributeValue');
-
                                 if (titleEl && priceEl && attrEls.length >= 2) {
                                     const price = parseInt(priceEl.innerText.replace(/\D/g, '')) || 0;
-                                    if (price > 100000) { // Çöp ilanları ele
+                                    if (price > 100000) {
                                         dataList.push({
+                                            id: tr.getAttribute('data-id') || Math.random(),
                                             title: titleEl.title.substring(0, 20),
+                                            link: "https://www.sahibinden.com" + titleEl.getAttribute('href'),
                                             year: attrEls[0].innerText.trim(),
                                             km: attrEls[1].innerText.trim(),
                                             price: price
@@ -1270,22 +1258,39 @@
                                     }
                                 }
                             });
-
                             if (dataList.length > 0) {
                                 const avg = Math.round(dataList.reduce((a, b) => a + b.price, 0) / dataList.length);
-                                const closest = dataList.sort((a, b) => Math.abs(a.price - avg) - Math.abs(b.price - avg)).slice(0, 5);
-
-                                let html = `<div style="background: rgba(10,10,10,0.05); border: 1px solid #444; border-radius: 6px; padding: 5px; color: white; width: 100%; box-sizing: border-box;">`;
+                                const sortedHigh = [...dataList].sort((a, b) => b.price - a.price);
+                                const sortedLow = [...dataList].sort((a, b) => a.price - b.price);
+                                const nearAvg = [...dataList].sort((a, b) => Math.abs(a.price - avg) - Math.abs(b.price - avg));
+                                let displaySet = new Set(); let displayList = [];
+                                const addToDisplay = (item, color) => {
+                                    if (item && !displaySet.has(item.id) && displayList.length < 5) {
+                                        displayList.push({ ...item, color }); displaySet.add(item.id);
+                                    }
+                                };
+                                addToDisplay(sortedHigh[0], "#27fdf9");
+                                addToDisplay(sortedHigh[1], "#26f885");
+                                addToDisplay(nearAvg[0], "#d3ff73");
+                                addToDisplay(nearAvg[1], "#d3ff73");
+                                addToDisplay(sortedLow[0], "#fff8b7");
+                                let html = `<style>
+                    .shb-link { color: #cfd8dc !important; text-decoration: underline !important; transition: all 0.2s !important; }
+                    .shb-link:hover { color: #ffffff !important; opacity: 0.8; }
+                    .shb-link:active { color: #ffeb3b !important; }
+                </style>`;
+                                html += `<div style="background: rgba(10,10,10,0.05); border: 1px solid #444; border-radius: 6px; padding: 5px; color: white; width: 100%; box-sizing: border-box;">`;
                                 html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px; font-size:11px;"><b>Ort: ${avg.toLocaleString('tr-TR')} TL</b> <span style="color:#00ff88;">${dataList.length} İlan</span></div>`;
                                 html += `<table style="width:100%; border-collapse:collapse; font-size:10px;">`;
-
-                                closest.forEach(item => {
+                                displayList.forEach(item => {
                                     html += `<tr style="border-bottom: 1px solid #222;">
-                                        <td style="color: white; padding:3px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.title}</td>
-                                        <td style="color: white; width:30px; text-align:center;">${item.year}</td>
-                                        <td style="color: white; width:50px; text-align:center;">${item.km}</td>
-                                        <td style="color:#00ff88; width:80px; text-align:right; font-weight:bold;">${item.price.toLocaleString('tr-TR')}</td>
-                                    </tr>`;
+                        <td style="padding:3px 0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <a href="${item.link}" target="_blank" class="shb-link" style="display: inline-block !important;">${item.title}</a>
+                        </td>
+                        <td style="color: white; width:30px; text-align:center;">${item.year}</td>
+                        <td style="color: white; width:50px; text-align:center;">${item.km}</td>
+                        <td style="color:${item.color}; width:80px; text-align:right; font-weight:bold;">${item.price.toLocaleString('tr-TR')}</td>
+                    </tr>`;
                                 });
                                 html += `</table></div>`;
                                 resBox.innerHTML = html;
@@ -1295,7 +1300,6 @@
                         }
                     });
                 }
-
                 document.getElementById('btn-auto-analiz').onclick = () => startAutomatedSearch(true);
                 document.getElementById('btn-auto-look').onclick = () => startAutomatedSearch(false);
                 document.getElementById('panelContent').innerHTML = html;
@@ -1346,7 +1350,7 @@
             setInterval(updatePanel, 1500);
         }
     }
-    if (KS_SYSTEM === true && ANALIZPANEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_magdur.php")) {
+    if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_magdur.php")) {
         /* ===== 1. PANEL VE STİL ===== */
         config.bottom = "22px";
         config.width = "270px";
@@ -1776,7 +1780,7 @@
         }, true);
     }
     // Hızlı Referans açma Otohasar
-    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
+    if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
         config.bottom = "24px";
         config.width = "200px";
         config.collapsedWidth = "200px";
@@ -1910,7 +1914,7 @@
         }
     }
     // Hızlı Referans açma Otohasar
-    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("talep_yp_giris.php")) {
+    if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("talep_yp_giris.php")) {
         config.bottom = "24px";
         config.width = "200px";
         config.collapsedWidth = "200px";
@@ -1992,7 +1996,7 @@
             contentArea.appendChild(btnPaste);
         }
     }
-    if (KS_SYSTEM === true && REFERANS === true && location.href.includes("otohasar") && location.href.includes("talep_yp_ayrinti.php")) {
+    if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("talep_yp_ayrinti.php")) {
         config.bottom = "24px";
         config.width = "150px";
         config.collapsedWidth = "150px";
@@ -2065,7 +2069,7 @@
         }
     }
     // Hızlı Manuel Parça girişi
-    if (KS_SYSTEM === true && MANUEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref")) {
+    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref")) {
         function initPanel() {
             if (document.getElementById("tm-panel")) return;
             if (typeof injectStyles === 'function') injectStyles();
@@ -2079,7 +2083,10 @@
                 --transition-speed: 0.4s;
                 --toggle-loc: 250px;
             }
-            #tm-panel {
+            /* Sayfa İçeriğini Kaydırma (Panel açıkken) */
+            body { transition: margin-left var(--transition-speed); margin-left: 260px !important; }
+            body.panel-closed { margin-left: 0 !important; }
+			#tm-panel {
                 position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
                 background: var(--panel-bg);
                 backdrop-filter: blur(${config.blur}) saturate(160%);
@@ -2094,18 +2101,7 @@
                 overflow-y: auto
                 z-index: 1;
             }
-            /* Panel Kapalı Durumu */
-            #tm-panel.closed {
-                transform: translateX(-260px);
-            }
-            /* Sayfa İçeriğini Kaydırma (Panel açıkken) */
-            body {
-                transition: margin-left var(--transition-speed);
-                margin-left: 260px !important;
-            }
-            body.panel-closed {
-                margin-left: 0 !important;
-            }
+            #tm-panel.closed { transform: translateX(-260px); }
             /* Kapatma / Açma Butonu (Toggle) */
             #tm-toggle {
                 position: fixed;
@@ -2127,7 +2123,7 @@
                 backdrop-filter: blur(${config.blur});
                 transition: left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             }
-            /* KAPANIRKEN: Hızlı geçiş (closed sınıfı eklendiğinde toggle sola hızlı gider) */
+            /* KAPANIRKEN */
             #tm-panel.closed + #tm-toggle {
                 left: 0px;
                 transition: left calc(var(--transition-speed) / 2) cubic-bezier(0.4, 0, 0.2, 1);
@@ -2138,11 +2134,7 @@
                 padding-bottom: 4px; margin-top: 4px;
             }
             /* 1: Giriş Alanları (Modern & Yüksek Kontrast) */
-            .tm-input-group {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
+            .tm-input-group { display: flex; flex-direction: column; gap: 4px; }
             #tm-panel input {
                 width: 100% !important;
                 padding: 6px;
@@ -2156,18 +2148,14 @@
                 font-size: 12px;
                 font-weight: 400;
             }
-            #tm-panel input::placeholder {
-                color: #999;
-            }
+            #tm-panel input::placeholder { color: #999; }
             #tm-panel input:focus {
                 background: #fff;
                 border-color: var(--accent-blue);
                 box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
                 transform: translateY(-1px);
             }
-            #tm-panel input[type="number"] {
-                text-align: center;
-            }
+            #tm-panel input[type="number"] { text-align: center; }
             .tm-button-grid {
                 display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
             }
@@ -2194,7 +2182,7 @@
             .radio-container label {
                 flex: 1;
                 text-align: center;
-                padding: 2px 2px; /* Daha geniş tıklama alanı */
+                padding: 2px 2px;
                 border-radius: 7px;
                 font-size: 11px;
                 font-weight: 600;
@@ -2206,8 +2194,7 @@
                 justify-content: center;
                 user-select: none;
             }
-            .radio-container input {
-                display: none;
+            .radio-container input { display: none;
             }
             .radio-container label:has(input:checked) {
                 background: var(--accent-blue);
@@ -2215,25 +2202,10 @@
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
                 transform: scale(1.02);
             }
-            .radio-container label:not(:has(input:checked)):hover {
-                background: rgba(255, 255, 255, 0.5);
-                color: #334155;
-            }
-			.red-alrt-bg {
-			    background: #e30707 !important;
-			    border: none !important;
-			}
-
-			.white-text {
-			    color: #ffffff !important;
-			    font-weight: bold !important;
-			}
-
-			/* Seçili olduğunda metin renginin kaybolmaması için */
-			.radio-container.red-alrt-bg label:has(input:checked) {
-			    background: rgba(255, 255, 255, 0.85) !important;
-			    color: black !important;
-			}
+            .radio-container label:not(:has(input:checked)):hover { background: rgba(255, 255, 255, 0.5); color: #334155; }
+			.red-alrt-bg { background: #e30707 !important; border: none !important; }
+			.white-text { color: #ffffff !important; font-weight: bold !important; }
+			.radio-container.red-alrt-bg label:has(input:checked) { background: rgba(255, 255, 255, 0.85) !important; color: black !important; }
 
             .btn-full { grid-column: span 1; padding: 10px !important; font-size: 13px !important; }
             .btn-new    { background: #0078D4 !important; color: white !important; } /* Modern Mavi */
@@ -2530,7 +2502,7 @@
         window.addEventListener("load", () => { setTimeout(focusTarget, 200); }, { once: true });
     }
     // Hızlı Çoklu Parça girişi
-    if (KS_SYSTEM === true && MANUEL === true && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
+    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
         /* ===== 1. PANEL VE STİLLER ===== */
         const style = document.createElement('style');
         style.innerHTML = `
@@ -2652,7 +2624,7 @@
         });
     }
     // Hızlı Resim girişi
-    if (KS_SYSTEM === true && RESIM === true && location.href.includes("otohasar") && location.href.includes("multi_file_upload")) {
+    if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("multi_file_upload")) {
         const getSistemAyarlari = () => {
             config.bottom = "24px";
             config.width = "100px";
@@ -2948,7 +2920,7 @@
         setInterval(start, 2500);
     }
     // Hızlı Donanım girişi
-    if (KS_SYSTEM === true && DONANIM === true && location.href.includes("otohasar") && /eks_(magdur_arac_donanim|arac_donanim)/.test(location.href)) {
+    if (KS_SYSTEM && DONANIM && location.href.includes("otohasar") && /eks_(magdur_arac_donanim|arac_donanim)/.test(location.href)) {
         function initPanel() {
             if (document.getElementById('donanim-panel') || !document.body.innerText.toLowerCase().includes("donanim")) return;
             //injectStyles(); initPanel();
@@ -3110,7 +3082,8 @@
         else unsafeWindow.addEventListener('load', initPanel);
         setTimeout(initPanel, 1500);
     }
-    if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-police/genelSorguEksper")) {
+    // Sbm Hızlı Seçim
+    if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr/trm-police/genelSorguEksper")) {
         GM_addStyle(`
         #hizli-secim-paneli {
             display: inline-block !important;
@@ -3184,7 +3157,7 @@
         }, 1000);
     }
     // Sbm 3lü sayı bölme
-    if (KS_SYSTEM === true && SBM === true && (location.href.includes("online.sbm.org.tr/trm-ktt/giris") || location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listView"))) {
+    if (KS_SYSTEM && SBM && (location.href.includes("online.sbm.org.tr/trm-ktt/giris") || location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listView"))) {
         let lastFormattedNumber = "";
         // --- 1. YARDIMCI FONKSİYONLAR ---
         const parseDate = (s) => {
@@ -3319,7 +3292,7 @@
         else unsafeWindow.addEventListener('load', init);
     }
     // SBM Resim indirme
-    if (KS_SYSTEM === true && SBM === true && location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+    if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
         const MIN_WIDTH = 300;
         function initSbmDownloadPanel() {
             if (document.getElementById('sbm-download-mini-panel')) return;
@@ -3470,7 +3443,7 @@
         }
     }
     // Whatsapp Resim indirme
-    if (KS_SYSTEM === true && WHATSAPP === true && location.href.includes("web.whatsapp.com")) {
+    if (KS_SYSTEM && WHATSAPP && location.href.includes("web.whatsapp.com")) {
         const getFileName = () => {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
@@ -3517,7 +3490,7 @@
         }, true);
     }
     // Türkiye Sigorta
-    if (KS_SYSTEM === true && TRSIGORTA === true && location.href.includes("hasaroto.turkiyesigorta.com.tr") && !location.href.includes("sign-in")) {
+    if (KS_SYSTEM && TRSIGORTA && location.href.includes("hasaroto.turkiyesigorta.com.tr") && !location.href.includes("sign-in")) {
         const turkeyfix = ` `;
         GM_addStyle(turkeyfix);
         function applyModernStyles() {
@@ -4023,7 +3996,7 @@
         }, 2000);
     }
     // Sayfa bildirim öldürücü
-    if (KS_SYSTEM === true && BILDIRIM === true && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
+    if (KS_SYSTEM && BILDIRIM && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
         // unsafeWindow kullanımı Tampermonkey'de sayfa JS'ine erişim için kritiktir
         const w = (typeof unsafeWindow !== 'undefined') ? unsafeWindow : window;
         let notificationCounts = {};
