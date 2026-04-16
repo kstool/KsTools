@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.7
+// @version      1.8
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -10,12 +10,29 @@
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // ==/UserScript==
-
-(function() {
+https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
+(function () {
     'use strict';
-	const url = unsafeWindow.location.href.toLowerCase();
-	const blockedGroups = [ "yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
+    const url = unsafeWindow.location.href.toLowerCase();
+    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
     if (blockedGroups.some(word => url.includes(word))) { return; }
+    const urls = [
+        "https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif",
+        "https://i.pinimg.com/originals/80/7b/5c/807b5c4b02e765bb4930b7c66662ef4b.gif",
+        "https://media.tenor.com/Cdsz67OHTE0AAAAj/kitty-cat.gif",
+        "https://media.tenor.com/Y-rpgX5Tr6QAAAAj/meme-betterttv.gif",
+        "https://media.tenor.com/9nKcOUBEhcQAAAAj/cat-roll.gif",
+        "https://media.tenor.com/YSzBJZA8P0cAAAAj/cat-black.gif",
+        "https://media.tenor.com/GVbLnw73qD8AAAAj/dancing-duck-karlo.gif",
+        "https://media.tenor.com/2PVH7hArX-0AAAAj/totoro-jumping.gif",
+        "https://media.tenor.com/TrrbI6d6Vo0AAAAj/waal-boyss-otw.gif",
+        "https://media.tenor.com/7qmbUuWQcqUAAAAj/cute-happy.gif",
+        "https://media.tenor.com/fBl_E-CvxD0AAAAj/glitch-cat.gif",
+        "https://media.tenor.com/JW0XaqKXJfsAAAAj/cat-pixelated.gif",
+        "https://media.tenor.com/U98uFe-2pN4AAAAj/cute-happy.gif",
+        "https://media.tenor.com/tQThay3xZ-oAAAAj/cat.gif"
+    ];
+    const randomUrl = urls[Math.floor(Math.random() * urls.length)];
     const oceanicTheme = `
         :root {
             --primary: #3589c1;
@@ -91,31 +108,54 @@
            opacity: 1;
            text-shadow: 0 0 8px var(--primary);
        }
-       /* Panel Kapsayıcısı */
-      .modern-nav-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 40px;
-          padding: 12px 40px;
-          justify-content: center;
-          align-items: center;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.7);
-          border-top: 1.5px solid rgba(255, 255, 255, 0.9);*/
-          border-radius: 24px;
-          box-shadow:
-              0 4px 6px -1px rgba(0, 0, 0, 0.05),
-              0 10px 20px -5px rgba(0, 0, 0, 0.1),
-              inset 0 0 15px rgba(255, 255, 255, 0.3);
-
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-      }
-      .modern-nav-container:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
-      }
+       .modern-nav-container {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 40px;
+           padding: 12px 40px;
+           justify-content: center;
+           align-items: center;
+           background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+           backdrop-filter: blur(20px) saturate(180%);
+           -webkit-backdrop-filter: blur(20px) saturate(180%);
+           border-radius: 24px;
+           box-shadow:
+               5px 0 1px 1px rgba(240, 249, 255, 0),
+               -100px 0 1px 2px rgba(0, 0, 0, 0),
+               -150px 0 3px 3px rgba(0, 0, 0, 0),
+               -200px 0 5px 6px rgba(0, 0, 0, 0),
+               -250px 0 10px 8px rgba(0, 0, 0, 0),
+               -300px 0 13px 10px rgba(0, 0, 0, 0),
+               -400px 0 15px 10px rgba(0, 0, 0, 0),
+               -500px 0 17px 15px rgba(0, 0, 0, 0),
+               -600px 0 19px 20px rgba(0, 0, 0, 0),
+               -800px 0 20px 35px rgba(0, 0, 0, 0),
+               -5px 0 3px 1px rgba(0, 0, 0, 0);
+           transition: box-shadow 0.3s ease-in-out, transform 0.3s ease;
+       }
+	   img[src="/images/pixel.gif"] {
+            content: url("${randomUrl}") !important;
+            object-fit: contain;
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+       .modern-nav-container:hover {
+           /*transform: translateX(-1px);*/
+           box-shadow:
+			   5px 0 1px 1px rgba(240, 249, 255, 1),
+               -100px 0 1px 2px rgba(0, 0, 0, 0.01),
+               -150px 0 3px 3px rgba(0, 0, 0, 0.015),
+               -200px 0 5px 6px rgba(0, 0, 0, 0.02),
+               -250px 0 10px 8px rgba(0, 0, 0, 0.025),
+               -300px 0 13px 10px rgba(0, 0, 0, 0.03),
+               -400px 0 15px 10px rgba(0, 0, 0, 0.035),
+               -500px 0 17px 15px rgba(0, 0, 0, 0.04),
+               -600px 0 19px 20px rgba(0, 0, 0, 0.045),
+               -800px 0 20px 35px rgba(0, 0, 0, 0.05),
+               -5px 0 3px 1px rgba(0, 0, 0, 0.1);
+       }
        .modern-link {
            text-decoration: none !important;
            color: var(--texto) !important;
@@ -132,8 +172,6 @@
        }
        .modern-link:hover {
            color: var(--primary) !important;
-           letter-spacing: 1.2px;
-           transform: translateY(-3px);
            text-shadow: 0 0 10px rgba(var(--primary-rgb, 255, 255, 255), 0.3);
        }
        .modern-link::after {
@@ -565,7 +603,7 @@
         }
         return false;
     }
-    const checkExist = setInterval(function() { if (initSiteName()) { clearInterval(checkExist); } }, 100);
+    const checkExist = setInterval(function () { if (initSiteName()) { clearInterval(checkExist); } }, 100);
     setTimeout(() => clearInterval(checkExist), 5000);
 
     const formatTedarikciler = () => {
@@ -651,7 +689,8 @@
             nav.appendChild(link);
         });
         const oldImg = document.querySelector('img[usemap="#linkmap"]');
-        if (oldImg) { oldImg.parentNode.replaceChild(nav, oldImg);
+        if (oldImg) {
+            oldImg.parentNode.replaceChild(nav, oldImg);
         } else { map.parentNode.insertBefore(nav, map); }
         map.remove();
     }
@@ -663,6 +702,6 @@
 			overflow-x: auto !important;
         }
     `;
-	if (location.href.includes("otohasar")&&location.href.includes("mapfre")) { GM_addStyle(mapfrefix);}
+    if (location.href.includes("otohasar") && location.href.includes("mapfre")) { GM_addStyle(mapfrefix); }
     if (location.href.includes("otohasar")) { GM_addStyle(oceanicTheme); if (location.href.includes("eks_hasar_yp_list")) { setTimeout(formatTedarikciler, 500); } }
 })();
