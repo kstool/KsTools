@@ -28,10 +28,7 @@
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
-
-    if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) {
-        return;
-    }
+    if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
         bottom: '22px', right: '0px', width: '270px', collapsedWidth: '270px',
         themeColor: '#1cb2cd', Color: 'white', borderRadius: '4px', blur: '15px',
@@ -60,10 +57,8 @@
         'otohasar.unico': '#e30613', // Unico Kırmızı
         'otohasar.doga': '#009640' // Doğa Yeşil
     };
-
     const matchedKey = Object.keys(themes).find(key => url.includes(key));
     if (matchedKey) config.themeColor = themes[matchedKey];
-    // 2. STİL ENJEKSİYONU
     const injectStyles = () => {
         const style = document.createElement('style');
         style.id = 'ks-dynamic-styles';
@@ -284,7 +279,6 @@
             `;
         document.head.appendChild(style);
     };
-    // 3. PANEL OLUŞTURMA VE MANTIK
     const initPanel = () => {
         const panel = document.createElement('div');
         panel.className = 'ks-draggable-panel';
@@ -368,7 +362,6 @@
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     };
-    // Tooltip Mantığı
     const tooltip = document.createElement('div');
     tooltip.id = 'ks-dynamic-tooltip';
     document.body.appendChild(tooltip);
@@ -709,6 +702,11 @@
     const SBM = GM_getValue('KS_SBM', false);
     const WHATSAPP = GM_getValue('KS_WP', false);
     const BILDIRIM = GM_getValue('KS_NTF', false);
+	/*		Eklenecekler
+		Gerekli evrak gösteren panel - duruma bağlı
+		Veriyi sayfalar arası taşıma - aynı adreste
+		Resim okuma gelişimi - isme göre
+	*/
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php")||location.href.includes("eks_hasar_magdur.php"))) {
     	const magdurpanel = location.href.includes("eks_hasar_magdur.php");
@@ -1376,8 +1374,8 @@
                     }
                 };
                 ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'RUCU0', 'SAG1', 'HAS_DEVIR_SATIS0',
-                    'HAS_EKSIK_ASKIN_SIGORTA0', 'ALACAKLI_DOGUM_TARIHI_BILGISI0', 'TASINAN_YUK0', 'MUAFIYET0', 'EKSPERTIZ_YERI_SEHIR_DISI0',
-                    'HASAR_YERI0', 'TESPIT_SEKLI0', 'ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
+                'HAS_EKSIK_ASKIN_SIGORTA0', 'ALACAKLI_DOGUM_TARIHI_BILGISI0', 'TASINAN_YUK0', 'MUAFIYET0', 'EKSPERTIZ_YERI_SEHIR_DISI0',
+                'HASAR_YERI0', 'TESPIT_SEKLI0', 'ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
                 setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
                 setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
                 setVal('ONARIM_SURESI', '10');
@@ -1391,9 +1389,8 @@
                 setVal('EKSPERTIZ_TARIHI_GUN', getValue('IHBAR_TARIHI_GUN')); setVal('EKSPERTIZ_TARIHI_AY', getValue('IHBAR_TARIHI_AY')); setVal('EKSPERTIZ_TARIHI_YIL', getValue('IHBAR_TARIHI_YIL'));
                 setSelectText('KAZA_IHBAR_TURU', 'ANLAŞMALI KAZA');
                 setSelectText('KANAAT', 'OLUMLUDUR');
-                console.log('✅ Otomatik seçimler tamamlandı.');
+                alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
             });
-            /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
             if (ANALIZPANEL_hlt) setInterval(highlightFields, 500);
             setInterval(updatePanel, 1500);
         }
@@ -1404,7 +1401,6 @@
             if (document.getElementById('donanim-panel') || !document.body.innerText.toLowerCase().includes("donanim")) return;
             //injectStyles(); initPanel();
             /* ===== 1. PANEL OLUŞTURMA ===== */
-            // 1. Animasyon Tanımları
             const styleSheet = document.createElement("style");
             styleSheet.innerText = `
               @keyframes slideRight {
@@ -1566,12 +1562,10 @@
         config.bottom = "24px";
         config.width = "200px";
         config.collapsedWidth = "200px";
-        injectStyles();
-        initPanel();
+        injectStyles(); initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
-            // Başlığı güncellemek isterseniz:
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Excell Panel";
         }
@@ -1580,7 +1574,6 @@
             contentArea.innerHTML = `<div style="text-align:center; padding-bottom:5px; font-size:12px;">Excel için Referanslar kopyala butonu ile kopyalanabilir.<br>Excel'den kopyalanan satırlar yapıştır ile sıralı şekilde yapıştırılabilir.</div>`;
             contentArea.style.display = "flex";
             contentArea.style.gap = "5px";
-            // --- 1. BUTON: EXCEL'DEN YAPIŞTIR ---
             const btnPaste = document.createElement('button');
             btnPaste.className = 'ks-btn';
             btnPaste.innerText = "📋 YAPIŞTIR";
@@ -1588,7 +1581,6 @@
                 try {
                     const text = await navigator.clipboard.readText();
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
-                    // Sayfadaki mevcut input kutularını bulalım
                     let availableFields = [];
                     for (let j = 1; j <= 20; j++) {
                         let field = document.all(`YP_AD_${j}`);
@@ -1600,16 +1592,13 @@
                     }
                     const inputCount = availableFields.length;
                     const lineCount = lines.length;
-                    // --- UYARI MEKANİZMASI ---
                     if (lineCount !== inputCount && lineCount > 0) {
                         const confirmAction = confirm(`Dikkat: Sayı Uyuşmazlığı!\n\nExcel'den gelen satır: ${lineCount}\nSayfadaki kutu sayısı: ${inputCount}\n\nYine de devam etmek istiyor musunuz?`);
                         if (!confirmAction) return;
                     }
-                    // --- DOLDURMA İŞLEMİ ---
                     lines.forEach((line, i) => {
                         if (i < inputCount) {
                             availableFields[i].value = line;
-                            // Değişikliği tetiklemek gerekirse (bazı sistemler için)
                             availableFields[i].dispatchEvent(new Event('input', { bubbles: true }));
                         }
                     });
@@ -1624,83 +1613,68 @@
                     console.error(err);
                 }
             };
-
-            // --- 2. BUTON: EXCEL İÇİN KOPYALA ---
             const btnCopy = document.createElement('button');
             btnCopy.className = 'ks-btn';
             btnCopy.innerText = "📤 KOPYALA";
             btnCopy.onclick = async () => {
                 try {
-                    // Sadece veri içeren satırları seç (colspan="10" olan boş satırları atla)
                     const rows = Array.from(document.querySelectorAll('tr')).filter(tr => {
                         const firstTd = tr.querySelector('td');
                         return firstTd && firstTd.classList.contains('acik') && tr.querySelectorAll('td').length >= 6;
                     });
-
                     let excelData = rows.map(tr => {
                         const tds = Array.from(tr.querySelectorAll('td.acik'));
-                        // İlk 5 hücreyi al (Sıra, Parça Adı, Kod, Eksper Notu, Tedarikçi Notu)
                         const rowData = tds.slice(0, 6).map(td => td.innerText.trim());
-                        return rowData.join('\t'); // Excel için TAB ile ayır
+                        return rowData.join('\t');
                     }).join('\n');
                     if (excelData) {
                         await navigator.clipboard.writeText(excelData);
                         btnCopy.innerText = "✔️ KOPYALANDI";
                         setTimeout(() => { btnCopy.innerText = "📤 KOPYALA"; }, 2000);
-                    } else {
-                        alert("Kopyalanacak veri bulunamadı.");
-                    }
-                } catch (err) {
-                    alert("Kopyalama hatası: " + err);
-                }
+                    } else { alert("Kopyalanacak veri bulunamadı."); }
+                } catch (err) { alert("Kopyalama hatası: " + err); }
             };
-            // --- 3. BUTON: OTOMATİK GRUP SEÇ (KAPORTA & DİĞER) ---
             const btnFillAll = document.createElement('button');
             btnFillAll.className = 'ks-btn';
             btnFillAll.innerText = "🚗 TÜMÜNÜ GRUPLANDIR - Hepiyi";
             btnFillAll.onclick = async () => {
                 try {
+                    const grupSelects = document.querySelectorAll('select[name^="YP_GRUP_ID_"]');
+                    if (grupSelects.length === 0) return alert("Seçilecek kutu bulunamadı!");
                     let count = 0;
-                    // 1'den 20'ye kadar tüm olası satırları kontrol et
-                    for (let j = 1; j <= 20; j++) {
-                        const grupSelect = document.querySelector(`select[name="YP_GRUP_ID_${j}"]`);
-                        if (grupSelect) {
-                            // 1. Ana Grubu Seç (KAPORTA)
-                            grupSelect.value = "2";
-                            grupSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                            // 2. Alt Grubu Seç (DİĞER)
-                            await new Promise(resolve => setTimeout(resolve, 150));
-                            const altSelect = document.querySelector(`select[name="YP_ID_${j}"]`);
-                            if (altSelect) {
-                                altSelect.value = "0"; // Diğer seçeneği
-                                altSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                                count++;
-                            }
+                    const promises = Array.from(grupSelects).map(async (grupSelect) => {
+                        const index = grupSelect.name.split('_').pop();
+                        grupSelect.value = "2";
+                        grupSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        await new Promise(r => setTimeout(r, 500));
+                        const altSelect = document.querySelector(`select[name="YP_ID_${index}"]`);
+                        if (altSelect) {
+                            altSelect.value = "0";
+                            altSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            count++;
                         }
-                    }
+                    });
+                    await Promise.all(promises);
                     if (count > 0) {
                         btnFillAll.innerText = `✔️ ${count} SATIR HAZIR`;
                         btnFillAll.style.backgroundColor = "#28a745";
-                        setTimeout(() => { btnFillAll.innerText = "🚗 TÜMÜNÜ SEÇ"; btnFillAll.style.cssText = ""; }, 2000);
-                    } else {
-                        alert("Seçilecek kutu bulunamadı!");
+                        setTimeout(() => {
+                            btnFillAll.innerText = "🚗 TÜMÜNÜ SEÇ";
+                            btnFillAll.style.cssText = "";
+                        }, 2000);
                     }
-                } catch (err) {
-                    console.error("Toplu seçim hatası:", err);
-                    alert("İşlem sırasında bir hata oluştu.");
-                }
+                } catch (err) { console.error("Toplu seçim hatası:", err); }
             };
-            contentArea.appendChild(btnFillAll);
             contentArea.appendChild(btnPaste);
             contentArea.appendChild(btnCopy);
+            contentArea.appendChild(btnFillAll);
         }
     }
     if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("talep_yp_giris.php")) {
         config.bottom = "24px";
         config.width = "200px";
         config.collapsedWidth = "200px";
-        injectStyles();
-        initPanel();
+        injectStyles(); initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
@@ -1781,8 +1755,7 @@
         config.bottom = "24px";
         config.width = "150px";
         config.collapsedWidth = "150px";
-        injectStyles();
-        initPanel();
+        injectStyles(); initPanel();
         const panel = document.getElementById('ks-master-panel');
         if (panel) {
             const headerTitle = panel.querySelector('.ks-header h4');
@@ -1987,8 +1960,8 @@
             .btn-brown  { background: #a855f7 !important; color: white !important; } /* Alternatif: Parlak Menekşe */
             .btn-gold   { background: #fbbf24 !important; color: black !important; } /* Altın Sarısı */
 
-            @keyframes blink { 0%, 100% { background: #D4AF37; opacity: 1; } 50% { background: #3F51B5; opacity: 0.5; } }
-            .blink { animation: blink 1s infinite; background: #FF9800; }
+            @keyframes blink { 0% { opacity: 1; filter: brightness(2); } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+            .blinlink { animation: blink 1s infinite;}
         `;
             document.head.appendChild(style);
             /* ===== 2. PANEL HTML ===== */
@@ -2116,17 +2089,16 @@
             };
             const degisonar = () => {
                 const selectedRadio = document.querySelector('input[name="islemTipi"]:checked');
-                if (!selectedRadio) { console.warn("Lütfen bir işlem tipi seçin."); return; }
+                if (!selectedRadio) return;
                 const tip = selectedRadio.value;
                 const checkboxDegisim = document.getElementById("DEGISIM");
                 const checkboxTamir = document.getElementById("TAMIR");
-                if (tip === "degisim") {
-                    if (checkboxDegisim && !checkboxDegisim.checked) { checkboxDegisim.click(); }
-                    if (checkboxTamir && checkboxTamir.checked) { checkboxTamir.checked = false; }
-                }
-                else if (tip === "onarim") {
-                    if (checkboxTamir && !checkboxTamir.checked) { checkboxTamir.click(); }
-                    if (checkboxDegisim && checkboxDegisim.checked) { checkboxDegisim.checked = false; }
+                if (tip === "degisim" && checkboxDegisim) {
+                    if (!checkboxDegisim.checked) checkboxDegisim.click();
+                    if (checkboxTamir && checkboxTamir.checked) checkboxTamir.checked = false;
+                } else if (tip === "onarim" && checkboxTamir) {
+                    if (!checkboxTamir.checked) checkboxTamir.click();
+                    if (checkboxDegisim && checkboxDegisim.checked) checkboxDegisim.checked = false;
                 }
             };
             const zorunluAlanlar = [
@@ -2153,8 +2125,9 @@
                 const radio = document.querySelector('input[name="kod_secim"]:checked')?.value;
                 const notlar = $("NOTLAR");
                 if (radio === "kodsuz") {
+					const sipSec = await waitFor(() => $("SIP_SEC_2")); sipSec.checked = true;
                     await selectValue("SISTEM_NOTU_ID", "2");
-                    if (notlar) notlar.value = "KODSUZ PARÇA";
+                    if (notlar) notlar.value = "KODSUZ PARÇA";//SIP_SEC_ 0 ted.yok 1 tedarik 2 isk.ted
                     selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
                 } else if (radio === "esdeger") {
                     await selectValue("SISTEM_NOTU_ID", "13");
@@ -2170,20 +2143,29 @@
             }
             const submitForm = () => {
                 const selectedRadio = document.querySelector('input[name="kayit_secim"]:checked');
-                const tip = selectedRadio.value;
-                if (tip === "kayit") {
-                    const retrySubmit = setInterval(() => {
-                        const currentSelection = document.querySelector('input[name="kayit_secim"]:checked');
-                        if (!currentSelection || currentSelection.value !== "kayit") { clearInterval(retrySubmit); return; }
-                        if (typeof unsafeWindow.sbmt_frm === "function" && unsafeWindow.sbmt_frm()) {
+                if (!selectedRadio || selectedRadio.value !== "kayit") return;
+                const retrySubmit = setInterval(() => {
+                    const currentSelection = document.querySelector('input[name="kayit_secim"]:checked');
+                    if (!currentSelection || currentSelection.value !== "kayit") {
+                        clearInterval(retrySubmit);
+                        return;
+                    }
+                    const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
+                    if (typeof win.sbmt_frm === "function") {
+                        if (win.sbmt_frm()) {
                             let canSubmit = true;
-                            if (typeof unsafeWindow.doraSiparisSecenek === "function") { if (!unsafeWindow.doraSiparisSecenek()) { canSubmit = false; } }
-                            if (canSubmit && document.yedparforhasar) { document.yedparforhasar.submit(); clearInterval(retrySubmit); }
+                            if (typeof win.doraSiparisSecenek === "function") {
+                                if (!win.doraSiparisSecenek()) {
+                                    canSubmit = false;
+                                }
+                            }
+                            if (canSubmit && document.yedparforhasar) {
+                                document.yedparforhasar.submit();
+                                clearInterval(retrySubmit);
+                            }
                         }
-                    }, 500);
-                } else if (tip === "nonkayit") {
-                    console.log("Otomatik kayıt devre dışı."); return;
-                }
+                    }
+                }, 500);
             };
             const groups = ['islemTipi', 'kayit_secim', 'kod_secim'];
             function loadSelections() {
@@ -2206,7 +2188,7 @@
             refs.bYeni.onclick = () => {
                 if (typeof unsafeWindow.yeni_kayit === "function") unsafeWindow.yeni_kayit('');
                 [refs.kod, refs.ad, refs.fiyat].filter(input => input !== null && input !== undefined).forEach(input => { input.value = ""; });
-                if (refs.bYeni) refs.bYeni.classList.remove("blink");
+                if (refs.bYeni) refs.bYeni.classList.remove("blinlink");
                 if (refs.kod) refs.kod.focus();
             };
             $("b_kpon").onclick = async () => { await MainFields(); await SideFields("10", "777"); };
@@ -2222,11 +2204,12 @@
             $("b_civata").onclick = async () => { await MainFields(); await SideFields("25", "537"); };
             $("b_conta").onclick = async () => { await MainFields(); await SideFields("36", "1108"); };
             $("b_klips").onclick = async () => { await MainFields(); await SideFields("24", "536"); };
-            $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); const sipSec2 = await waitFor(() => $("SIP_SEC_2")); sipSec2.checked = true; };
+            $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); };
             $("b_gnlonar").onclick = async () => {
                 const fiyat = refs.fiyat.value.replace(",", ".");
                 if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat; if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
                 await selectValue("GRUP_ID", "6"); await selectValue("ANA_GRUP", "495");
+				submitForm();
             };
             $("b_donyan").onclick = async () => {
                 const fiyat = refs.fiyat.value.replace(",", ".");
@@ -2236,8 +2219,8 @@
             };
             setInterval(() => {
                 const realInput = document.getElementById("PARCA_KODU");
-                if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blink");
-                else refs.bYeni.classList.remove("blink");
+                if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blinlink");
+                else refs.bYeni.classList.remove("blinlink");
             }, 1000);
         }
         const init = () => {
@@ -2381,8 +2364,7 @@
             config.bottom = "24px";
             config.width = "100px";
             config.collapsedWidth = "150px";
-            injectStyles();
-            initPanel();
+            injectStyles(); initPanel();
             const text = document.body.innerText.toUpperCase();
             const url = location.href.toLowerCase();
             const varsayilan = {
@@ -3088,8 +3070,7 @@
         config.bottom = "22px";
         config.width = "200px";
         config.collapsedWidth = "200px";
-        injectStyles();
-        initPanel();
+        injectStyles(); initPanel();
         const contentArea = document.querySelector('.ks-content');
         let lastState = "";
         if (contentArea) {
