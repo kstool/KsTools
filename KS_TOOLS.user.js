@@ -44,7 +44,6 @@
         'otohasar.atlas': '#005596', // Atlas Mavi
         'otohasar.mapfre': '#e00d26', // Mapfre Kırmızı
         'otohasar.akcozum2': '#eb5311', // Aksigorta Turuncu
-        'akcozum2': '#eb5311',
         'otohasar.allianz': '#164481', // Allianz Lacivert
         'otohasar.anadolu': '#005ba4', // Anadolu Mavi
         'otohasar.sompo': '#e20613', // Sompo Kırmızı
@@ -102,9 +101,7 @@
 					resize: none;
                     width: ${config.collapsedWidth};
 				    min-width: ${config.collapsedWidth};
-                    height: 35px !important;
-                    min-height: 35px !important;
-                    max-height: 35px !important;
+                    height: auto !important;
                     overflow: hidden !important;
                 }
 				.ks-draggable-panel:hover {
@@ -823,8 +820,9 @@
     const BILDIRIM = GM_getValue('KS_NTF', false);
     /*		Eklenecekler
         Gerekli evrak gösteren panel - duruma bağlı
-        Veriyi sayfalar arası taşıma - aynı adreste
+        Veriyi sayfalar arası taşıma - aynı adres kökünde
         Resim okuma gelişimi - isme göre
+		Ek tasarım şekilleri
     */
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php") || location.href.includes("eks_hasar_magdur.php"))) {
@@ -1347,15 +1345,17 @@
                         kmMin: k >= 100 ? Math.floor(k * 0.85) : null,
                         kmMax: k >= 100 ? Math.ceil(k * 1.15) : null
                     } : null;
-                    console.log("Nihai Obje:", result);
                     return result;
                 }
+
                 async function startAutomatedSearch(isAnalyze) {
                     const resBox = document.getElementById('shb-res-box');
                     const data = buildTargetUrl();
-                    if (!data) { resBox.innerHTML = "❌ Veri hatası!"; return; }
-                    resBox.style.marginBottom = "10px";
-                    resBox.innerHTML = `<span style="color:#fff; font-size:13px; opacity:0.8;">🔍 Filtreleniyor...</span>`;
+    				if (!data) { if(isAnalyze) resBox.innerHTML = "❌ Veri hatası!"; return; }
+    				if (isAnalyze) {
+    				                resBox.style.marginBottom = "10px";
+    				                resBox.innerHTML = `<span style="color:#fff; font-size:13px; opacity:0.8;">🔍 Filtreleniyor...</span>`;
+    				}
                     const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
                     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
                     GM_xmlhttpRequest({
@@ -1366,7 +1366,7 @@
                             const gDoc = new DOMParser().parseFromString(gRes.responseText, "text/html");
                             const links = [...gDoc.querySelectorAll('a')];
                             const target = links.find(a => a.href.includes("sahibinden.com/") && !a.href.includes("/ilan listelendi/") && !a.href.includes("/detay"));
-                            if (!target) { resBox.innerHTML = "⚠️ Kategori bulunamadı."; return; }
+            if (!target) { if(isAnalyze) resBox.innerHTML = "⚠️ Kategori bulunamadı."; return; }
                             let shbUrlString = "";
                             try {
                                 const urlObj = new URL(target.href);
@@ -1460,7 +1460,7 @@
                                 html += `</table></div>`;
                                 resBox.innerHTML = html;
                             } else {
-                                resBox.innerHTML = `<br><a href="${url}" target="_blank" style="color:#27fdf9; font-size:13px;">Buraya Tıkla!</a><br>Sonuç bulunamadı adresi kontrol et.<center style="font-size:11px;>Bot engeline takılmış olabilir.</center>`;
+                                resBox.innerHTML = `<br><a href="${url}" target="_blank" style="color:#27fdf9; font-size:13px;">Buraya Tıkla!</a><br>Sonuç bulunamadı adresi kontrol et.<center style="font-size:11px;">Bot engeline takılmış olabilir.</center>`;
                             }
                         }
                     });
@@ -2119,7 +2119,7 @@
                 </div>
                 <div class="ks-tooltip-box">
                     <strong>Otomatik Kayıt</strong><br>
-                    Açık olduğu sürece kaydetmeye çalışır.
+                    Parçayı kaydetmeye çalışır, <b>10</b> defa dener. Sorunsuz kayıt işlerken "<b>UYARI Bu Kodlu Parça Bu Dosyaya Zaten Eklenmiş..</b>" şeklinde uyarı alacaksınız <b>Enter</b>'tuşuna basarak devam edin.
                 </div>
             </div>
             <div class="tm-section-title">GİRİŞ TÜRÜ</div>
@@ -2179,8 +2179,18 @@
             /* ===== 3. HELPERS & SELECTORS ===== */
             const $ = (id) => document.getElementById(id);
             const refs = { kod: $("tm_kod"), ad: $("tm_ad"), fiyat: $("tm_fiyat"), adet: $("tm_adet"), bYeni: $("bYeni") };
-            const waitFor = (selectorFn) => new Promise(resolve => {
-                const interval = setInterval(() => { const el = selectorFn(); if (el) { clearInterval(interval); resolve(el); } }, 100);
+            const waitFor = (selectorFn, timeout = 5000) => new Promise((resolve, reject) => {
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    const el = selectorFn();
+                    if (el) {
+                        clearInterval(interval);
+                        resolve(el);
+                    } else if (Date.now() - startTime > timeout) {
+                        clearInterval(interval);
+                        reject(new Error("Zaman aşımı: Eleman bulunamadı."));
+                    }
+                }, 100);
             });
             const selectValue = async (id, val) => {
                 try {
@@ -2214,55 +2224,90 @@
             /* ===== 4. CORE ACTIONS ===== */
             const MainFields = () => {
                 degisonar();
-                const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
-                if (eksikAlan) { /*alert(`Lütfen eksik alanları doldurun: ${eksikAlan.label}`);*/ return; }
-                if ($("PARCA_KODU")) $("PARCA_KODU").value = refs.kod.value.toUpperCase();
-                if ($("ADET")) $("ADET").value = refs.adet.value;
-                if ($("ADI")) $("ADI").value = refs.ad.value.toUpperCase();
-                const fiyat = refs.fiyat.value.replace(",", ".");
-                if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
-                if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
-                console.log("Giriş başarılı!");
+            	const isMissing = zorunluAlanlar.some(alan => !alan.ref.value?.trim());
+            	if (isMissing) return;
+            	const mapping = {
+            	    "PARCA_KODU": refs.kod.value.toUpperCase(),
+            	    "ADET": refs.adet.value,
+            	    "ADI": refs.ad.value.toUpperCase(),
+            	    "BIRIM_FIYAT_GERCEK": refs.fiyat.value.replace(",", "."),
+            	    "BIRIM_FIYAT_TALEP": refs.fiyat.value.replace(",", ".")
+            	};
+            	Object.entries(mapping).forEach(([id, val]) => {
+            	    const el = $(id);
+            	    if (el) el.value = val;
+            	});
             };
-            const SideFields = async (dom, dem) => {
-                await selectValue("GRUP_ID", dom);
-                await selectValue("ANA_GRUP", dem);
-                const radio = document.querySelector('input[name="kod_secim"]:checked')?.value;
-                const notlar = $("NOTLAR");
-                if (radio === "kodsuz") {
-                    const sipSec = await waitFor(() => $("SIP_SEC_2")); sipSec.checked = true;//SIP_SEC_ 0 ted.yok 1 tedarik 2 isk.ted
-                    await selectValue("SISTEM_NOTU_ID", "2"); if (notlar) { notlar.value = "KODSUZ PARÇA"; } selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
-                } else if (radio === "esdeger") {
-                    await selectValue("SISTEM_NOTU_ID", "13"); if (notlar) { notlar.value = ""; } selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
-                } else if (radio === "bos") {
-                    await selectValue("SISTEM_NOTU_ID", "-1"); if (notlar) { notlar.value = ""; } selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
-                }
-                const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
-                if (!eksikAlan) { submitForm(); setTimeout(() => { submitForm(); }, 400); }
-            }
-            const submitForm = () => {
-                const selectedRadio = document.querySelector('input[name="kayit_secim"]:checked');
-                if (!selectedRadio || selectedRadio.value !== "kayit") return;
-                const retrySubmit = setInterval(() => {
-                    const currentSelection = document.querySelector('input[name="kayit_secim"]:checked');
-                    if (!currentSelection || currentSelection.value !== "kayit") {
-                        clearInterval(retrySubmit); return;
-                    }
-                    const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
-                    if (typeof win.sbmt_frm === "function") {
-                        if (win.sbmt_frm()) {
-                            let canSubmit = true;
-                            if (typeof win.doraSiparisSecenek === "function") {
-                                if (!win.doraSiparisSecenek()) { canSubmit = false; }
-                            }
-                            if (canSubmit && document.yedparforhasar) {
-                                document.yedparforhasar.submit();
-                                clearInterval(retrySubmit);
-                            }
-                        }
-                    }
-                }, 500);
-            };
+			const SideFields = async (dom, dem) => {
+			    await Promise.all([selectValue("GRUP_ID", dom), selectValue("ANA_GRUP", dem)]);
+			    const radio = document.querySelector('input[name="kod_secim"]:checked')?.value;
+			    const notlar = $("NOTLAR");
+			    const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
+			    const forceWrite = (el, val) => {
+			        if (!el) return;
+			        el.value = val;
+			        ["input", "change", "blur"].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true })));
+			    };
+			    const safeSelect = async (id, val) => {
+			        const el = $(id);
+			        if (!el) return;
+			        const oldAlert = win.alert;
+			        const vtb = $("VERITABANINDA");
+			        const oldVtb = vtb?.value;
+
+			                try {
+			                    win.alert = () => {};
+			            if (vtb) vtb.value = "0";
+			                    await selectValue(id, val);
+			                } finally {
+			                    setTimeout(() => {
+			                        win.alert = oldAlert;
+			                if (vtb && oldVtb) vtb.value = oldVtb;
+			            }, 150);
+			        }
+			    };
+			    if (radio === "kodsuz") {
+			        const sipSec = $("SIP_SEC_2");
+			        if (sipSec) {
+			            sipSec.checked = true;
+			            sipSec.dispatchEvent(new Event("change", { bubbles: true }));
+			        }
+			        await safeSelect("SISTEM_NOTU_ID", "2");
+			        forceWrite(notlar, "KODSUZ PARÇA");
+			        await selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
+			    } else if (radio === "esdeger") {
+			        await safeSelect("SISTEM_NOTU_ID", "13");
+			        forceWrite(notlar, "");
+			        await selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
+			    } else if (radio === "bos") {
+			        await safeSelect("SISTEM_NOTU_ID", "-1");
+			        forceWrite(notlar, "");
+			        await selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
+			    }
+			    const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
+			    if (!eksikAlan) { submitForm(); setTimeout(() => { submitForm(); }, 400); }
+			};
+			const submitForm = () => {
+			    const selectedRadio = document.querySelector('input[name="kayit_secim"]:checked');
+			    if (!selectedRadio || selectedRadio.value !== "kayit") return;
+			    const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
+			    let attempts = 0;
+			    const execute = () => {
+			        if (attempts > 10) alert("10 defa denendi, kaydet butonu ile kayıt yapınız.");
+			        if (typeof win.sbmt_frm === "function") {
+			            if (win.sbmt_frm()) {
+			                let canSubmit = true;
+			                if (typeof win.doraSiparisSecenek === "function") { if (!win.doraSiparisSecenek()) canSubmit = false; }
+			                if (canSubmit) {
+			                    const form = document.querySelector('form[name="yedparforhasar"]') || document.forms.yedparforhasar;
+			                    if (form) { form.submit(); return; }
+			                }
+			            }
+			        }
+			        attempts++; setTimeout(execute, 500);
+			    };
+			    execute();
+			};
             const groups = ['islemTipi', 'kayit_secim', 'kod_secim'];
             function loadSelections() {
                 groups.forEach(groupName => {
@@ -2751,73 +2796,99 @@
     }
     // Resim yükleme kontrolü
     if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("eks_hasar_evrak_foto_list.php")) {
-        if (typeof injectStyles === 'function') injectStyles();
-        if (typeof initPanel === 'function') initPanel();
-        const panel = document.getElementById('ks-master-panel');
-        const panelContent = panel ? panel.querySelector('.ks-content') : null;
-        if (panel && panelContent) {
-            const headerTitle = panel.querySelector('.ks-header h4');
-            if (headerTitle) headerTitle.innerText = "Evrak Analizi";
-            panelContent.innerHTML = `
-            <div id="panelContent" style="color:#fff; text-align:center; padding:5px; background:rgba(0,0,0,0.2); border-radius:5px; margin-bottom:8px; font-size:12px; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">DURUM TARANIYOR</div>
-            <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 4px; width: 100%;">
-                <div style="color:#aaa; font-size:10px; text-align:center;">Tablo verileri bekleniyor...</div>
-            </div>
-        `;
-        }
-        function updatePanel() {
-            const container = document.querySelector('.ks-grid-container');
-            const statusHeader = document.getElementById('panelContent');
-            if (!container) return;
-            const scenarios = {
-                KTT: { label: "KAZA ŞEKLİ: KTT", keys: ["kaza tespit tutanağı", "(ktt)", "anlasmali kaza"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
-                Zabit: { label: "KAZA ŞEKLİ: ZABIT", keys: ["zapt", "zabit", "zabıt", "karakol", "ifade", "görgü tespit", "polis"], req: [{ id: "a", k: ["alkol"], l: "Alkol Raporu" }, { id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
-                Beyan: { label: "KAZA ŞEKLİ: BEYAN", keys: ["beyan yazısı", "beyan talep", "müşteri beyanı", "mağdur beyanı"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] }
-            };
-            const rows = Array.from(document.querySelectorAll('table tr'));
-            const uploadedDocs = rows.map(r => {
-                const c = r.querySelectorAll('td')[1];
-                return c ? c.innerText.toLocaleLowerCase('tr-TR').replace(/-/g, '').trim() : "";
-            }).filter(t => t !== "");
-            let active = null;
-            for (const k in scenarios) {
-                if (scenarios[k].keys.some(key => uploadedDocs.some(u => u.includes(key)))) { active = scenarios[k]; break; }
-            }
-            container.innerHTML = '';
-            const createBox = (text, ok, isMain = false) => {
-                const div = document.createElement('div');
-                div.style.cssText = `padding:8px 5px; border-radius:4px; font-size:11px; font-weight:800; text-align:center; transition: all 0.3s; border-left: 4px solid ${ok ? '#28a745' : '#dc3545'}; background:${ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)'}; color:${ok ? '#85ff9e' : '#ff8585'}; margin-bottom:3px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);`;
-                div.innerText = (ok ? "✓ " : "⚠ ") + text.toUpperCase();
-                if (isMain && ok) { statusHeader.innerText = text.toUpperCase(); statusHeader.style.color = "#28a745"; }
-                return div;
-            };
-            if (active) {
-                container.appendChild(createBox(active.label, true, true));
-                active.req.forEach(req => {
-                    const found = uploadedDocs.some(d => req.k.some(k => d.includes(k)));
-                    let label = req.l;
-                    const sig = uploadedDocs.some(u => u.includes("sigortalı"));
-                    const mag = uploadedDocs.some(u => u.includes("mağdur"));
-                    if (sig && mag) label += " (SİG/MAĞ)";
-                    else if (sig) label += " (SİG)";
-                    else if (mag) label += " (MAĞ)";
-                    container.appendChild(createBox(label, found));
-                });
-            } else {
-                statusHeader.innerText = "EVRAK EKSİK";
-                statusHeader.style.color = "#dc3545";
-                container.appendChild(createBox("KAZA EVRAĞI BULUNAMADI", false));
-            }
-        }
-        const runner = setInterval(() => { if (document.querySelector('table')) updatePanel(); }, 2000);
-        document.addEventListener('input', e => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                const s = e.target.selectionStart, n = e.target.selectionEnd;
-                e.target.value = e.target.value.toLocaleUpperCase('tr-TR');
-                e.target.setSelectionRange(s, n);
-            }
-        }, true);
-    }
+            config.width = "150px";
+            config.collapsedWidth = config.width;
+    	if (typeof injectStyles === 'function') injectStyles();
+    	if (typeof initPanel === 'function') initPanel();
+    	const panel = document.getElementById('ks-master-panel');
+    	const panelContent = panel ? panel.querySelector('.ks-content') : null;
+    	if (panel && panelContent) {
+    	    const headerTitle = panel.querySelector('.ks-header h4');
+    	    if (headerTitle) headerTitle.innerText = "Evrak Analizi";
+    	    panelContent.innerHTML = `
+    	        <div id="panelContent" style="color:#fff; text-align:center; padding:2px; background:rgba(0,0,0,0.2); border-radius:5px; margin-bottom:8px; font-size:11px; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">DURUM TARANIYOR</div>
+    	        <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 2px; width: 100%;">
+    	            <div style="color:#aaa; font-size:10px; text-align:center;">Tablo verileri bekleniyor...</div>
+    	        </div>
+    	    `;
+    	}
+    	function updatePanel() {
+    	    const container = document.querySelector('.ks-grid-container');
+    	    const statusHeader = document.getElementById('panelContent');
+    	    if (!container) return;
+    	    const scenarios = {
+    	        KTT: { label: "KAZA ŞEKLİ: KTT", keys: ["kaza tespit tutanağı", "(ktt)", "anlasmali kaza"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
+    	        Zabit: { label: "KAZA ŞEKLİ: ZABIT", keys: ["zapt", "zabit", "zabıt", "karakol", "ifade", "görgü tespit", "polis"], req: [{ id: "a", k: ["alkol"], l: "Alkol Raporu" }, { id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
+    	        Beyan: { label: "KAZA ŞEKLİ: BEYAN", keys: ["beyan yazısı", "beyan talep", "müşteri beyanı", "mağdur beyanı", "beyan"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] }
+    	    };
+    	    const rows = Array.from(document.querySelectorAll('table tr'));
+    	    const uploadedDocs = rows.map(r => {
+    	        const c = r.querySelectorAll('td')[1];
+    	        return c ? c.innerText.toLocaleLowerCase('tr-TR').replace(/-/g, '').trim() : "";
+    	    }).filter(t => t !== "");
+    	    let active = null;
+    	    for (const k in scenarios) {
+    	        if (scenarios[k].keys.some(key => uploadedDocs.some(u => u.includes(key)))) { active = scenarios[k]; break; }
+    	    }
+    	    container.innerHTML = '';
+    	    const createBox = (text, ok, isMain = false, isOptional = false) => {
+    	        const div = document.createElement('div');
+    	        let borderColor = ok ? '#28a745' : '#dc3545';
+    	        let bgColor = ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)';
+    	        let textColor = ok ? '#85ff9e' : '#ff8585';
+    	        if (isOptional && ok) {
+    	            borderColor = '#ffc107';
+    	            bgColor = 'rgba(255,193,7,0.15)';
+    	            textColor = '#ffe082';
+    	        }
+    	        div.style.cssText = `padding:4px 5px; border-radius:4px; font-size:11px; font-weight:600; text-align:center; transition: all 0.3s; border-right: 4px solid ${borderColor}; background:${bgColor}; color:${textColor}; margin-bottom:2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);`;
+    	        div.innerText = (ok ? "" : "⚠ ") + text.toUpperCase();//ok ? "✓ " : "⚠ "
+    	        if (isMain && ok) { statusHeader.innerText = text.toUpperCase(); statusHeader.style.color = "#28a745"; }
+    	        return div;
+    	    };
+    	    const optionalReqs = [
+    	        { k: ["poliçe"], l: "Poliçe" },
+    	        { k: ["fatura"], l: "Fatura" },
+    	        { k: ["ibraname", "ibra", "temlik"], l: "İbraname/İbra" },
+    	        { k: ["tramer", "kusur"], l: "Tramer/Kusur" },
+    	        { k: ["eksper", "raporu"], l: "Eksper Raporu" },
+    	        { k: ["vergi levhası"], l: "Vergi Levhası" },
+    	        { k: ["imza sirküsü"], l: "İmza Sirküsü" },
+    	        { k: ["ticaret sicil"], l: "Ticaret Sicil" },
+    	        { k: ["ihbar föyü"], l: "Hasar İhbar Föyü" },
+    	        { k: ["ssk", "kurumu"], l: "SSK Bildirimi" }
+    	    ];
+    	    if (active) {
+    	        container.appendChild(createBox(active.label, true, true));
+    	        active.req.forEach(req => {
+    	            const found = uploadedDocs.some(d => req.k.some(k => d.includes(k)));
+    	            let label = req.l;
+    	            const sig = uploadedDocs.some(u => u.includes("sigortalı"));
+    	            const mag = uploadedDocs.some(u => u.includes("mağdur"));
+    	            if (sig && mag) label += " (SİG/MAĞ)";
+    	            else if (sig) label += " (SİG)";
+    	            else if (mag) label += " (MAĞ)";
+    	            container.appendChild(createBox(label, found));
+    	        });
+    	    } else {
+    	        statusHeader.innerText = "EVRAK EKSİK";
+    	        statusHeader.style.color = "#dc3545";
+    	        container.appendChild(createBox("KAZA EVRAĞI BULUNAMADI", false));
+    	    }
+    	    optionalReqs.forEach(or => {
+    	        const found = uploadedDocs.some(d => or.k.some(k => d.includes(k)));
+    	        if (found) container.appendChild(createBox(or.l, true, false, true));
+    	    });
+    	}
+    	const runner = setInterval(() => { if (document.querySelector('table')) updatePanel(); }, 2000);
+    	document.addEventListener('input', e => {
+    	    if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+    	        const s = e.target.selectionStart, n = e.target.selectionEnd;
+    	        e.target.value = e.target.value.toLocaleUpperCase('tr-TR');
+    	        e.target.setSelectionRange(s, n);
+    	    }
+    	}, true);
+	}
     // Sayfa bildirim öldürücü
     if (KS_SYSTEM && BILDIRIM && location.href.includes("otohasar") && location.href.includes("eks_hasar.php")) {
         // unsafeWindow kullanımı Tampermonkey'de sayfa JS'ine erişim için kritiktir
@@ -2914,9 +2985,9 @@
             { ad: "QUİCK", kod: "110", renk: "#d1a401" },
             { ad: "CORPUS", kod: "019", renk: "#4b5563" },
             { ad: "ORIENT", kod: "106", renk: "#db2777" },
-            { ad: "ANADOLU (Fix Code?)", kod: "001", renk: "#4b5563" },
-            { ad: "SOMPO (Fix Code?)", kod: "001", renk: "#4b5563" },
-            { ad: "RAY (Fix Code?)", kod: "001", renk: "#4b5563" }
+            { ad: "ANADOLU", kod: "007", renk: "#4b5563" },
+            { ad: "SOMPO", kod: "061", renk: "#4b5563" },
+            { ad: "RAY", kod: "042", renk: "#4b5563" }
         ];
 
         var checkExist = setInterval(function () {
