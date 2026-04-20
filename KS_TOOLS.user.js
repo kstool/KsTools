@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.42
+// @version      1.43
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -25,6 +25,12 @@
 // ==/UserScript==
 (function () {
     'use strict';
+    /* ---Eklenecekler
+        Gerekli evrak gösteren panel - duruma bağlı
+        Veriyi sayfalar arası taşıma - aynı adres kökünde
+        Resim okuma gelişimi - isme göre
+		Ek tasarım şekilleri
+    */
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
@@ -397,28 +403,46 @@
             tooltip.classList.remove('visible');
         }
     });
-    let isUnlocked = false;
-    const unlockAllElements = (state) => {
-        const selectors = '[disabled], .disabled, [readonly], [aria-disabled="true"], .ks-unlocked';
-        document.querySelectorAll(selectors).forEach(el => {
-            if (state) {
-                if (el.disabled) { el.dataset.wasDisabled = "true"; el.disabled = false; }
-                if (el.readOnly) { el.dataset.wasReadOnly = "true"; el.readOnly = false; }
-                if (el.classList.contains('disabled')) { el.dataset.wasClassDisabled = "true"; el.classList.remove('disabled'); }
-                el.classList.add('ks-unlocked');
-                el.style.setProperty('pointer-events', 'auto', 'important');
-                el.style.setProperty('opacity', '1', 'important');
-            } else {
-                if (el.dataset.wasDisabled) el.disabled = true;
-                if (el.dataset.wasReadOnly) el.readOnly = true;
-                if (el.dataset.wasClassDisabled) el.classList.add('disabled');
-                el.classList.remove('ks-unlocked');
-                el.style.removeProperty('pointer-events');
-                el.style.removeProperty('opacity');
+let isUnlocked = false;
+const unlockAllElements = (state) => {
+    const selectors = '[disabled], .disabled, [readonly], [aria-readonly="true"], [aria-disabled="true"], .ks-unlocked, .dx-texteditor-input';
+    document.querySelectorAll(selectors).forEach(el => {
+        if (state) {
+            if (el.disabled) { el.dataset.wasDisabled = "true"; el.disabled = false; }
+            if (el.readOnly || el.hasAttribute('readonly') || el.getAttribute('aria-readonly') === "true") {
+                el.dataset.wasReadOnly = "true";
+                el.readOnly = false;
+                el.removeAttribute('readonly');
+                el.setAttribute('aria-readonly', 'false');
             }
-        });
-        isUnlocked = state;
-    };
+            if (el.classList.contains('disabled')) { el.dataset.wasClassDisabled = "true"; el.classList.remove('disabled'); }
+
+            el.classList.add('ks-unlocked');
+            el.style.setProperty('pointer-events', 'auto', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+            el.style.setProperty('background-color', '#fff', 'important');
+            el.style.setProperty('border', '1px solid #e4e4e4', 'important');
+            el.style.setProperty('cursor', 'text', 'important');
+            el.removeAttribute('data-was-read-only');
+        } else {
+            if (el.dataset.wasDisabled) el.disabled = true;
+            if (el.dataset.wasReadOnly) {
+                el.readOnly = true;
+                el.setAttribute('readonly', 'true');
+                el.setAttribute('aria-readonly', 'true');
+            }
+            if (el.dataset.wasClassDisabled) el.classList.add('disabled');
+
+            el.classList.remove('ks-unlocked');
+            el.style.removeProperty('pointer-events');
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('background-color');
+            el.style.removeProperty('border');
+            el.style.removeProperty('cursor');
+        }
+    });
+    isUnlocked = state;
+};
     const WARNING_COLOR = 'rgb(250, 250, 150)';//ff7e7e
     const SUCCESS_COLOR = '#00ff88';
     const PANEL_ID = 'ks-global-status-indicator';
@@ -447,27 +471,26 @@
                 box-shadow: 0px 0px 12px 4px ${config.themeColor}74 !important;
                 animation: ks-glow-pulse 3s infinite ease-in-out !important;
             }
-            #${PANEL_ID}:hover {
+
+            /* Mouse üzerindeyken VEYA JavaScript 3 saniye sayarken aktif kalacak hal */
+            #${PANEL_ID}.active {
                 transform: scale(1.1) !important;
                 border-radius: 10px !important;
 				color: rgba(100, 250, 100, 0.80) !important;
 				box-shadow: -1px -1px 10px ${config.themeColor} !important;
             }
 			@media print {
-                #${PANEL_ID} {
-                    position: fixed !important;
-                    bottom: 0px;
-				    right: 0px;
-				    /*display: none !important;*/ //komple gizler
-                }
+                #${PANEL_ID} { position: fixed !important; bottom: 0px; right: 0px; }
             }
+
             @keyframes ks-glow-pulse {
-                0%,100% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
+                0%, 100% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
                 50% { color: ${config.Color}; text-shadow: 0 0 2px ${config.themeColor}, 0 0 20px ${config.themeColor}; }
             }
         `;
             document.head.appendChild(style);
         }
+
         let currentIP = "IP Alınıyor...";
         let ipcolor = "orange";
         const scriptVersion = (typeof GM_info !== 'undefined') ? "v" + GM_info.script.version : "v1.0";
@@ -603,44 +626,60 @@
                 else if (e.key === 'ArrowRight' && d !== 'L') { dx = G; dy = 0; d = 'R'; }
             });
             updateHUD();
-            let kstatus = document.getElementById(PANEL_ID);
-            if (!kstatus) {
-                kstatus = document.createElement('div');
-                kstatus.id = PANEL_ID;
-                document.body.appendChild(kstatus);
-                kstatus.onmouseenter = () => {
-                    kstatus.setAttribute('data-hover', 'true');
-                    kstatus.style.color = '#fff';
-                    kstatus.innerHTML = `
-                        <span style="color:${ipcolor}; font-size:15px; margin-right:5px;">●</span>
-                        <span style="color:inherit;">${currentIP}</span>
-                        <span style="opacity:0.3; margin:0 8px;">|</span>
-                        <span id="ks-unlock-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${isUnlocked ? '🔓' : '🔒'}</span>
-                        <span style="opacity:0.3; margin:0 8px;">|</span>
-                        <span id="ks-version-link" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${scriptVersion}</span>
-                        <span style="opacity:0.3; margin:0 8px;">|</span>
-                        <span id="ks-theme-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">Tema</span>
-                        <span style="opacity:0.3; margin:0 8px;">|</span>
-                        <span id="ks-game-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">🐍</span>
-                        <span style="opacity:0.3; margin:0 2px;">|</span>
-                        <span id="ks-settings-btn" style="cursor:pointer; font-size:14px; filter:grayscale(1);">⚙️</span>
-                    `;
-                    document.getElementById('ks-game-btn').onclick = (e) => { e.stopPropagation(); toggleGame(); };
-                    document.getElementById('ks-unlock-btn').onclick = (e) => {
-                        e.stopPropagation();
-                        isUnlocked = !isUnlocked;
-                        e.target.textContent = isUnlocked ? '🔓' : '🔒';
-                        unlockAllElements(isUnlocked);
-                    };
-                    document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
-                    document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
-                    document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
-                };
-                kstatus.onmouseleave = () => {
-                    kstatus.removeAttribute('data-hover');
-                    kstatus.innerHTML = `KS TOOLS`;
-                };
-            }
+			let kstatus = document.getElementById(PANEL_ID);
+			if (!kstatus) {
+			    kstatus = document.createElement('div');
+			    kstatus.id = PANEL_ID;
+			    document.body.appendChild(kstatus);
+			    let hideTimeout = null;
+			    const showFullContent = () => {
+			        kstatus.classList.add('active');
+			        kstatus.setAttribute('data-hover', 'true');
+			        kstatus.style.color = '#fff';
+			        kstatus.innerHTML = `
+			                        <span style="color:${ipcolor}; font-size:15px; margin-right:5px;">●</span>
+			                        <span style="color:inherit;">${currentIP}</span>
+			                        <span style="opacity:0.3; margin:0 8px;">|</span>
+			                        <span id="ks-unlock-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${isUnlocked ? '🔓' : '🔒'}</span>
+			                        <span style="opacity:0.3; margin:0 8px;">|</span>
+			                        <span id="ks-version-link" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${scriptVersion}</span>
+			                        <span style="opacity:0.3; margin:0 8px;">|</span>
+			                        <span id="ks-theme-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">Tema</span>
+			                        <span style="opacity:0.3; margin:0 8px;">|</span>
+			                        <span id="ks-game-btn" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">🐍</span>
+			                        <span style="opacity:0.3; margin:0 2px;">|</span>
+			                        <span id="ks-settings-btn" style="cursor:pointer; font-size:14px; filter:grayscale(1);">⚙️</span>
+			                    `;
+			        document.getElementById('ks-game-btn').onclick = (e) => { e.stopPropagation(); toggleGame(); };
+			        document.getElementById('ks-unlock-btn').onclick = (e) => {
+			            e.stopPropagation();
+			            isUnlocked = !isUnlocked;
+			            e.target.textContent = isUnlocked ? '🔓' : '🔒';
+			            unlockAllElements(isUnlocked);
+			        };
+			        document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
+			        document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
+			        document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
+			    };
+			    kstatus.onmouseleave = () => {
+				hideTimeout = setTimeout(() => {
+				    kstatus.style.opacity = '0';
+				    kstatus.style.transform = 'translateY(10px) scale(0.95)';
+				    setTimeout(() => {
+				    	kstatus.classList.remove('active');
+				    	kstatus.removeAttribute('data-hover');
+				    	kstatus.innerHTML = `KS TOOLS`;
+				    	kstatus.style.opacity = '1';
+				        kstatus.style.transform = 'translateY(0) scale(1)';
+				        hideTimeout = null; }, 300); }, 1000);
+				};
+				kstatus.onmouseenter = () => {
+				    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+				    kstatus.style.opacity = '1';
+    kstatus.style.transform = 'scale(1.05)';
+				    showFullContent();
+				};
+			}
             const openSettingsModal = () => {
                 if (document.getElementById('ks-modal-overlay')) return;
                 const overlay = document.createElement('div');
@@ -764,7 +803,7 @@
                             `).join('')}
                         </div>
                         <div class="ks-bottom">
-							<span>Tema Seçimi (Aktif Değil) -</span>
+							<span class="ks-txt">Tema Seçimi (Aktif Değil) -</span>
                             <select id="ks-theme-picker" class="ks-theme-select">
                                 <option value="#3498db" ${config.themeColor === '#005596' ? 'selected' : ''}>Mavi</option>
                                 <option value="#ff4d4d" ${config.themeColor === '#e00d26' ? 'selected' : ''}>Kırmızı</option>
@@ -818,12 +857,6 @@
     const SBM = GM_getValue('KS_SBM', false);
     const WHATSAPP = GM_getValue('KS_WP', false);
     const BILDIRIM = GM_getValue('KS_NTF', false);
-    /*		Eklenecekler
-        Gerekli evrak gösteren panel - duruma bağlı
-        Veriyi sayfalar arası taşıma - aynı adres kökünde
-        Resim okuma gelişimi - isme göre
-		Ek tasarım şekilleri
-    */
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php") || location.href.includes("eks_hasar_magdur.php"))) {
         const magdurpanel = location.href.includes("eks_hasar_magdur.php");
@@ -1924,7 +1957,7 @@
         }
     }
     // Hızlı Manuel Parça girişi
-    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref")) {
+    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_yeni_ref.php")) {
         function initPanel() {
             if (document.getElementById("tm-panel")) return;
             if (typeof injectStyles === 'function') injectStyles();
@@ -2382,7 +2415,7 @@
         window.addEventListener("load", () => { setTimeout(focusTarget, 200); }, { once: true });
     }
     // Hızlı Çoklu Parça girişi
-    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi") && !location.href.includes("eks_hasar_yedpar_multi_form")) {
+    if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi.php") && !location.href.includes("eks_hasar_yedpar_multi_form.php")) {
         config.width = "180px";
         config.collapsedWidth = "180px";
         if (typeof injectStyles === 'function') injectStyles();
@@ -2500,7 +2533,7 @@
         });
     }
     // Hızlı Resim girişi
-    if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("multi_file_upload")) {
+    if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("multi_file_upload.php")) {
         const getSistemAyarlari = () => {
             config.bottom = "24px";
             config.width = "100px";
