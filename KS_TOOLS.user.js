@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.44
+// @version      1.45
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -32,7 +32,7 @@
         Ek tasarım şekilleri
     */
     const url = location.href.toLowerCase();
-    const hedefSiteler = /otohasar|sahibinden|sigorta|akcozum2|sbm|whatsapp/;
+    const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
@@ -51,7 +51,7 @@
         'otohasar.mapfre': '#e00d26', // Mapfre Kırmızı
         'otohasar.akcozum2': '#eb5311', // Aksigorta Turuncu
         'otohasar.allianz': '#164481', // Allianz Lacivert
-        'anadolusigorta': '#005ba4', // Anadolu Mavi
+        'hithasar.anadolusigorta': '#005ba4', // Anadolu Mavi
         'otohasar.sompo': '#e20613', // Sompo Kırmızı
         'otohasar.turkiye': '#1cb2cd', // Türkiye Sigorta Deniz Mavisi
         'otohasar.groupama': '#007a33', // Groupama Yeşil
@@ -893,7 +893,7 @@
         injectStyles(); initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
-        if (panel && panelContent) {
+		if (panel && panelContent) {
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Giriş Kontrol Paneli";
             panelContent.innerHTML = `
@@ -1443,7 +1443,7 @@
                                 finalUrl.searchParams.set("a90178_min", data.year);
                                 finalUrl.searchParams.set("a90178_max", data.year);
                             }
-                            if (data.kmMin) {
+                            if (data.kmMin > 1000) {
                                 finalUrl.searchParams.set("a4_min", data.kmMin);
                                 finalUrl.searchParams.set("a4_max", data.kmMax);
                                 finalUrl.searchParams.set("a90180_min", data.kmMin);
@@ -2689,7 +2689,36 @@ body.panel-closed {
                 VERGI: ['9', '221', '136'],
                 MASAK: ['248']
             };
-            return (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre : (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi : (text.includes("ATLAS") || url.includes("atlas")) ? atlas : varsayilan;
+			const ankara = {
+			    EHLİYET: ['1'], // Ehliyet
+			    RUHSAT: ['7', '66', '62'], // Ruhsat, Çekme Belgeli Ruhsat, Çarpan Araç Ruhsatı
+			    KTT: ['38', '11'], // Kaza Tesbit Tutanağı, Karakol Tutanağı
+			    BEYAN: ['6'], // BEYAN
+			    ZABIT: ['5', '73', '61'], // ZABIT POLİS, ZABIT JANDARMA, İTFAİYE RAPORU
+			    POLICE: ['3'], // Poliçe
+			    IMZA: ['8'], // İmza Sirküsü
+			    SICIL: ['95'], // SİCİL GAZETESİ
+			    SKAYIT: ['86'], // TRAMER KAYITLARI (Sistem kaydı olarak en yakın bu)
+			    GAZETE: ['95'], // SİCİL GAZETESİ
+			    FAAL: ['94'], // FAALİYET BELGESİ
+			    IRSALIYE: ['26'], // İrsaliye
+			    NUFUS: ['2'], // Nufus Cüzdanı
+			    DIGER: ['12'], // Diğer
+			    ONARIM_SONRASI: ['6'], // Genelde Beyan veya Teslim tutanağı kullanılır
+			    MUTABAKAT: ['28'], // Mutabakat Yazısı
+			    MUVAFAKAT: ['48'], // VEKALET (Muvafakat genelde vekalet/yetki ile ilişkilidir)
+			    IBRA: ['33', '65'], // Teslim İbra ve Temlik Belgesi, Feragatname
+			    ALKOL: ['4'], // Alkol Raporu
+			    RAYIC: ['78', '76'], // GÜNCEL RAYİÇ, PİYASA RAYİCİ
+			    TRAMER: ['22', '86'], // TRAMER(KTT) SONUCU, TRAMER KAYITLARI
+			    VERGI: ['9', '50'], // Vergi Levhası, ÇALINTI - TAŞITLAR VERGİ DAİRESİ YAZISI
+			    MASAK: ['81'] // MASAK EVRAKLARI / FORM
+			};
+			return (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre :
+      			   (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi :
+      			   (text.includes("ATLAS") || url.includes("atlas")) ? atlas :
+      			   (text.includes("ANKARA") || url.includes("ankara")) ? ankara :
+      			   varsayilan;
         };
         const ayarlar = getSistemAyarlari();
         // Tooltip Stil Tanımlaması
@@ -2913,8 +2942,8 @@ body.panel-closed {
             const statusHeader = document.getElementById('panelContent');
             if (!container) return;
             const scenarios = {
-                KTT: { label: "KAZA ŞEKLİ: KTT", keys: ["kaza tespit tutanağı", "(ktt)", "anlasmali kaza"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
-                Zabit: { label: "KAZA ŞEKLİ: ZABIT", keys: ["zapt", "zabit", "zabıt", "karakol", "ifade", "görgü tespit", "polis"], req: [{ id: "a", k: ["alkol"], l: "Alkol Raporu" }, { id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
+                KTT: { label: "KAZA ŞEKLİ: KTT", keys: ["kaza tesbit tutanağı","kaza tespit tutanağı", "( ktt-anlaşmalı tutanak )","(ktt)", "anlasmali kaza"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
+                Zabit: { label: "KAZA ŞEKLİ: ZABIT", keys: ["zapt", "zabit", "zabıt", "karakol", "ifade", "görgü tespit", "polis", "jandarma"], req: [{ id: "a", k: ["alkol"], l: "Alkol Raporu" }, { id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
                 Beyan: { label: "KAZA ŞEKLİ: BEYAN", keys: ["beyan yazısı", "beyan talep", "müşteri beyanı", "mağdur beyanı", "beyan"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] }
             };
             const rows = Array.from(document.querySelectorAll('table tr'));
@@ -2944,6 +2973,9 @@ body.panel-closed {
             };
             const optionalReqs = [
                 { k: ["poliçe"], l: "Poliçe" },
+                { k: ["teslim ibra", "ibraname"], l: "İbraname" },
+                { k: ["faaliyet belgesi"], l: "Faaliyet Belgesi" },
+                { k: ["hasar bildirim", "taahhüt"], l: "Hasar Bildirim Formu" },
                 { k: ["fatura"], l: "Fatura" },
                 { k: ["ibraname", "ibra", "temlik"], l: "İbraname/İbra" },
                 { k: ["tramer", "kusur"], l: "Tramer/Kusur" },
