@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.47
+// @version      1.48
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -67,6 +67,7 @@
         const style = document.createElement('style');
         style.id = 'ks-dynamic-styles';
         style.innerHTML = `
+				@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
 				.ks-draggable-panel {
                     position: fixed !important;
                     bottom: ${config.bottom};
@@ -421,65 +422,453 @@
         });
         window.isUnlocked = s;
     };
-    const WARNING_COLOR = 'rgb(250, 250, 150)';//ff7e7e
+    const WARNING_COLOR = 'rgb(250, 250, 150)';
     const SUCCESS_COLOR = '#00ff88';
     const PANEL_ID = 'ks-global-status-indicator';
     if (window.self === window.top) {
-        // 1. Stil Tanımı
+		const injectFonts = () => {
+        if (document.getElementById('ks2-fonts')) return;
+        const link = document.createElement('link');
+        link.id = 'ks2-fonts';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap';
+        document.head.appendChild(link);
+    };
         if (!document.getElementById(PANEL_ID + '-style')) {
+			injectFonts();
             const style = document.createElement("style");
             style.id = PANEL_ID + '-style';
             style.innerText = `
-            #${PANEL_ID} {
-                position: fixed !important;
-                bottom: 0px !important;
-                left: 0px !important;
-                padding: 2px 12px !important;
-                background: rgba(10, 10, 10, 0.70) !important;
-                backdrop-filter: blur(${config.blur}) !important;
-                font-size: 11px !important;
-                font-weight: 800 !important;
-                font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-				z-index: ${Number(config.zIndex) + 9999} !important;
-                transform-origin: bottom left !important;
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-                overflow: visible !important;
-                border-radius: 8px !important;
-                border: 2px solid ${config.themeColor} !important;
-                box-shadow: 0px 0px 12px 4px ${config.themeColor}74 !important;
-                animation: ks-glow-pulse 3s infinite ease-in-out !important;
-            }
-            #${PANEL_ID}.active {
-                transform: scale(1.1) !important;
-                border-radius: 10px !important;
-				color: rgba(100, 250, 100, 0.80) !important;
-				box-shadow: -1px -1px 10px ${config.themeColor} !important;
-            }
-			@media print { #${PANEL_ID} { position: fixed !important; bottom: 0px; right: 0px; } }
-            @keyframes ks-glow-pulse {
-                0%, 100% { color: ${config.themeColor}; text-shadow: 0 0 2px ${config.themeColor}74; }
-                50% { color: ${config.Color}; text-shadow: 0 0 2px ${config.themeColor}, 0 0 20px ${config.themeColor}; }
-            }
-        `;
+                #${PANEL_ID} {
+                    position: fixed !important;
+                    bottom: ${config.bottom} !important;
+                    left: ${config.right} !important;
+                    height: 24px !important;
+                    width: 24px !important;
+                    background: rgba(10, 10, 10, 0.60) !important;
+                    backdrop-filter: blur(${config.blur}) !important;
+                    color: white !important;
+                    font-family: 'Inter', sans-serif !important;
+                    font-size: 11px !important;
+                    font-weight: 800 !important;
+                    z-index: ${Number(config.zIndex) + 9999} !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important; /* Tam ortalama */
+                    overflow: hidden !important;
+                    white-space: nowrap !important;
+                    cursor: pointer !important;
+                    border-radius: 0px 12px 0px 12px !important;
+                    border: 1px solid ${config.themeColor} !important;
+                    box-shadow: 0px 0px 8px 1px ${config.themeColor}66 !important;
+                    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+                    animation: ks-glow-pulse 3s infinite ease-in-out !important;
+                    padding: 0px !important;
+                }
+                /* Hover Durumu */
+                #${PANEL_ID}.active, #${PANEL_ID}:hover {
+                    width: auto !important;
+                    min-width: 24px !important;
+                    max-width: 600px !important;
+                    padding: 0 12px !important;
+                    transform: skewX(-8deg) !important;
+                    border-radius: 12px 0px 12px 0px !important;
+                    background: #000 !important;
+                    box-shadow: 4px 4px 15px ${config.themeColor}66 !important;
+                }
+                /* İçeriklerin Hoverda Dik Durması */
+                #${PANEL_ID}:hover > * {
+                    transform: skewX(8deg) !important;
+                    display: flex !important;
+                    align-items: center !important;
+                }
+                @keyframes ks-glow-pulse {
+                    0%, 100% { border-color: ${config.themeColor}; opacity: 0.9; }
+                    50% { border-color: ${SUCCESS_COLOR}; opacity: 1; box-shadow: 0 0 15px ${config.themeColor}88; }
+                }
+                #ks-dynamic-tooltip {
+                    position: fixed; background: #000; color: #fff; padding: 5px 10px;
+                    border-radius: 4px; font-size: 11px; pointer-events: none;
+                    border: 1px solid ${config.themeColor}; z-index: 1000000;
+                    transition: opacity 0.2s;
+                }
+				/* ══════════════ KS2 MODAL ══════════════ */
+                #ks2-overlay {
+            	    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            	    background: rgba(0,0,0,0.75); z-index: 2147483647;
+            	    display: flex; align-items: center; justify-content: center;
+            	    backdrop-filter: blur(6px);
+            	}
+            	#ks2-overlay *, #ks2-overlay *::before, #ks2-overlay *::after {
+            	    box-sizing: border-box;
+                	font-family: 'Rajdhani', 'Share Tech Mono', sans-serif;
+            	    -webkit-font-smoothing: antialiased;
+            	}
+            	#ks2-root {
+            	    --ks2-cy: #00d4ff; --ks2-cy2: #0099cc; --ks2-cy3: #00ff9d; --ks2-cy4: #ff3e6c;
+            	    --ks2-bg0: #0a0c12; --ks2-bg1: #0e1118; --ks2-bg2: #131722; --ks2-bg3: #1a1f2e;
+            	    --ks2-bd: rgba(0,212,255,0.13); --ks2-bd2: rgba(0,212,255,0.33);
+            	    --ks2-txt: #c8d8f0; --ks2-txt2: #6b8aaa; --ks2-txt3: #3d5470;
+            	    background: var(--ks2-bg0);
+            	    border: 1px solid var(--ks2-bd2);
+            	    border-radius: 1px;
+            	    overflow: hidden;
+            	    display: flex;
+            	    width: 1000px;
+            	    height: 580px;
+            	    max-width: calc(100vw - 32px);
+            	    max-height: calc(100vh - 48px);
+            	    position: relative;
+            	    color: var(--ks2-txt);
+            	}
+            	#ks2-root::before {
+            	    content: '';
+            	    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            	    background: linear-gradient(90deg, transparent, var(--ks2-cy), transparent);
+            	    z-index: 5; pointer-events: none;
+            	}
+            	/* Scanline */
+            	#ks2-scanline {
+            	    position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1;
+            	}
+            	#ks2-scanline::after {
+            	    content: '';
+            	    position: absolute; top: -100%; left: 0; width: 100%; height: 200%;
+            	    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.012) 2px, rgba(0,212,255,0.012) 4px);
+            	    animation: ks2-scan 10s linear infinite;
+            	}
+            	@keyframes ks2-scan { to { transform: translateY(50%); } }
+            	/* ── Sidebar ── */
+            	#ks2-sidebar {
+            	    width: 215px; flex-shrink: 0;
+            	    background: var(--ks2-bg1);
+            	    border-right: 1px solid var(--ks2-bd);
+            	    display: flex; flex-direction: column;
+            	    position: relative; z-index: 2;
+					padding: 5px 5px 5px 5px;
+            	}
+            	#ks2-sidebar::after {
+            	    content: ''; position: absolute; top: 0; right: 0;
+            	    width: 1px; height: 100%;
+            	    background: linear-gradient(180deg,transparent,rgba(0,153,204,0.27),transparent);
+            	    pointer-events: none;
+            	}
+            	.ks2-brand { padding: 18px 16px 14px; border-bottom: 1px solid var(--ks2-bd); }
+            	.ks2-brand-hex { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+            	.ks2-brand-diamond {
+            	    width: 30px; height: 30px; flex-shrink: 0;
+            	    border: 1px solid var(--ks2-cy);
+            	    display: flex; align-items: center; justify-content: center;
+            	    transform: rotate(45deg);
+            	}
+            	.ks2-brand-diamond-inner { width: 10px; height: 10px; background: var(--ks2-cy); }
+            	.ks2-brand-title {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 13px; color: var(--ks2-cy); letter-spacing: 2px; line-height: 1.2;
+            	}
+            	.ks2-brand-sub {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 14px; color: var(--ks2-txt2); letter-spacing: 2px;
+            	}
+            	.ks2-sys-row {
+            	    display: flex; align-items: center; justify-content: space-between;
+            	    padding-top: 15px; border-top: 1px solid var(--ks2-bd);
+            	}
+            	.ks2-sys-lbl {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 9px; color: var(--ks2-txt3); letter-spacing: 1px;
+            	}
+            	.ks2-sys-on {
+            	    display: flex; align-items: center; gap: 5px;
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 10px; color: var(--ks2-cy3);
+            	}
+            	.ks2-pulse {
+            	    width: 6px; height: 6px; background: var(--ks2-cy3); border-radius: 50%;
+            	    animation: ks2-pulse 1.5s infinite;
+            	}
+            	@keyframes ks2-pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+            	.ks2-nav { padding: 15px 0; flex: 1; overflow-y: auto; font-size: 20px;}
+            	.ks2-nav-sec {
+            	    padding-left: 10px;
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 15px; color: var(--ks2-txt2); letter-spacing: 2px;
+            	}
+            	.ks2-nav-item {
+            	    display: flex; align-items: center; gap: 10px;
+            	    padding: 9px 16px; cursor: pointer;
+            	    border-left: 2px solid transparent;
+            	    transition: background .15s, border-color .15s;
+            	    position: relative;
+            	}
+            	.ks2-nav-item:hover { background: rgba(0,212,255,0.04); border-left-color: var(--ks2-cy2); }
+            	.ks2-nav-item.ks2-active { background: rgba(0,212,255,0.07); border-left-color: var(--ks2-cy); }
+            	.ks2-nav-icon {
+            	    width: 30px; height: 30px; flex-shrink: 0;
+            	    border: 0px solid var(--ks2-bd2);
+            	    display: flex; align-items: center; justify-content: center;
+            	    font-size: 13px; transition: border-color .15s, background .15s;
+            	}
+            	.ks2-nav-item.ks2-active .ks2-nav-icon { border-color: var(--ks2-cy); background: rgba(0,212,255,0.08); }
+            	.ks2-nav-text {
+            	    font-size: 12px; font-weight: 600; letter-spacing: .4px;
+            	    color: var(--ks2-txt2); transition: color .15s; flex: 1;
+            	}
+            	.ks2-nav-item:hover .ks2-nav-text,
+            	.ks2-nav-item.ks2-active .ks2-nav-text { color: var(--ks2-cy); }
+            	.ks2-nav-count {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 10px; padding: 2px 6px;
+            	    background: rgba(0,212,255,0.1); color: var(--ks2-cy2);
+            	    border: 1px solid var(--ks2-bd2);
+            	}
+            	.ks2-sidebar-bottom { padding: 12px 16px; border-top: 1px solid var(--ks2-bd); }
+            	.ks2-theme-row {
+            	    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+            	}
+            	.ks2-theme-lbl {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 11px; color: var(--ks2-txt2); letter-spacing: 1.2px;
+            	}
+            	.ks2-ver-tag {
+            	    font-family: 'Share Tech Mono', monospace !important;
+					right:0;
+            	    font-size: 11px; color: var(--ks2-cy);
+            	    background: rgba(0,212,255,0.08); border: 1px solid var(--ks2-cy); padding: 3px 3px;
+            	}
+            	.ks2-color-dots { display: flex; gap: 4px; margin-top: 8px; }
+            	.ks2-cdot { width: 24px; height: 24px; border: 1px solid transparent; cursor: pointer; transition: .15s; }
+            	.ks2-cdot.ks2-sel { box-shadow: 0 0 0 1px var(--ks2-cy); }
+            	/* ── Main ── */
+            	#ks2-main {
+            	    flex: 1; display: flex; flex-direction: column;
+            	    overflow: hidden; background: var(--ks2-bg2); position: relative; z-index: 2;
+            	}
+            	.ks2-topbar {
+            	    padding: 12px 18px; flex-shrink: 0;
+            	    border-bottom: 1px solid var(--ks2-bd);
+            	    background: var(--ks2-bg1);
+            	    display: flex; align-items: center; justify-content: space-between;
+            	}
+            	.ks2-topbar-left { display: flex; align-items: center; gap: 8px; }
+            	.ks2-bracket { font-family: 'Share Tech Mono', monospace !important; font-size: 9px;}
+            	.ks2-topbar-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--ks2-txt); }
+            	.ks2-ctrl-row { display: flex; align-items: center; gap: 10px; }
+            	.ks2-ctrl-lbl { font-family: 'Share Tech Mono', monospace !important; font-size: 11px; letter-spacing: 1px; }
+            	/* Toggle Switch */
+            	.ks2-sw { position: relative; width: 42px; height: 20px; cursor: pointer; }
+            	.ks2-sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+            	.ks2-sw-track { position: absolute; inset: 0; background: #1a1f2e; border: 1px solid #3d5470; transition: .2s; }
+            	.ks2-sw-track::before { content: ''; position: absolute; width: 14px; height: 12px; top: 3px; left: 3px; background: #3d5470; transition: .2s; }
+            	.ks2-sw input:checked + .ks2-sw-track { background: rgba(0,212,255,0.1); border-color: var(--ks2-cy); }
+            	.ks2-sw input:checked + .ks2-sw-track::before { transform: translateX(22px); background: var(--ks2-cy); }
+            	/* Content & Sections */
+            	.ks2-content {
+            	    flex: 1; overflow-y: auto; padding: 20px;
+            	    scrollbar-width: thin; scrollbar-color: var(--ks2-cy) transparent;
+            	}
+            	.ks2-content::-webkit-scrollbar { width: 3px; }
+            	.ks2-content::-webkit-scrollbar-thumb { background: var(--ks2-cy); }
+            	.ks2-sec-view { display: none; }
+            	.ks2-sec-view.ks2-active { display: block; }
+            	/* Bulk Buttons */
+            	.ks2-bulk-row { display: flex; gap: 8px; margin-bottom: 12px; }
+            	.ks2-bulk-btn {
+            	    flex: 1; position: relative; cursor: pointer;
+            	    background: transparent; border: none; outline: none;
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 10px; letter-spacing: 1.5px;
+            	    color: var(--ks2-txt2); padding: 9px 0; transition: color .15s;
+            	}
+            	.ks2-bulk-btn::before {
+            	    content: ''; position: absolute; inset: 0;
+            	    border-top: 1px solid var(--ks2-bd2); border-bottom: 1px solid var(--ks2-bd2);
+            	    transition: border-color .15s;
+            	}
+            	.ks2-bulk-btn:first-child::before { border-left: 1px solid var(--ks2-bd2); }
+            	.ks2-bulk-btn:last-child::before { border-right: 1px solid var(--ks2-bd2); }
+            	.ks2-bulk-btn:hover { color: var(--ks2-cy); }
+            	.ks2-bulk-btn:hover::before { border-color: rgba(0,212,255,0.4); }
+            	.ks2-bulk-btn span { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px; }
+            	/* Card Grid */
+            	.ks2-card-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+            	.ks2-mod-card {
+            	    background: var(--ks2-bg3);
+            	    border: 1px solid var(--ks2-bd);
+            	    transition: border-color .2s, background .2s;
+            	    position: relative; overflow: hidden;
+            	}
+            	.ks2-mod-card::before {
+            	    content: ''; position: absolute;
+            	    width: 1px; height: 100%;
+            	    background: var(--ks2-bd2); transition: background .2s;
+            	}
+            	.ks2-mod-card.ks2-on::before { background: var(--ks2-cy); }
+            	.ks2-mod-card:hover { border-color: var(--ks2-cy2); background: rgba(0,212,255,0.03); }
+            	.ks2-mod-card:hover::before { background: var(--ks2-cy); }
+            	.ks2-corner { position: absolute; width: 8px; height: 8px; border-color: var(--ks2-cy); border-style: solid; opacity: 0; transition: opacity .2s; }
+            	.ks2-corner-tl { top: 4px; right: 4px; border-width: 1px 0 0 1px; }
+            	.ks2-corner-br { bottom: 4px; right: 4px; border-width: 0 1px 1px 0; }
+            	.ks2-mod-card:hover .ks2-corner, .ks2-mod-card.ks2-on .ks2-corner { opacity: 1; }
+            	.ks2-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+            	.ks2-card-icon {
+            	    width: 32px; height: 32px; flex-shrink: 0;
+            	    border: 0px solid var(--ks2-bd2);
+            	    display: flex; align-items: center; justify-content: center;
+            	    font-size: 14px; background: var(--ks2-bg2); transition: border-color .2s, background .2s;
+            	}
+            	.ks2-mod-card.ks2-on .ks2-card-icon { border-color: var(--ks2-cy); background: rgba(0,212,255,0.06); }
+            	.ks2-card-title { font-size: 12px; font-weight: 700; color: var(--ks2-txt); margin-bottom: 3px; letter-spacing: .5px; padding-left: 10px;  }
+            	.ks2-card-desc { font-family: 'Share Tech Mono', monospace !important; font-size: 13px; color: var(--ks2-txt2); line-height: 1.2; padding-left: 8px; }
+            	.ks2-card-footer {
+            	    display: flex; align-items: center; justify-content: space-between;
+            	    margin-top: 8px; border-top: 1px solid var(--ks2-bd);
+            	}
+            	.ks2-status-pill {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 13px; padding: 2px 8px; border: 1px solid; transition: .2s; left:0;
+            	}
+            	.ks2-mod-card.ks2-on .ks2-status-pill { color: var(--ks2-cy3); border-color: rgba(0,255,157,0.27); background: rgba(0,255,157,0.06); }
+            	.ks2-mod-card:not(.ks2-on) .ks2-status-pill { color: var(--ks2-txt3); border-color: rgba(61,84,112,0.5); }
+            	.ks2-sub-tag {
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 11px; color: var(--ks2-txt2); letter-spacing: .5px;
+            	    padding-right: 16px; border: 1px solid var(--ks2-bd);
+            	}
+            	/* ── Footer ── */
+            	.ks2-footer {
+            	    padding: 12px 18px; flex-shrink: 0;
+            	    border-top: 1px solid var(--ks2-bd);
+            	    background: var(--ks2-bg1);
+            	    display: flex; align-items: center; justify-content: space-between;
+            	}
+            	.ks2-footer-stats { display: flex; align-items: center; gap: 26px; }
+            	.ks2-stat-val { font-family: 'Share Tech Mono', monospace !important; font-size: 16px; color: var(--ks2-cy); font-weight: 700; line-height: 1; }
+            	.ks2-stat-lbl { font-size: 11px; color: var(--ks2-txt2); letter-spacing: .5px; margin-top: 2px; }
+            	.ks2-stat-divider { width: 1px; height: 28px; background: var(--ks2-bd2); }
+            	.ks2-footer-btns { display: flex; gap: 10px; align-items: center; }
+            	/* --- Modernize Edilmiş Siber Butonlar --- */
+            	.ks2-fbtn {
+            		position: relative;
+            	    cursor: pointer;
+            	    border: none;
+            	    outline: none;
+            	    background: transparent;
+            	    font-family: 'Share Tech Mono', monospace !important;
+            	    font-size: 14px;
+            	    text-transform: uppercase;
+            	    letter-spacing: 4px;
+            	    transition: all .3s cubic-bezier(0.23, 1, 0.32, 1);
+            	    display: inline-flex;
+            	    align-items: center;
+            	    justify-content: center;
+            	}
+            	/* Ortak Arka Plan Efekti (Cam/Siber Kesim) */
+            	.ks2-fbtn::before {
+            	    content: '';
+            	    position: absolute;
+            	    inset: 0;
+            	    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); /* Siber kesim açısı */
+            	    transition: all .3s ease;
+            	}
+            	/* CANCEL BUTONU (Negatif/Soft) */
+            	.ks2-fbtn-cancel {
+            	    color: rgba(255, 255, 255, 0.5);
+            	}
+            	.ks2-fbtn-cancel::before {
+            	    border: 1px solid rgba(255, 62, 108, 0.2);
+            	    background: rgba(255, 62, 108, 0.03);
+            	}
+            	.ks2-fbtn-cancel:hover { color: #ff3e6c; text-shadow: 0 0 8px rgba(255, 62, 108, 0.5); }
+            	.ks2-fbtn-cancel:hover::before {
+            	    border-color: #ff3e6c;
+            	    background: rgba(255, 62, 108, 0.1);
+            	    clip-path: polygon(0 0, 90% 0, 100% 100%, 10% 100%);
+            	}
+            	/* SAVE BUTONU (Pozitif/Neon) */
+            	.ks2-fbtn-save { color: var(--ks2-cy); }
+            	.ks2-fbtn-save::before {
+            	    border: 1px solid rgba(0, 212, 255, 0.3);
+            	    background: rgba(0, 212, 255, 0.05);
+            	    box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.1);
+            	}
+            	.ks2-fbtn-save:hover {
+            	    color: #fff;
+            	    text-shadow: 0 0 10px var(--ks2-cy);
+            	}
+            	.ks2-fbtn-save:hover::before {
+            	    background: rgba(0, 212, 255, 0.2);
+            	    border-color: var(--ks2-cy);
+            	    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), inset 0 0 10px rgba(0, 212, 255, 0.2);
+            	    clip-path: polygon(0 0, 90% 0, 100% 100%, 10% 100%);
+            	}
+            	/* Alt Glow Efekti (Zaten vardı, canlandıralım) */
+            	.ks2-fbtn-glow {
+            	    position: absolute;
+            	    bottom: 2px;
+            	    left: 20%;
+            	    right: 20%;
+            	    height: 2px;
+            	    opacity: 0.4;
+            	    filter: blur(2px);
+            	    transition: all .3s ease;
+            	}
+            	.ks2-fbtn:hover .ks2-fbtn-glow { opacity: 1; left: 10%; right: 10%; filter: blur(4px); }
+            	.ks2-fbtn:active { transform: scale(0.95) skewX(-2deg); }
+            	.ks2-fbtn span { position: relative; z-index: 1; pointer-events: none; }
+
+				/* --- Etiket Renkleri --- */
+				.ks2-tag-core {
+				    color: var(--ks2-cy) !important;
+				    border-color: rgba(0, 212, 255, 0.4) !important;
+				    background: rgba(0, 212, 255, 0.1);
+				    text-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+				}
+
+				/* Alt Modül Etiketi (Daha Koyu/Turuncu veya Gümüş) */
+				.ks2-tag-alt {
+				    color: #d9ff43 !important; /* Turuncu tonu */
+				    border-color: rgba(255, 159, 67, 0.3) !important;
+				    background: rgba(255, 159, 67, 0.05);
+				}
+
+				/* --- Yazıların Önüne Boşluk (Zorlayıcı Çözüm) --- */
+				.ks2-card-title,
+				.ks2-card-desc {
+				    padding-left: 12px !important; /* Bu değer yazıların önüne boşluk açar */
+				    display: block !important;
+				    width: calc(100% - 12px);
+				}
+
+				/* Footer'daki etiketleri de aynı hizaya çekmek için */
+				.ks2-card-footer {
+				    padding-left: 12px !important;
+				    border-top: 1px solid rgba(255, 255, 255, 0.05);
+				    margin-top: 8px;
+				    padding-top: 6px;
+				}
+            `;
             document.head.appendChild(style);
-        }
-        let currentIP = "IP Alınıyor...";
-        let ipcolor = "orange";
-        const scriptVersion = (typeof GM_info !== 'undefined') ? "v" + GM_info.script.version : "v1.0";
-        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => { currentIP = data.ip; ipcolor = "#00ff00"; }).catch(() => { currentIP = "Gizli Bağlantı"; ipcolor = "red"; });
-        const injectPanel = () => {
-            injectStyles();
-            let kstatus = document.getElementById(PANEL_ID);
-            if (!kstatus) {
-                kstatus = document.createElement('div');
-                kstatus.id = PANEL_ID;
+        	}
+            let currentIP = "IP Alınıyor...";
+            let ipcolor = "orange";
+            const scriptVersion = (typeof GM_info !== 'undefined') ? "v" + GM_info.script.version : "v1.0";
+        	fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => { currentIP = data.ip; ipcolor = "#00ff00"; }).catch(() => { currentIP = "Gizli Bağlantı"; ipcolor = "red"; });
+            const injectPanel = () => {
+                injectStyles();
+                let kstatus = document.getElementById(PANEL_ID);
+                if (!kstatus) {
+                    kstatus = document.createElement('div');
+                    kstatus.id = PANEL_ID;
+                kstatus.innerHTML = `<span>KS</span>`;
                 document.body.appendChild(kstatus);
                 let hideTimeout = null;
                 const getPanelTip = () => {
                     let tip = document.getElementById('ks-dynamic-tooltip');
                     if (!tip) {
-                        tip = document.createElement('div'); tip.id = 'ks-dynamic-tooltip';
-                        Object.assign(tip.style, { zIndex: '99999999', opacity: '1' });
+                        tip = document.createElement('div');
+                        tip.id = 'ks-dynamic-tooltip';
+                        Object.assign(tip.style, { zIndex: '99999999', opacity: '0' });
                         document.body.appendChild(tip);
                     }
                     return tip;
@@ -487,9 +876,19 @@
                 const bindTooltips = (container) => {
                     const panelTip = getPanelTip();
                     container.querySelectorAll('[data-tip]').forEach(el => {
-                        el.addEventListener('mouseenter', () => { panelTip.textContent = el.getAttribute('data-tip'); panelTip.style.visibility = 'visible'; panelTip.style.opacity = '1'; });
-                        el.addEventListener('mousemove', (e) => { panelTip.style.left = (e.clientX + 12) + 'px'; panelTip.style.top = (e.clientY - 34) + 'px'; });
-                        el.addEventListener('mouseleave', () => { panelTip.style.opacity = '0'; panelTip.style.visibility = 'hidden'; });
+                        el.addEventListener('mouseenter', () => {
+                            panelTip.textContent = el.getAttribute('data-tip');
+                            panelTip.style.visibility = 'visible';
+                            panelTip.style.opacity = '1';
+                        });
+                        el.addEventListener('mousemove', (e) => {
+                            panelTip.style.left = (e.clientX + 12) + 'px';
+                            panelTip.style.top = (e.clientY - 34) + 'px';
+                        });
+                        el.addEventListener('mouseleave', () => {
+                            panelTip.style.opacity = '0';
+                            panelTip.style.visibility = 'hidden';
+                        });
                     });
                 };
                 const hidePanelTip = () => {
@@ -501,7 +900,7 @@
                     kstatus.setAttribute('data-hover', 'true');
                     kstatus.style.color = '#fff';
                     kstatus.innerHTML = `
-			            <span id="ks-settings-btn" data-tip="Ayarları Aç" style="cursor:pointer; font-size:14px; filter:grayscale(1);">⚙️</span>
+                    <span id="ks-settings-btn" data-tip="Ayarları Aç" style="cursor:pointer; font-size:14px;">⚙️</span>
 			            <span style="opacity:0.3; margin:0 8px;">|</span>
 			            <span id="ks-unlock-btn" data-tip="${isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${isUnlocked ? '🔓' : '🔒'}</span>
 			            <span style="opacity:0.3; margin:0 2px;">|</span>
@@ -527,200 +926,270 @@
                 };
                 kstatus.onmouseleave = () => {
                     hidePanelTip();
+                    const tip = document.getElementById('ks-dynamic-tooltip');
+                    if (tip) { tip.style.opacity = '0'; }
                     hideTimeout = setTimeout(() => {
-                        kstatus.style.opacity = '0';
-                        kstatus.style.transform = 'translateY(10px) scale(0.95)';
-                        setTimeout(() => {
-                            kstatus.classList.remove('active');
-                            kstatus.removeAttribute('data-hover');
-                            kstatus.innerHTML = `KS TOOLS`;
-                            kstatus.style.opacity = '1';
-                            kstatus.style.transform = 'translateY(0) scale(1)';
-                            hideTimeout = null;
-                        }, 300);
+                        kstatus.classList.remove('active');
+                        kstatus.innerHTML = `<span>KS</span>`;
+                        hideTimeout = null;
                     }, 1000);
                 };
                 kstatus.onmouseenter = () => {
                     if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-                    kstatus.style.opacity = '1'; kstatus.style.transform = 'scale(1.05)'; showFullContent();
+                    showFullContent();
                 };
             }
+			// ── Veri Tanımları ─────────────────────────────────────────────────
+			const SECTIONS = [
+			    {
+			        id: 'dosya', title: 'OTOANALİZ DOSYA PANELİ', icon: '📁', label: 'Dosya Paneli',
+			        items: [
+			            { key: 'KS_PANEL', icon: '📊', title: 'Giriş Kontrol', desc: 'Poliçe rücu pert piyasa izleme', sub: false },
+			            { key: 'KS_PANEL_hlt', icon: '🔦', title: 'Hücre Boyama', desc: 'Boş alan renklendirme', sub: false },
+			            { key: 'KS_PANEL_pol', icon: '📋', title: 'Poliçe Kontrol', desc: 'Tarih + geçerlilik denetimi', sub: true },
+			            { key: 'KS_PANEL_sgs', icon: '🛡️', title: 'Sigorta Şekli', desc: 'Trafik / Kasko durumu', sub: true },
+			            { key: 'KS_PANEL_rc', icon: '↩️', title: 'Rücu Takibi', desc: 'Rücu durum göstergesi', sub: true },
+			            { key: 'KS_PANEL_pert', icon: '🚗', title: 'Pert Kontrolü', desc: 'Pert durum izleme', sub: true },
+			            { key: 'KS_PANEL_hsr', icon: '💥', title: 'Hasar Şekli', desc: 'Hasar tipi bilgisi', sub: true },
+			            { key: 'KS_PANEL_srtp', icon: '🔧', title: 'Servis Tipi', desc: 'Servis durum gösterimi', sub: true },
+			            { key: 'KS_PANEL_srad', icon: '🏭', title: 'Servis Adı', desc: 'Servis adı bilgisi', sub: true },
+			            { key: 'KS_PANEL_tra', icon: '📈', title: 'Tramer', desc: 'Tramer değer göstergesi', sub: true },
+			            { key: 'KS_PANEL_sad', icon: '👤', title: 'Sigortalı Adı', desc: 'Ad soyad değeri', sub: true },
+			            { key: 'KS_PANEL_aad', icon: '🚙', title: 'Araç Model', desc: 'Model bilgisi', sub: true },
+			            { key: 'KS_PANEL_mull', icon: '💰', title: 'Muallak', desc: 'Muallak değer izleme', sub: true },
+			            { key: 'KS_PANEL_ryc', icon: '🏷️', title: 'Piyasa Rayiç', desc: 'Piyasa değer gösterimi', sub: true },
+			            { key: 'KS_PANEL_rycorn', icon: '⚠️', title: 'Rayiç Pert Oran', desc: '%30 %60 eşik uyarıları', sub: true },
+			            { key: 'KS_PANEL_pys', icon: '🌐', title: 'Piyasa Kontrol', desc: 'Dış kaynak veri çekimi', sub: true },
+			            { key: 'KS_PANEL_not', icon: '📝', title: 'Notlar', desc: 'Panel not bölümü', sub: true },
+			            { key: 'KS_MANU', icon: '🔩', title: 'Manuel Parça', desc: 'Tekli çoklu parça girişi', sub: false },
+			            { key: 'KS_REF', icon: '📌', title: 'Referans Panel', desc: 'Excel copy paste desteği', sub: false },
+			            { key: 'KS_DNM', icon: '⚙️', title: 'Donanım Girişi', desc: 'Araç donanım eşleme', sub: false },
+			            { key: 'KS_IMG', icon: '🖼️', title: 'Resim Yükleme', desc: 'Toplu evrak kategorisi', sub: false },
+			        ]
+			    },
+			    {
+			        id: 'ek', title: 'EK MODÜLLER', icon: '⚙️', label: 'Ek Modüller',
+			        items: [
+			            { key: 'KS_NTF', icon: '🔕', title: 'Bildirim Engel', desc: '3+ tekrarlı popup engeli', sub: false },
+			        ]
+			    },
+			    {
+			        id: 'dis', title: 'DIŞ ENTEGRASYONLAR', icon: '📡', label: 'Entegrasyonlar',
+			        items: [
+			            { key: 'KS_TRS', icon: '🛡️', title: 'Türkiye Sigorta', desc: 'Yan menü form otomasyonu', sub: false },
+			            { key: 'KS_SAHIB', icon: '🏷️', title: 'Sahibinden', desc: 'KM fiyat piyasa analizi', sub: false },
+			            { key: 'KS_SBM', icon: '🏦', title: 'SBM Panel', desc: 'Tramer bölme KTT sorgu', sub: false },
+			            { key: 'KS_WP', icon: '💬', title: 'WhatsApp', desc: 'Medya çift tık indirme', sub: false },
+			        ]
+			    }
+			];
+            // ── Modal Aç ──────────────────────────────────────────────────────
             const openSettingsModal = () => {
-                if (document.getElementById('ks-modal-overlay')) return;
-                const originalOverflow = document.body.style.overflow;
-                document.body.style.overflow = 'hidden';
+                if (document.getElementById('ks2-overlay')) return;
+                const totalItems = SECTIONS.reduce((a, s) => a + s.items.length, 0);
+                const getActiveCount = () => SECTIONS.reduce((a, s) => a + s.items.filter(i => getSetting(i.key)).length, 0);
+                const getSecCount = (sec) => sec.items.filter(i => getSetting(i.key)).length;
+                // Overlay
                 const overlay = document.createElement('div');
-                overlay.id = 'ks-modal-overlay';
-                Object.assign(overlay.style, {
-                    position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                    backgroundColor: 'rgba(0,0,0,0.6)', zIndex: '10000000', backdropFilter: 'blur(20px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                });
+                overlay.id = 'ks2-overlay';
                 const closeModal = () => {
-                    document.body.style.overflow = originalOverflow;
                     overlay.remove();
-                    const existingTip = document.getElementById('ks-dynamic-tooltip');
-                    if (existingTip) existingTip.remove();
+                    document.body.style.overflow = '';
                 };
-                const sections = [
-                    {
-                        id: 'sec-dosya', title: 'OTOANALİZ DOSYA PANELİ', icon: '📁', items: [
-                            { id: 'ks-opt-hlt', key: 'KS_PANEL_hlt', label: 'Girilmeyen Hücre Boyama', desc: 'Veri girişi yapılmamış alanları vurgular.' },
-                            { id: 'ks-opt-pnl', key: 'KS_PANEL', label: 'Dosya Kontrol Paneli', desc: 'Genel dosya durumunu izleme paneli.' },
-                            { id: 'ks-opt-pol', key: 'KS_PANEL_pol', label: 'Poliçe Kontrol', sub: true, desc: 'Sayfadan alınan tarihler ile Poliçe detaylarını ve geçerliliğini denetler.' },
-                            { id: 'ks-opt-sgs', key: 'KS_PANEL_sgs', label: 'Sigorta Şekli', sub: true, desc: 'Sayfadan Trafik / Kasko durumunu gösterir.' },
-                            { id: 'ks-opt-rc', key: 'KS_PANEL_rc', label: 'Rücu Takibi', sub: true, desc: 'Sayfadan Rücu durumunu gösterir.' },
-                            { id: 'ks-opt-pert', key: 'KS_PANEL_pert', label: 'Pert Kontrolü', sub: true, desc: 'Sayfadan Pert durumunu gösterir.' },
-                            { id: 'ks-opt-hsr', key: 'KS_PANEL_hsr', label: 'Hasar Şekli', sub: true, desc: 'Sayfadan Hasar şekli durumunu gösterir.' },
-                            { id: 'ks-opt-srtp', key: 'KS_PANEL_srtp', label: 'Servis Tipi', sub: true, desc: 'Sayfadan Servis durumunu gösterir.' },
-                            { id: 'ks-opt-srad', key: 'KS_PANEL_srad', label: 'Servis Adı', sub: true, desc: 'Sayfadan Muallak değerini gösterir.' },
-                            { id: 'ks-opt-tra', key: 'KS_PANEL_tra', label: 'Tramer', sub: true, desc: 'Sayfadan Tramer değerini gösterir.' },
-                            { id: 'ks-opt-sad', key: 'KS_PANEL_sad', label: 'Sigortalı/Mağdur adı', sub: true, desc: 'Sayfadan Ad-Soyad değerini gösterir.' },
-                            { id: 'ks-opt-aad', key: 'KS_PANEL_aad', label: 'Araç - Model', sub: true, desc: 'Sayfadan Model değerini gösterir.' },
-                            { id: 'ks-opt-mull', key: 'KS_PANEL_mull', label: 'Muallak', sub: true, desc: 'Sayfadan Muallak değerini gösterir.' },
-                            { id: 'ks-opt-ryc', key: 'KS_PANEL_ryc', label: 'Piyasa - Rahiç', sub: true, desc: 'Sayfadan Piyasa değerini gösterir.' },
-                            { id: 'ks-opt-rycorn', key: 'KS_PANEL_rycorn', label: 'Rahiç - Pert oran', sub: true, desc: 'Pert oran hesaplaması. %30 ve %60 üzerinden uyarı gösterir.' },
-                            { id: 'ks-opt-pys', key: 'KS_PANEL_pys', label: 'Piyasa Kontrol', sub: true, desc: 'Dış kaynaklardan piyasa verisi çeker.' },
-                            { id: 'ks-opt-not', key: 'KS_PANEL_not', label: 'Notlar', sub: true, desc: 'Panele not bölümü ekler.' },
-                            { id: 'ks-opt-manu', key: 'KS_MANU', label: 'Manuel Giriş Paneli', desc: 'Hızlı parça girişi için panel ekler.' },
-                            { id: 'ks-opt-reff', key: 'KS_REF', label: 'Referans Panelleri', desc: 'Referans sayfaları için paneller ekler.' },
-                            { id: 'ks-opt-donn', key: 'KS_DNM', label: 'Donanım Giriş Paneli', desc: 'Araç donanım özellikleri için hızlı seçim butonları ekler.' },
-                            { id: 'ks-opt-rsm', key: 'KS_IMG', label: 'Resim Yükleme-Kontrol Paneli', desc: 'Hızlı giriş için dosya çerçevelerine buton ve pencereye panel ekler.' }
-                        ]
-                    },
-                    {
-                        id: 'sec-ek', title: 'EK MODÜLLER', icon: '⚙️', items: [
-                            { id: 'ks-opt-bild', key: 'KS_NTF', label: 'Otoanaliz Bildirim Engelleme', desc: '3 ve üzeri tekrarlayan bildirimleri susturur.' }
-                        ]
-                    },
-                    {
-                        id: 'sec-modul', title: 'DIŞ MODÜLLER', icon: '📊', items: [
-                            { id: 'ks-opt-trs', key: 'KS_TRS', label: 'Türkiye Sigorta Modülü', desc: 'Menü paneli, Telefon hızlı girişi ve Hızlı resim seçimi(yapımda) ekler.' },
-                            { id: 'ks-opt-shb', key: 'KS_SAHIB', label: 'Sahibinden Panel', desc: 'Sahibinden sitesinde listedeki araçların ortalamasını gösteren panel ekler.' },
-                            { id: 'ks-opt-sbm', key: 'KS_SBM', label: 'SBM Panel', desc: 'Hızlı sigorta seçimi için buton ve tramer id değerini kolaylaştırmak için 3 parçaya bölen ve kopyalanabilen panel ekler.' },
-                            { id: 'ks-opt-wspp', key: 'KS_WP', label: 'WhatsApp Hızlı İndirme', desc: 'WP Web üzerinden medyaları çift tıkla indirir.' }
-                        ]
-                    }
-                ];
+                // ESC ile kapat
+                const escHandler = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); } };
+                document.addEventListener('keydown', escHandler);
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+                // Sidebar nav HTML
+                const navHTML = SECTIONS.map((sec, i) => `
+                    <div class="ks2-nav-item ${i === 0 ? 'ks2-active' : ''}" data-sec="${sec.id}" data-title="${sec.title}">
+                        <div class="ks2-nav-icon">${sec.icon}</div>
+                        <div class="ks2-nav-text">${sec.label}</div>
+                        <div class="ks2-nav-count" id="ks2-cnt-${sec.id}">${getSecCount(sec)}</div>
+                    </div>`).join('');
+                // Section views HTML
+                const sectionsHTML = SECTIONS.map((sec, i) => `
+                    <div class="ks2-sec-view ${i === 0 ? 'ks2-active' : ''}" id="ks2-sec-${sec.id}">
+                        <div class="ks2-bulk-row">
+                            <button class="ks2-bulk-btn" data-grid="${sec.id}" data-val="1"><span>▶ TÜMÜNÜ ETKİNLEŞTİR</span></button>
+                            <button class="ks2-bulk-btn" data-grid="${sec.id}" data-val="0"><span>■ TÜMÜNÜ DEVRE DIŞI</span></button>
+                        </div>
+                        <div class="ks2-card-grid" id="ks2-grid-${sec.id}"></div>
+                    </div>`).join('');
                 overlay.innerHTML = `
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-                        .ks-frame { width: 850px; height: 550px; background: #1e1e24; border-radius: 12px; display: flex; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 40px 100px rgba(0,0,0,0.6); font-family: 'Inter', sans-serif !important; }
-                        .ks-sidebar { width: 230px; background: #15151a; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; padding: 0; }
-                        .ks-brand-area { padding: 30px 20px; background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%); margin-bottom: 10px; }
-                        .ks-logo { font-size: 14px; font-weight: 800; color: #fff; text-align: center; letter-spacing: 3px; text-shadow: 0 0 15px ${config.themeColor}; }
-                        .ks-brand-line { width: 40px; height: 2px; background: ${config.themeColor}; margin: 10px auto 0; border-radius: 2px; box-shadow: 0 0 10px ${config.themeColor}; }
-                        .ks-tab { padding: 12px 25px; cursor: pointer; color: #7c7c8a; transition: 0.2s; display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 600; border-left: 3px solid transparent; }
-                        .ks-tab:hover { color: #fff; background: rgba(255,255,255,0.03); }
-                        .ks-tab.active { color: #fff; background: rgba(255,255,255,0.06); border-left-color: ${config.themeColor}; text-shadow: 0 0 8px ${config.themeColor}; }
-                        .ks-content { flex: 1; display: flex; flex-direction: column; background: transparent; overflow: hidden; }
-                        .ks-header { padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.1); }
-                        .ks-view { flex: 1; padding: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-y: auto; align-content: start; scrollbar-gutter: stable; }
-                        .ks-view.hidden { display: none; }
-                		.ks-card { background: #282830; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 12px 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1); display: flex; align-items: center; justify-content: space-between; cursor: pointer; position: relative; }
-                        .ks-card:hover { background: #2f2f38; border-color: ${config.themeColor}aa; transform: translateY(-3px) scale(1.015); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5), 0 0 15px 2px ${config.themeColor}66, inset 0 0 10px ${config.themeColor}11; }
-                        .ks-card:active { transform: translateY(-1px) scale(0.99); box-shadow: 0 5px 10px -3px rgba(0,0,0,0.4), 0 0 30px 5px ${config.themeColor}aa; }
-                        .ks-card.sub { margin-left: 15px; background: rgba(0,0,0,0.1); border-left: 2px solid ${config.themeColor}44; }
-                        .ks-card span { color: #e1e1e6; font-size: 11px; font-weight: 500; transition: 0.2s; pointer-events: none; }
-                        .ks-card:hover span { color: #fff; text-shadow: 0 0 5px #fff; }
-                        .ks-sw { position: relative; width: 44px; height: 20px; cursor: pointer; }
-                        .ks-sw input { opacity: 0; width: 0; height: 0; }
-                        .ks-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #3f3f4d; border-radius: 4px; transition: .3s; border: 1px solid rgba(255,255,255,0.1); }
-                        .ks-slider:before { position: absolute; content: ""; height: 12px; width: 6px; left: 4px; bottom: 3px; background: #a1a1b0; transition: .3s; border-radius: 1px; }
-                        input:checked + .ks-slider { background: ${config.themeColor}33; border-color: ${config.themeColor}; box-shadow: 0 0 10px ${config.themeColor}44; }
-                        input:checked + .ks-slider:before { transform: translateX(28px); background: ${config.themeColor}; box-shadow: 0 0 8px ${config.themeColor}; }
-                        .ks-footer { padding: 12px 25px; background: #15151a; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
-                        .ks-btn-save { background: ${config.themeColor}; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; font-weight: 700; font-size: 11px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px ${config.themeColor}44; }
-                        .ks-btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px ${config.themeColor}88, 0 0 10px ${config.themeColor}; }
-                        .ks-view::-webkit-scrollbar { width: 5px; }
-                        .ks-view::-webkit-scrollbar-thumb { background: ${config.themeColor}44; border-radius: 10px; }
-                        .ks-view::-webkit-scrollbar-thumb:hover { background: ${config.themeColor}aa; }
-                    </style>
-                    <div class="ks-frame">
-                        <aside class="ks-sidebar">
-                            <div class="ks-brand-area"><div class="ks-logo">KS YÖNETİM</div><div class="ks-brand-line"></div></div>
-                            ${sections.map((sec, i) => `<div class="ks-tab ${i === 0 ? 'active' : ''}" data-target="${sec.id}"><span>${sec.icon}</span> ${sec.title}</div>`).join('')}
-                            <div style="margin-top:auto; padding: 25px;">
-                                <label style="color: #7c7c8a; font-size:9px; font-weight:800; display:block; margin-bottom:8px; letter-spacing:1px;">TEMA RENGİ - Aktif değildir!</label>
-                                <select id="ks-theme-select" style="width:100%; background:#23232b; color: #fff; border:1px solid ${config.themeColor}; padding:6px; border-radius:4px; font-size:10px; outline:none; cursor:pointer;">
-                                    <option value="#3498db" ${config.themeColor === '#3498db' ? 'selected' : ''}>Kurumsal Mavi</option>
-                                    <option value="#2ecc71" ${config.themeColor === '#2ecc71' ? 'selected' : ''}>Operasyon Yeşili</option>
-                                    <option value="#e67e22" ${config.themeColor === '#e67e22' ? 'selected' : ''}>Uyarı Turuncusu</option>
-                                    <option value="#9b59b6" ${config.themeColor === '#9b59b6' ? 'selected' : ''}>Premium Mor</option>
-                                </select>
+                    <div id="ks2-root">
+                        <div id="ks2-scanline"></div>
+                        <aside id="ks2-sidebar">
+                            <div class="ks2-brand">
+                                <div class="ks2-brand-hex">
+                                    <div class="ks2-brand-diamond"><div class="ks2-brand-diamond-inner"></div></div>
+                                    <div>
+                                        <div class="ks2-brand-title">KS TOOLS</div>
+                                        <div class="ks2-brand-sub">KONTROL PANELİ</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <nav class="ks2-nav">
+                                <div class="ks2-nav-sec">// MODÜLLER</div>
+                                ${navHTML}
+                            </nav>
+                            <div class="ks2-sidebar-bottom">
+                                <div class="ks2-theme-row">
+                                    <span class="ks2-theme-lbl">// TEMA</span>
+                                    <span class="ks2-ver-tag">v${GM_info.script.version}</span>
+                                </div>
+                                <div class="ks2-color-dots" id="ks2-color-dots">
+                                    <div class="ks2-cdot ks2-sel" data-c="#00d4ff" style="background:rgba(0,212,255,0.8);border:1px solid #00d4ff"></div>
+                                    <div class="ks2-cdot" data-c="#00ff9d" style="background:rgba(0,255,157,0.8);border:1px solid transparent"></div>
+                                    <div class="ks2-cdot" data-c="#9b59b6" style="background:rgba(155,89,182,0.8);border:1px solid transparent"></div>
+                                    <div class="ks2-cdot" data-c="#ff9f43" style="background:rgba(255,159,67,0.8);border:1px solid transparent"></div>
+                                    <div class="ks2-cdot" data-c="#ff3e6c" style="background:rgba(255,62,108,0.8);border:1px solid transparent"></div>
+                                    <div class="ks2-cdot" data-c="#e0e6ed" style="background:rgba(224,230,237,0.8);border:1px solid transparent"></div>
+                                </div>
                             </div>
                         </aside>
-                        <main class="ks-content">
-                            <header class="ks-header">
-                				<h2 id="ks-title" style="margin:0; font-size:14px; color: #fff; font-weight:700; letter-spacing:0.5px;">OTOANALİZ DOSYA PANELİ</h2>
-                                <div style="display:flex; align-items:center; gap:12px;">
-                                    <span style="font-size:10px; font-weight:800; color: #7c7c8a; letter-spacing:1px;">SİSTEM DURUMU</span>
-                                    <label class="ks-sw"><input type="checkbox" id="ks-master-sw" ${getSetting('KS_SYS') ? 'checked' : ''}><span class="ks-slider"></span></label>
+                        <div id="ks2-main">
+                            <div class="ks2-topbar">
+                                <div class="ks2-topbar-left">
+                                    <span class="ks2-bracket">[</span>
+                                    <span class="ks2-topbar-title" id="ks2-sec-title">OTOANALİZ DOSYA PANELİ</span>
+                                    <span class="ks2-bracket">]</span>
                                 </div>
-                            </header>
-                            ${sections.map((sec, idx) => `
-                                <div class="ks-view ${idx !== 0 ? 'hidden' : ''}" id="${sec.id}">
-                                    <div style="grid-column: 1 / -1; display: flex; gap: 8px; margin-bottom: 8px;">
-										<button style="flex:1; background:rgba(46,204,113,0.05); color:#2ecc71; border:1px solid rgba(46,204,113,0.15); padding:8px; cursor:pointer; border-radius:4px; font-size:9px; font-weight:800; transition:0.2s;" onclick="document.querySelectorAll('#${sec.id} input').forEach(i => {if(!i.checked){i.checked=true; i.dispatchEvent(new Event('change'))}})">TÜMÜNÜ AÇ</button>
-                                    	<button style="flex:1; background:rgba(231,76,60,0.05); color:#e74c3c; border:1px solid rgba(231,76,60,0.15); padding:8px; cursor:pointer; border-radius:4px; font-size:9px; font-weight:800; transition:0.2s;" onclick="document.querySelectorAll('#${sec.id} input').forEach(i => {if(i.checked){i.checked=false; i.dispatchEvent(new Event('change'))}})">TÜMÜNÜ KAPAT</button>
+                                <div class="ks2-ctrl-row">
+                                    <span class="ks2-ctrl-lbl">ANA KONTROL</span>
+                                    <label class="ks2-sw">
+                                        <input type="checkbox" id="ks2-master" ${getSetting('KS_SYS') ? 'checked' : ''}>
+                                        <span class="ks2-sw-track"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="ks2-content">${sectionsHTML}</div>
+                            <div class="ks2-footer">
+                                <div class="ks2-footer-stats">
+                                    <div>
+                                        <div class="ks2-stat-val" id="ks2-active-cnt">${getActiveCount()}</div>
+                                        <div class="ks2-stat-lbl">AKTİF MODÜL</div>
                                     </div>
-                                    ${sec.items.map(opt => `
-                                    	<div class="ks-card ${opt.sub ? 'sub' : ''}" data-desc="${opt.desc}" onclick="document.getElementById('${opt.id}').click()">
-                                            <span>${opt.label}</span>
-                                            <label class="ks-sw" onclick="event.stopPropagation()">
-                                                <input type="checkbox" id="${opt.id}" data-key="${opt.key}" ${getSetting(opt.key) ? 'checked' : ''}>
-                                                <span class="ks-slider"></span>
-                                            </label>
-                                        </div>
-                                    `).join('')}
+                                    <div class="ks2-stat-divider"></div>
+                                    <div>
+                                        <div class="ks2-stat-val">${totalItems}</div>
+                                        <div class="ks2-stat-lbl">TOPLAM</div>
+                                    </div>
                                 </div>
-                            `).join('')}
-                            <footer class="ks-footer">
-                                <span style="font-size:10px; color: #7c7c8a; font-weight:700;">SÜRÜM ${GM_info.script.version}</span>
-                                <div style="display:flex; gap:15px; align-items:center;">
-                                    <button style="background:none; border:none; color: #7c7c8a; cursor:pointer; font-size:11px; font-weight:700;" id="ks-close-btn">VAZGEÇ</button>
-                                    <button id="ks-save-final" class="ks-btn-save">AYARLARI KAYDET</button>
+                                <div class="ks2-footer-btns">
+                                    <button class="ks2-fbtn ks2-fbtn-cancel" id="ks2-btn-cancel"><span>VAZGEÇ</span></button>
+                                    <button class="ks2-fbtn ks2-fbtn-save" id="ks2-btn-save">
+                                        <span>KAYDET</span>
+                                        <span class="ks2-fbtn-glow"></span>
+                                    </button>
                                 </div>
-                            </footer>
-                        </main>
-                    </div>
-                `;
+                            </div>
+                        </div>
+                    </div>`;
                 document.body.appendChild(overlay);
-                const tip = document.createElement('div');
-                tip.id = 'ks-dynamic-tooltip';
-                Object.assign(tip.style, { display: 'none', zIndex: '99999999', visibility: 'visible', opacity: '1' });
-                document.body.appendChild(tip);
-                overlay.querySelectorAll('.ks-card').forEach(card => {
-                    card.onmouseenter = () => { const desc = card.getAttribute('data-desc'); if (desc) { tip.innerText = desc; tip.style.display = 'block'; } };
-                    card.onmousemove = (e) => { tip.style.left = (e.clientX + 15) + 'px'; tip.style.top = (e.clientY + 15) + 'px'; };
-                    card.onmouseleave = () => { tip.style.display = 'none'; };
-                });
-                overlay.querySelectorAll('.ks-tab').forEach(tab => {
-                    tab.onclick = () => {
-                        overlay.querySelectorAll('.ks-tab').forEach(t => t.classList.remove('active'));
-                        overlay.querySelectorAll('.ks-view').forEach(v => v.classList.add('hidden'));
-                        tab.classList.add('active');
-                        document.getElementById(tab.dataset.target).classList.remove('hidden');
-                        document.querySelector('#ks-title').innerText = tab.innerText.replace(/[^\w\s]/gi, '').trim();
-                    };
-                });
-                document.getElementById('ks-close-btn').onclick = closeModal;
-                document.getElementById('ks-master-sw').onchange = (e) => setSetting('KS_SYS', e.target.checked);
-                sections.forEach(s => s.items.forEach(opt => {
-                    const el = document.getElementById(opt.id);
-                    if (el) el.onchange = (e) => setSetting(opt.key, e.target.checked);
-                }));
-                document.getElementById('ks-theme-select').onchange = (e) => {
-                    setSetting('KS_THEME', e.target.value);
-                    closeModal();
-                    openSettingsModal();
+                document.body.style.overflow = 'hidden';
+                // ── Kartları oluştur ────────────────────────────────────────────
+                const updateStats = () => {
+                    document.getElementById('ks2-active-cnt').textContent = getActiveCount();
+                    SECTIONS.forEach(sec => {
+                        const el = document.getElementById('ks2-cnt-' + sec.id);
+                        if (el) el.textContent = getSecCount(sec);
+                    });
                 };
-                document.getElementById('ks-save-final').onclick = () => {
-                    closeModal();
-                    if (confirm("Ayarlar kaydedildi. Sayfa yenilenecektir?")) window.location.reload();
+                const toggleCard = (key, on) => {
+                    setSetting(key, on);
+                    const card = overlay.querySelector(`.ks2-mod-card[data-key="${key}"]`);
+                    const pill = overlay.querySelector(`#ks2-pill-${key}`);
+                    const chk = overlay.querySelector(`input[data-key="${key}"]`);
+                    if (card) card.classList.toggle('ks2-on', on);
+                    if (pill) pill.textContent = on ? '● AKTİF' : '○ KAPALI';
+                    if (chk && chk.checked !== on) chk.checked = on;
+                    updateStats();
                 };
+                SECTIONS.forEach(sec => {
+                    const grid = overlay.querySelector('#ks2-grid-' + sec.id);
+                    sec.items.forEach(item => {
+                        const on = getSetting(item.key);
+                        const card = document.createElement('div');
+                        card.className = 'ks2-mod-card' + (on ? ' ks2-on' : '');
+                        card.dataset.key = item.key;
+                        card.innerHTML = `
+                            <div class="ks2-corner ks2-corner-tl"></div>
+                            <div class="ks2-corner ks2-corner-br"></div>
+                            <div class="ks2-card-top">
+                                <div class="ks2-card-icon">${item.icon}</div>
+                                <label class="ks2-sw" onclick="event.stopPropagation()">
+                                    <input type="checkbox" data-key="${item.key}" ${on ? 'checked' : ''}>
+                                    <span class="ks2-sw-track"></span>
+                                </label>
+                            </div>
+                            <div class="ks2-card-title">${item.title}</div>
+                            <div class="ks2-card-desc">${item.desc}</div>
+                            <div class="ks2-card-footer">
+                                <span class="ks2-status-pill" id="ks2-pill-${item.key}">${on ? '● AKTİF' : '○ KAPALI'}</span>
+                                <span class="ks2-sub-tag ${item.sub ? 'ks2-tag-alt' : 'ks2-tag-core'}">${item.sub ? 'ALT MODÜL' : 'ANA MODÜL'}</span>
+                            </div>`;
+
+                        const chk = card.querySelector('input');
+                        chk.addEventListener('change', (e) => { e.stopPropagation(); toggleCard(item.key, chk.checked); });
+                        card.addEventListener('click', () => { const v = !getSetting(item.key); chk.checked = v; toggleCard(item.key, v); });
+                        grid.appendChild(card);
+                    });
+                });
+                // ── Navigasyon ─────────────────────────────────────────────────
+                overlay.querySelectorAll('.ks2-nav-item').forEach(navEl => {
+                    navEl.addEventListener('click', () => {
+                        overlay.querySelectorAll('.ks2-nav-item').forEach(n => n.classList.remove('ks2-active'));
+                        overlay.querySelectorAll('.ks2-sec-view').forEach(s => s.classList.remove('ks2-active'));
+                        navEl.classList.add('ks2-active');
+                        overlay.querySelector('#ks2-sec-' + navEl.dataset.sec).classList.add('ks2-active');
+                        overlay.querySelector('#ks2-sec-title').textContent = navEl.dataset.title;
+                    });
+                });
+                // ── Bulk toggle ─────────────────────────────────────────────────
+                overlay.querySelectorAll('.ks2-bulk-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const secId = btn.dataset.grid;
+                        const on = btn.dataset.val === '1';
+                        const sec = SECTIONS.find(s => s.id === secId);
+                        if (!sec) return;
+                        sec.items.forEach(item => { toggleCard(item.key, on); });
+                    });
+                });
+                // ── Master switch ───────────────────────────────────────────────
+                overlay.querySelector('#ks2-master').addEventListener('change', (e) => {
+                    setSetting('KS_SYS', e.target.checked);
+                });
+                // ── Tema rengi ─────────────────────────────────────────────────
+                overlay.querySelectorAll('.ks2-cdot').forEach(dot => {
+                    dot.addEventListener('click', () => {
+                        overlay.querySelectorAll('.ks2-cdot').forEach(d => { d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel'); });
+                        dot.style.borderColor = dot.dataset.c;
+                        dot.classList.add('ks2-sel');
+                        overlay.querySelector('#ks2-root').style.setProperty('--ks2-cy', dot.dataset.c);
+                        setSetting('KS_THEME', dot.dataset.c);
+                    });
+                });
+                // Kayıtlı tema rengini uygula
+                const savedTheme = getSetting('KS_THEME');
+                if (savedTheme) {
+                    overlay.querySelector('#ks2-root').style.setProperty('--ks2-cy', savedTheme);
+                    overlay.querySelectorAll('.ks2-cdot').forEach(d => {
+                        d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel');
+                        if (d.dataset.c === savedTheme) { d.style.borderColor = savedTheme; d.classList.add('ks2-sel'); }
+                    });
+                }
+                // ── Footer butonları ────────────────────────────────────────────
+                overlay.querySelector('#ks2-btn-cancel').addEventListener('click', closeModal);
+                overlay.querySelector('#ks2-btn-save').addEventListener('click', () => {
+                    closeModal();
+                    if (confirm('Ayarlar kaydedildi. Sayfa yenilensin mi?')) window.location.reload();
+                });
+            	window.openSettingsModal = openSettingsModal;
+            	document.addEventListener('keydown', (e) => {
+            	    if (e.altKey && e.key === 's') openSettingsModal();
+            	});
             };
-            if (!kstatus.hasAttribute('data-hover')) kstatus.innerHTML = `KS TOOLS`;
         };
         setInterval(injectPanel, 2000); injectPanel();
     }
@@ -1608,9 +2077,7 @@
     }
     // Hızlı Referans açma Otohasar
     if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("eks_hasar_yp_list_yp_talep.php")) {
-        config.bottom = "24px";
-        config.width = "200px";
-        config.collapsedWidth = "200px";
+        let wdt ="200px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -1720,9 +2187,7 @@
         }
     }
     if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("talep_yp_giris.php")) {
-        config.bottom = "24px";
-        config.width = "200px";
-        config.collapsedWidth = "200px";
+        let wdt ="200px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -1801,9 +2266,7 @@
         }
     }
     if (KS_SYSTEM && REFERANS && location.href.includes("otohasar") && location.href.includes("talep_yp_ayrinti.php")) {
-        config.bottom = "24px";
-        config.width = "150px";
-        config.collapsedWidth = "150px";
+        let wdt ="150px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         if (panel) {
@@ -1868,13 +2331,13 @@
                 --transition-speed: 0.4s;
                 --toggle-loc: 250px;
             }
-body {
-    transition: margin-right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-    margin-right: 260px !important;
-}
-body.panel-closed {
-    margin-right: 0 !important;
-}
+			body {
+			    transition: margin-right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+			    margin-right: 260px !important;
+			}
+			body.panel-closed {
+			    margin-right: 0 !important;
+			}
 			#tm-panel {
                 position: fixed; top: 0; right: 0; width: 250px; height: 100vh;
                 background: var(--panel-bg);
@@ -2331,8 +2794,7 @@ body.panel-closed {
     }
     // Hızlı Çoklu Parça girişi
     if (KS_SYSTEM && MANUEL && location.href.includes("otohasar") && location.href.includes("eks_hasar_yedpar_multi.php") && !location.href.includes("eks_hasar_yedpar_multi_form.php")) {
-        config.width = "180px";
-        config.collapsedWidth = "180px";
+        let wdt ="180px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -2449,8 +2911,7 @@ body.panel-closed {
     // Hızlı Resim girişi
     if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("multi_file_upload/index.php")) {
         const getSistemAyarlari = () => {
-            config.width = "100px";
-            config.collapsedWidth = config.width;
+            let wdt ="100px"; config.width = wdt; config.collapsedWidth = wdt;
             initPanel();
             const text = document.body.innerText.toUpperCase();
             const url = location.href.toLowerCase();
@@ -2788,8 +3249,7 @@ body.panel-closed {
     }
     // Resim yükleme kontrolü
     if (KS_SYSTEM && RESIM && location.href.includes("otohasar") && location.href.includes("eks_hasar_evrak_foto_list.php")) {
-        config.width = "150px";
-        config.collapsedWidth = config.width;
+        let wdt ="150px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
@@ -3232,9 +3692,7 @@ body.panel-closed {
             url.searchParams.set("pagingSize", "50");
             location.replace(url.href);
         }
-        config.bottom = "22px";
-        config.width = "200px";
-        config.collapsedWidth = "200px";
+        let wdt ="200px"; config.width = wdt; config.collapsedWidth = wdt;
         initPanel();
         const contentArea = document.querySelector('.ks-content');
         let lastState = "";
