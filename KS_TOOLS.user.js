@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.51
+// @version      1.52
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
 // @author       Saygın
@@ -24,18 +24,14 @@
 (function () {
     'use strict';
     /* ---Eklenecekler
-
         *** paneller düzenlenecek; genişlikleri, kaydırma oranı, görünümü vs.
-
         sağ üste danseden doge
-
         Gerekli evrak gösteren panel - duruma bağlı
         Veriyi sayfalar arası taşıma - aynı adres kökünde
         Resim okuma gelişimi - isme göre
         Ek tasarım şekilleri
         genel sigorta sayfası giriş destekleri ~türkiye sigorta, quick
         oto seçtirici sistem gelişmiş versiyon
-
         */
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
@@ -3788,86 +3784,83 @@
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (KS_SYSTEM && SAHIBINDEN && location.href.includes("sahibinden.com") && !location.pathname.includes("/ilan/") && !location.pathname.includes("/kategori/")) {
-        if (!location.search.includes("pagingSize=50")) {
-            const url = new URL(location.href); url.searchParams.set("pagingSize", "50"); location.replace(url.href);
-        }
-        config.width = '150px';
-        initPanel();
-        const panel = document.getElementById('ks-master-panel');
-        if (!panel) return;
-        panel.style.setProperty('width', config.width);
-        panel.style.setProperty('min-width', config.width);
-        if (document.body.classList.contains('ks-panel-open')) { document.body.style.marginRight = config.width; }
-        const contentArea = document.querySelector('.ks-content');
-        let lastState = "";
-        if (contentArea) {
-            contentArea.id = 'sahibinden-modern-panel';
-            Object.assign(contentArea.style, { minWidth: '200px', pointerEvents: 'none' });
-            contentArea.innerHTML = '🔍 Veriler analiz ediliyor...';
-            const getColumnIndex = (names) => {
-                const headers = document.querySelectorAll('table thead td, table thead th');
-                return Array.from(headers).findIndex(h => names.some(n => h.innerText.trim().toLowerCase() === n.toLowerCase()));
-            };
-            function hesapla() {
-                const fIdx = getColumnIndex(['Fiyat', 'Price']);
-                const kIdx = getColumnIndex(['KM', 'Mileage']);
-                const yIdx = getColumnIndex(['Yıl', 'Year']);
-                if (fIdx === -1) { contentArea.innerHTML = '⚠️ Fiyat sütunu bulunamadı'; return; }
-                const rows = document.querySelectorAll('table tbody tr:not(.nativeAd)');
-                let fTop = 0, fAd = 0, fMin = Infinity, fMax = 0;
-                let kmTop = 0, kmAd = 0, kmMin = Infinity, kmMax = 0;
-                const yilSeti = new Set();
-                rows.forEach(row => {
-                    const cells = row.cells;
-                    if (!cells || cells.length <= Math.max(fIdx, kIdx, yIdx)) return;
-                    const vFiyat = parseFloat(cells[fIdx].innerText.replace(/[^\d]/g, ''));
-                    if (vFiyat > 0) {
-                        fTop += vFiyat; fAd++;
-                        if (vFiyat < fMin) fMin = vFiyat;
-                        if (vFiyat > fMax) fMax = vFiyat;
-                    }
-                    if (kIdx !== -1) {
-                        const vKm = parseInt(cells[kIdx].innerText.replace(/[^\d]/g, ''), 10);
-                        if (!isNaN(vKm)) {
-                            kmTop += vKm; kmAd++;
-                            if (vKm < kmMin) kmMin = vKm;
-                            if (vKm > kmMax) kmMax = vKm;
-                        }
-                    }
-                    if (yIdx !== -1) {
-                        const vYil = parseInt(cells[yIdx].innerText.trim(), 10);
-                        if (!isNaN(vYil)) yilSeti.add(vYil);
-                    }
-                });
-                if (fAd === 0) return;
-                const currentState = `${fAd}-${fTop}-${kmTop}`;
-                if (lastState === currentState) return;
-                lastState = currentState;
-                const fOrt = Math.round(fTop / fAd).toLocaleString('tr-TR');
-                const kmOrt = kmAd ? Math.round(kmTop / kmAd).toLocaleString('tr-TR') : '-';
-                const yillar = [...yilSeti].sort((a, b) => a - b);
-                const yilText = yillar.length > 0 ? (yillar.length > 2 ? `${yillar[0]} - ${yillar.at(-1)}` : yillar.join(' / ')) : '-';
-                contentArea.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <b style="color:#ffce44">📊 İstatistikler</b>
-                    <span style="background:#555; padding:2px 6px; border-radius:4px; font-size:10px;">${fAd} İlan</span>
-                </div>
-                <div style="display:grid; gap:4px; font-size:13px;">
-                    <div>💰 <b>Ort:</b> ${fOrt} TL</div>
-                    <div>🛣️ <b>Ort:</b> ${kmOrt} km</div>
-                    <div>📅 <b>Yıl:</b> ${yilText}</div>
-                </div>
-                <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); font-size:11px; opacity:0.8;">
-                    <div>Min: ${fMin.toLocaleString('tr-TR')} TL / ${kmMin === Infinity ? 0 : kmMin.toLocaleString('tr-TR')} km</div>
-                    <div>Max: ${fMax.toLocaleString('tr-TR')} TL / ${kmMax.toLocaleString('tr-TR')} km</div>
-                </div>`;
-            }
-            const init = () => {
-                if (document.querySelector('table')) { hesapla(); setInterval(hesapla, 2000); } else { setTimeout(init, 500); }
-            };
-            init();
-        }
-    }
+		if (!location.search.includes("pagingSize=50")) { const url = new URL(location.href); url.searchParams.set("pagingSize", "50"); location.replace(url.href); }
+		config.width = '150px';
+		initPanel();
+		const panel = document.getElementById('ks-master-panel');
+		if (!panel) return;
+		panel.style.setProperty('width', config.width);
+		const contentArea = document.querySelector('.ks-content');
+		let lastState = "";
+		const getPanelTip = () => {
+			let tip = document.getElementById('ks-dynamic-tooltip');
+			if (!tip) {
+				tip = document.createElement('div');
+				tip.id = 'ks-dynamic-tooltip';
+				Object.assign(tip.style, { zIndex: '99999999', opacity: '0', position: 'fixed', pointerEvents: 'none' });
+				tip.innerHTML = '<div class="ks-tip-head"><strong>BİLGİ ANALİZİ</strong></div><div class="ks-tip-body"></div>';
+				document.body.appendChild(tip);
+			} return tip;
+		};
+		const bindTooltips = (container) => {
+			const panelTip = getPanelTip();
+			container.querySelectorAll('[data-tip-head]').forEach(el => {
+				el.addEventListener('mouseenter', () => {
+					panelTip.querySelector('strong').innerText = el.getAttribute('data-tip-head');
+					panelTip.querySelector('.ks-tip-body').innerText = el.getAttribute('data-tip-body');
+					panelTip.classList.add('visible');
+					panelTip.style.opacity = '1';
+					panelTip.style.visibility = 'visible';
+				});
+				el.addEventListener('mousemove', (e) => { panelTip.style.left = (e.clientX + 12) + 'px'; panelTip.style.top = (e.clientY - 34) + 'px'; });
+				el.addEventListener('mouseleave', () => { panelTip.classList.remove('visible'); panelTip.style.opacity = '0'; panelTip.style.visibility = 'hidden'; });
+			});
+		};
+		function hesapla() {
+			const getIdx = (n) => {
+				const h = document.querySelectorAll('table thead td, table thead th');
+				return Array.from(h).findIndex(x => n.some(s => x.innerText.trim().toLowerCase() === s.toLowerCase()));
+			};
+			const fIdx = getIdx(['Fiyat', 'Price']), kIdx = getIdx(['KM', 'Mileage']), yIdx = getIdx(['Yıl', 'Year']);
+			const rows = Array.from(document.querySelectorAll('table tbody tr:not(.nativeAd)'))
+				.map(r => ({
+					f: parseFloat(r.cells[fIdx]?.innerText.replace(/[^\d]/g, '') || 0),
+					k: parseInt(r.cells[kIdx]?.innerText.replace(/[^\d]/g, '') || 0, 10),
+					y: parseInt(r.cells[yIdx]?.innerText.trim() || 0, 10)
+				})).filter(x => x.f > 1000).sort((a, b) => a.f - b.f);
+			if (!rows.length) return;
+			const cState = `${rows.length}-${rows[0].f}`;
+			if (lastState === cState) return; lastState = cState;
+			const fmt = (v) => v.toLocaleString('tr-TR');
+			const avg = (arr, k) => Math.round(arr.reduce((a, b) => a + (b[k] || 0), 0) / arr.length);
+			const low3 = rows.slice(0, 3), high3 = rows.slice(-3).reverse();
+			const midIdx = Math.max(0, Math.floor(rows.length / 2) - 1);
+			const mid3 = rows.slice(midIdx, midIdx + 3);
+			const rowTpl = (x, head) => `
+		    	<div data-tip-head="${head}" data-tip-body="${x.y} Model | ${fmt(x.k)} KM" style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px; cursor:help; border-left:2px solid currentColor; padding-left:4px;">
+		    	    <span style="color:#ddd">${fmt(x.f)}</span>
+		    	    <span style="color:#aaa">${x.y}</span>
+		    	</div>`;
+			contentArea.innerHTML = `
+		    	<div style="text-align:center; background:#444; margin-bottom:5px; font-weight:800; font-size:10px;">SAHİBİNDEN ANALİZ (#${rows.length})</div>
+		    	<div style="margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid #333;">
+		    	    <div data-tip-head="GENEL ORTALAMA" data-tip-body="Fiyat: ${fmt(avg(rows, 'f'))} TL | KM: ${fmt(avg(rows, 'k'))}">
+		    	        <div>💰 <b>Fiyat:</b> ${fmt(avg(rows, 'f'))}</div>
+		    	        <div>🛣️ <b>KM:</b> ${fmt(avg(rows, 'k'))}</div>
+		    	    </div>
+		    	</div>
+		    	<div style="color:#f87171; font-size:9px; font-weight:bold; margin-top:4px;">▲ EN YÜKSEK</div>
+		    	${high3.map(x => rowTpl(x, 'EN PAHALI İLANLAR')).join('')}
+		    	<div style="color:#fbbf24; font-size:9px; font-weight:bold; margin-top:4px;">⚝ PİYASA</div>
+		    	${mid3.map(x => rowTpl(x, 'ORTALAMA PİYASA')).join('')}
+		    	<div style="color:#4ade80; font-size:9px; font-weight:bold;">▼ EN DÜŞÜK</div>
+		    	${low3.map(x => rowTpl(x, 'EN UCUZ İLANLAR')).join('')}
+		        `;
+			bindTooltips(contentArea);
+		}
+		const init = () => { if (document.querySelector('table')) { hesapla(); setInterval(hesapla, 3000); } else { setTimeout(init, 500); } };
+		init();
+	}
     // Whatsapp Resim indirme
     if (KS_SYSTEM && WHATSAPP && location.href.includes("web.whatsapp.com")) {
         const getFileName = () => {
@@ -3976,10 +3969,7 @@
                 border-radius: 20px;
                 opacity: 0.4;
             }
-            .tab-header .tab-button::after,
-            .tab-header .tab-button::before {
-                display: none !important;
-            }
+            .tab-header .tab-button::after, .tab-header .tab-button::before { display: none !important; }
         `;
             document.head.appendChild(style);
         }
@@ -4032,26 +4022,15 @@
                 const fName = document.querySelector('input[id*="Name"]:not([id*="victim"]), input[name*="Name"]:not([name*="victim"])')?.value || "";
                 const lName = document.querySelector('input[id*="Surname"]:not([id*="victim"]), input[name*="Surname"]:not([name*="victim"])')?.value || "";
                 const fullName = (fName + " " + lName).trim();
-                if (fullName.length > 1) {
-                    forceUpdateValue(input, fullName);
-                }
+                if (fullName.length > 1) { forceUpdateValue(input, fullName); }
             }
         }
         function initGlobalListener() {
             const events = ['mousedown', 'focusin'];
-            events.forEach(evtType => {
-                document.addEventListener(evtType, (e) => {
-                    if (e.target.classList.contains('dx-texteditor-input')) {
-                        setTimeout(() => handleMagicFill(e.target), 250);
-                    }
-                }, true);
-            });
+            events.forEach(evtType => { document.addEventListener(evtType, (e) => { if (e.target.classList.contains('dx-texteditor-input')) { setTimeout(() => handleMagicFill(e.target), 250); } }, true); });
         }
         initGlobalListener();
-        setInterval(() => {
-            applyModernStyles();
-            if (document.querySelector('.osem-tab-btn') && !document.getElementById('ts-modern-styles')) { applyModernStyles(); }
-        }, 1000);
+        setInterval(() => { applyModernStyles(); if (document.querySelector('.osem-tab-btn') && !document.getElementById('ts-modern-styles')) { applyModernStyles(); } }, 1000);
         const observer = new MutationObserver(() => {
             const overlays = document.querySelectorAll('.dx-overlay-wrapper.dx-overlay-shader');
             overlays.forEach(overlay => {
@@ -4081,16 +4060,9 @@
                         alignItems: 'center',
                         justifyContent: 'center'
                     });
-                    closeBtn.onclick = function () {
-                        overlay.remove();
-                    };
+                    closeBtn.onclick = function () { overlay.remove(); };
                     const contentArea = overlay.querySelector('.dx-overlay-content');
-                    if (contentArea) {
-                        if (window.getComputedStyle(contentArea).position === 'static') {
-                            contentArea.style.position = 'relative';
-                        }
-                        contentArea.appendChild(closeBtn);
-                    }
+                    if (contentArea) { if (window.getComputedStyle(contentArea).position === 'static') { contentArea.style.position = 'relative'; } contentArea.appendChild(closeBtn); }
                 }
             });
         });
@@ -4323,12 +4295,7 @@
             btn.id = 'scroll-to-bottom-btn';
             btn.innerHTML = '↓';
             btn.title = 'Sayfa Altına İn';
-            btn.onclick = () => {
-                window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: 'smooth'
-                });
-            };
+            btn.onclick = () => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); };
             document.body.appendChild(btn);
         }
         function createTopBtn() {
@@ -4345,13 +4312,8 @@
         // 2. Menü Oluşturma ve Güncelleme Mantığı
         function updateMenu() {
             let panel = document.getElementById('custom-nav-panel');
-            if (!panel) {
-                panel = document.createElement('div');
-                panel.id = 'custom-nav-panel';
-                document.body.appendChild(panel);
-            }
-            createBottomBtn();
-            createTopBtn();
+            if (!panel) { panel = document.createElement('div'); panel.id = 'custom-nav-panel'; document.body.appendChild(panel); }
+            createBottomBtn(); createTopBtn();
             const selectors = '.accordion-header,.dx-field-item-content .dx-form-group-caption';
             //'.dx-item .dx-form-group-caption, .dx-item .dx-box-item .accordion-header, .accordion-header,.accordion-header .accordion-item, .dx-box-item .dx-form-group-caption';
             let elements = Array.from(document.querySelectorAll(selectors));
@@ -4478,11 +4440,19 @@
                 }
             });
         };
-        const run = () => {
-            document.querySelectorAll('input.inputDate, input[name*="date" i], input[id*="Date" i]').forEach(applyDateLogic);
-            handleAutoFill();
-        };
-        new MutationObserver(run).observe(document.body, { childList: true, subtree: true });
-        run();
+        const run = () => { document.querySelectorAll('input.inputDate, input[name*="date" i], input[id*="Date" i]').forEach(applyDateLogic); handleAutoFill(); };
+        new MutationObserver(run).observe(document.body, { childList: true, subtree: true }); run();
+        const saveBtn = document.getElementById('btnSaveExpertise');
+            if (saveBtn) {
+                const quickBtn = document.createElement('button');
+                quickBtn.type = 'button';
+                quickBtn.className = 'btn btn-sm btn-warning me-1';
+                quickBtn.id = 'btnQuickEntry';
+                quickBtn.innerHTML = '<i class="fa fa-bolt"></i> Hızlı Giriş';
+                quickBtn.onclick = () => {
+					alert("KSTools tarafından eklenen bu buton otomatik giriş için kullanılacaktır. Geçici olarak devre dışı! ")
+				};
+                saveBtn.parentNode.insertBefore(quickBtn, saveBtn);
+            }
     }
 })();
