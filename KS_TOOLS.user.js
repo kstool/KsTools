@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.53
+// @version      1.54
 // @license      GPL-3.0
-// @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme
+// @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
 // @match        *://*/*
 // @run-at       document-end
@@ -16,6 +16,7 @@
 // @grant        GM_download
 // @grant        GM_notification
 // @grant        GM_xmlhttpRequest
+// @connect      * ```
 // @connect      sahibinden.com
 // @connect      google.com
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
@@ -23,19 +24,19 @@
 // ==/UserScript==
 (function () {
     'use strict';
-        /* ---Eklenecekler
-        *** paneller düzenlenecek; genişlikleri, kaydırma oranı, görünümü vs.
+    /* ---Eklenecekler
+        *** paneller düzenlenecek
+        Ek tasarım şekilleri
         sağ üste danseden doge
         Gerekli evrak gösteren panel - duruma bağlı
         Veriyi sayfalar arası taşıma - aynı adres kökünde
         Resim okuma gelişimi - isme göre
-        Ek tasarım şekilleri
         genel sigorta sayfası giriş destekleri ~türkiye sigorta, quick
         oto seçtirici sistem gelişmiş versiyon
-        */
+    */
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
-    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
+    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart","loginfrm","login","signin","sign"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
         bottom: '0px', right: '0px', width: '250px',
@@ -68,6 +69,303 @@
     };
     const matchedKey = Object.keys(themes).find(key => url.includes(key));
     if (matchedKey) config.themeColor = themes[matchedKey];
+	/* ══════════════════════════════════════════════════════
+	   HASAR ANALİZ — yardımcı fonksiyonlar (global scope)
+	══════════════════════════════════════════════════════ */
+	function hapNorm(t) {
+	    if (!t) return '';
+	    return t.toUpperCase()
+	        .replace(/\u0130/g, 'I').replace(/\u0131/g, 'I')
+	        .replace(/\u011e/g, 'G').replace(/\u011f/g, 'G')
+	        .replace(/\u00dc/g, 'U').replace(/\u00fc/g, 'U')
+	        .replace(/\u015e/g, 'S').replace(/\u015f/g, 'S')
+	        .replace(/\u00d6/g, 'O').replace(/\u00f6/g, 'O')
+	        .replace(/\u00c7/g, 'C').replace(/\u00e7/g, 'C');
+	}
+	function hapHas(text, words) { var n = hapNorm(text); return words.some(function (w) { return n.indexOf(hapNorm(w)) !== -1; }); }
+	function hapFmtTL(val) {
+	    if (!val || val === 0) return '';
+	    if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M\u20BA';
+	    if (val >= 1000) return Math.round(val / 1000) + 'K\u20BA';
+	    return Math.round(val) + '\u20BA';
+	}
+	function hapScoreColor(n) {
+	    if (n === 0) return '#555';
+	    if (n <= 2) return '#1D9E75';
+	    if (n <= 5) return '#EF9F27';
+	    if (n <= 9) return '#D85A30';
+	    return '#E24B4A';
+	}
+	function hapBgColor(n) {
+	    if (n === 0) return '#1a1a1a';
+	    if (n <= 2) return '#0c2e22';
+	    if (n <= 5) return '#2e1f08';
+	    if (n <= 9) return '#2e1208';
+	    return '#2e0808';
+	}
+	function hapBorderColor(n) {
+	    if (n === 0) return '#333';
+	    if (n <= 2) return '#1D9E75';
+	    if (n <= 5) return '#EF9F27';
+	    if (n <= 9) return '#D85A30';
+	    return '#E24B4A';
+	}
+	/* Bölge tanımları */
+	var HAP_BOLGELER = [
+	    { id: 'hap-z-fl', label: 'On Sol', short: 'ON\nSOL',
+	      kw: ['TAMPON, ON SOL','FAR, SOL','LAMBA, SINYAL ON SOL','BRAKET, TAMPON BAGL. ON SOL',
+	           'BRAKET, TAMPON ON SOL','AMORTISÖR, KABIN ON SOL','SPORT, KABIN ALT SOL',
+	           'AMORTISÖR, KABIN ON/ARKA SOL','BASAMAK GOVDESI, SOL','CAMURLUK SOL',
+	           'FAR SOL','SINYAL SOL','ON SOL'] },
+	    { id: 'hap-z-fc', label: 'On Orta', short: 'ON\nORTA',
+	      kw: ['TAMPON, ON ORTA','PANJUR','IZGARA','RADYATOR','INTERCOOLER',
+	           'CAM, ON','KROS DEMIR ON','PERVANE, FAN','FAN TASIYICI','DAVLUMBAZ',
+	           'HORTUM','DEPO, RADYATOR','BORU, SU','BORU, RADYATOR',
+	           'SENSOR, YAGMUR','MEKANIZMA SILECEK','MOTOR, SILECEK','KOL, SILECEK',
+	           'SAC SASI ON','AMORTISÖR, TAMPON ON','MUHAFAZA TAMPON ON',
+	           'BAKALIT, TAMPON','FILTRE, HAVA','SPOYLER, TAVAN',
+	           'GUNESLIK TK. KABIN DIS ON UST','GUNESLIK',
+	           'BRAKET, TAMPON BAGL. ON','FAR,','LAMBA, SINYAL ON',
+	           'BRAKET, SASE','BRAKET, SASE BAGL'] },
+	    { id: 'hap-z-fr', label: 'On Sag', short: 'ON\nSAG',
+	      kw: ['TAMPON, ON SAG','BRAKET, TAMPON BAGL. ON SAG','BRAKET TAMPON ON SAG',
+	           'AMORTISÖR, KABIN ON SAG','SPORT, KABIN ALT SAG','MENTESE, PANJUR ON SAG',
+	           'BAKALIT, PANJUR YAN ON SAG','BRAKET, BASAMAK BAGL. ON ALT SAG',
+	           'BASAMAK GOVDESI, SAG','FAR SAG','FAR, SAG','SINYAL SAG','ON SAG'] },
+	    { id: 'hap-z-dl', label: 'Sol Kapi', short: 'SOL\nKAPI',
+	      kw: ['BASAMAK, CAMURLUK UST','BASAMAK, PLASTIK ALT','BASAMAK GOVDESI, SOL',
+	           'SPORT, BASAMAK BAGL. SAG/SOL','MUHAFAZA, BAKALIT CAMURLUK KENAR SAG',
+	           'MUHAFAZA, BAKALIT CAMURLUK IC SAG','CAMURLUK, BASAMAK SAG',
+	           'BRAKET, BASAMAK','CAMURLUK SOL','KAPI SOL','SOL KAPI'] },
+	    { id: 'hap-z-ch', label: 'Sase/Motor/Kabin', short: 'SASE\nKABIN',
+	      kw: ['KABIN,','TESISAT, TORPEDO','GOGUS TORPEDO','KAPAK, TORPEDO',
+	           'KROS, TAVAN','KROS, KABIN','BAKALIT, KABIN','KAPAK, KABIN',
+	           'BAKALIT, DIREK IC','KOL, TUTAMAK KABIN','PERDE, TK. KABIN',
+	           'SIGORTA','AMORTISÖR, KABIN','SPORT, KABIN AMORTISÖR',
+	           'SPORT, KOL KABIN DENGE','KOL, KROSS KABIN DENGE',
+	           'DEMIR, KROS KABIN','BRAKET, KABIN','KILIT, KABIN SEMERI',
+	           'SILINDIR, KABIN','BRAKET KABIN SILINDIR','FAN GOBEGI',
+	           'RADYATOR, TK.','ISITICI, KABIN WEBASTO','UNITE ELEKT.',
+	           'KAMERA SERIT','SPORT KAMERA YOL','DUGME, KABIN','DUGME, CAM',
+	           'HORTUM, ISITICI','BRAKET, RADYATOR BAGL.','MOTOR, SILECEK',
+	           'SPOYLER','PANEL, KABIN','KABIN IC','TORPIDO','TAVAN IC',
+	           'RADAR','AEBS','ACC','WEBASTO','KALORIFERI','MOTOR, FAN'] },
+	    { id: 'hap-z-dr', label: 'Sag Kapi', short: 'SAG\nKAPI',
+	      kw: ['KILIT, KAPI','MEKANIZMA, CAM ACMA SAG','MOTOR, CAM MEKANIZMA',
+	           'PANEL, KAPI DOSEME IC SAG','BAKALIT, KAPI IC','LASTIK, KAPI CAM',
+	           'LASTIK, KAPI IC','KIZAK, KAPI CAM','DOSEME, KAPI SAG',
+	           'SPORT, KAPI IC SAG','KOL, KAPI IC CEKME SAG',
+	           'BAKALIT, KAPI DIS IC SAG','BAKALIT, KAPI DIS SAG',
+	           'TESISAT, KAPI SAG','CAM, KAPI SAG','LASTIK, KAPI DOSEME IC',
+	           'HOPARLOR, KAPI','SUS, PANEL YAPISTIRMA SAG',
+	           'AYNA, DIS DIKIZ KOMPLE SAG','BAKALIT, KAPI IC SAG',
+	           'CIVATA, KAPI','KAPI SAG','SAG KAPI'] },
+	    { id: 'hap-z-rl', label: 'Arka Sol', short: 'ARK\nSOL',
+	      kw: ['CAMURLUK, ARKA SAG','PACALIK CAMURLUK ARKA','BAKALIT, CAM KENAR YAN SAG',
+	           'SPOYLER, KABIN YAN SAG UST','LASTIK, SPOYLER KABIN YAN',
+	           'BRAKET SPOYLER BAGL. KABIN YAN','AYNA, KALDIRIM','KAPAK, AYNA KALDIRIM',
+	           'DOLAP KAPAK','KAPAK, TAKIM KUTUSU SAG','BRAKET, KAPAK BAGL.',
+	           'BAKALIT, AYAK BASAMAK','BAKALIT, KABIN ALT KENAR',
+	           'MENTESE, SPOYLER','YAN SOL','ARKA SOL'] },
+	    { id: 'hap-z-rc', label: 'Arka Orta', short: 'ARKA\nORTA',
+	      kw: ['MUHAFAZA, BAKALIT PANJUR ARKA','ARKA TAMPON','TAMPON ARKA',
+	           'STOP LAMBASI','ARKA CAM','ARKA ORTA'] },
+	    { id: 'hap-z-rr', label: 'Arka Sag', short: 'ARK\nSAG',
+	      kw: ['CAMURLUK, BASAMAK SAG','BRAKET, BASAMAK BAGL. SAG',
+	           'MUHAFAZA, BAKALIT CAMURLUK IC SAG','BRAKET, MUHAFAZA CAMURLUK IC BAGL.',
+	           'BRAKET, CAMURLUK MUHAFAZA BAGL','BRAKET, SIGORTA KUTU ALT',
+	           'BAKALIT, AYAK BASAMAK SAG','BRAKET, BASAMAK SAG',
+	           'YAN SAG','ARKA SAG'] }
+	];
+	var HAP_KRITIK = ['AMORTISÖR','SASE','KROS','INTERCOOLER','RADYATOR','SILINDIR','RADAR','WEBASTO','FAN GOBEGI','KABIN, TRIMSIZ','TESISAT, TORPEDO'];
+	var HAP_YUKSEK_ESIK = 15000;
+	/* Parça satırını parse et: {ad, fiyat, adet} döndürür */
+	function hapParseSatir(row) {
+	    var cells = row.querySelectorAll('td');
+	    // Başlık satırı veya boş satırı atla
+	    if (cells.length < 5 || row.innerText.includes('Parça Adı')) return null;
+
+	    var ad = '', fiyat = 0, adet = 1;
+
+	    // 1. ADET BULMA (Senin listende index 5: Adet)
+	    var adetRaw = parseInt(cells[5].innerText.trim(), 10);
+	    if (!isNaN(adetRaw) && adetRaw > 0) adet = adetRaw;
+
+	    // 2. FİYAT BULMA (Index 6: Birim Fiyat, Index 7: Tutar)
+	    // Tutar yerine Birim Fiyatı almak analizi daha doğru yapar (Eşik değer kontrolü için)
+	    var priceStr = cells[6].innerText.trim()
+	        .replace(/\u00a0/g, '') // Non-breaking space temizle
+	        .replace(/[^\d,.]/g, ''); // Sayı, nokta ve virgül dışındakileri temizle (TL simgesi vs)
+
+	    // Türk formatı (1.234,56) -> Global format (1234.56) dönüşümü
+	    if (priceStr.includes(',') && priceStr.includes('.')) {
+	        priceStr = priceStr.replace(/\./g, '').replace(',', '.');
+	    } else if (priceStr.includes(',')) {
+	        priceStr = priceStr.replace(',', '.');
+	    }
+
+	    var pv = parseFloat(priceStr);
+	    if (!isNaN(pv)) fiyat = pv;
+
+	    // 3. PARÇA ADI BULMA (Index 4: Parça Adı)
+	    // Sabit index kullanmak "en uzun metni ara" mantığından daha güvenlidir
+	    if (cells[4]) {
+	        ad = cells[4].innerText.trim();
+	    }
+
+	    // Eğer ad hala boşsa fallback (eski mantık)
+	    if (!ad || ad.length < 2) {
+	        for (var i = 0; i < cells.length; i++) {
+	            var ct = cells[i].innerText.trim();
+	            if (ct.length > ad.length && !/^\d/.test(ct) && ct.length < 100) ad = ct;
+	        }
+	    }
+
+	    if (!ad || fiyat === 0) return null;
+	    return { ad: ad, fiyat: fiyat, adet: adet };
+	}
+	/* Ana analiz fonksiyonu */
+	function hapAnalizEt(rows) {
+	    var sonuc = {
+	        bSayac: {}, bTutar: {}, total: 0, kritik: 0,
+	        yuksek: 0, toplamTutar: 0, skor: 0
+	    };
+
+	    HAP_BOLGELER.forEach(function (b) {
+	        sonuc.bSayac[b.id] = 0;
+	        sonuc.bTutar[b.id] = 0;
+	    });
+
+	    var parcalar = [];
+	    rows.forEach(function (row) {
+	        var p = hapParseSatir(row);
+	        if (p) parcalar.push(p);
+	    });
+
+	    if (parcalar.length === 0) return sonuc;
+
+	    parcalar.forEach(function (p) {
+	        var nt = hapNorm(p.ad);
+	        var tutar = p.fiyat * p.adet;
+	        sonuc.toplamTutar += tutar;
+	        sonuc.total++;
+
+	        // Bölge eşleşmesi
+	        HAP_BOLGELER.forEach(function (b) {
+	            if (b.kw.some(function (k) { return nt.indexOf(hapNorm(k)) !== -1; })) {
+	                sonuc.bSayac[b.id]++;
+	                sonuc.bTutar[b.id] += tutar;
+	            }
+	        });
+
+	        // Kritik parça kontrolü (Şasi, Airbag, Radyatör vb.)
+	        if (HAP_KRITIK.some(function (k) { return nt.indexOf(hapNorm(k)) !== -1; })) {
+	            sonuc.kritik++;
+	        }
+
+	        // Yüksek değer kontrolü (Örn: 15.000 TL üzeri)
+	        if (p.fiyat >= (typeof HAP_YUKSEK_ESIK !== 'undefined' ? HAP_YUKSEK_ESIK : 15000)) {
+	            sonuc.yuksek++;
+	        }
+	    });
+
+	    // SKOR MANTIĞI: Daha dengeli bir hesaplama
+	    // Parça sayısı, kritik parça varlığı ve toplam tutarın ağırlığı
+	    var temelSkor = (sonuc.total * 0.1) + (sonuc.kritik * 1.2) + (sonuc.yuksek * 0.5);
+	    // Eğer 1 milyon TL üzeri hasar varsa skoru direkt yukarı çek
+	    if (sonuc.toplamTutar > 1000000) temelSkor += 2;
+
+	    sonuc.skor = Math.min(Math.round(temelSkor * 10) / 10, 10);
+
+	    return sonuc;
+	}
+	/* Panel içindeki hasar HTML'ini güncelle */
+	function hapPanelGuncelle(sonuc) {
+	    if (!sonuc) return;
+	    var maxB = Math.max.apply(null, HAP_BOLGELER.map(function (b) { return sonuc.bSayac[b.id]; }).concat([1]));
+	    HAP_BOLGELER.forEach(function (b) {
+	        var n = sonuc.bSayac[b.id];
+	        var tl = sonuc.bTutar[b.id];
+	        var cell = document.getElementById(b.id);
+	        if (!cell) return;
+	        cell.style.background = hapBgColor(n);
+	        cell.style.borderColor = hapBorderColor(n);
+	        var nEl = document.getElementById(b.id + '-n');
+	        var tEl = document.getElementById(b.id + '-tl');
+	        var bEl = document.getElementById(b.id + '-bar');
+	        if (nEl) { nEl.textContent = n; nEl.style.color = n === 0 ? '#444' : hapScoreColor(n); }
+	        if (tEl) { tEl.textContent = n > 0 ? hapFmtTL(tl) : ''; tEl.style.color = hapScoreColor(n); }
+	        if (bEl) { bEl.style.width = Math.round((n / maxB) * 100) + '%'; bEl.style.background = hapScoreColor(n); }
+	    });
+	    /* Skor halka */
+	    var arc = document.getElementById('hap-arc');
+	    var sval = document.getElementById('hap-skor-val');
+	    var circ = 131.9;
+	    if (arc) {
+	        arc.setAttribute('stroke-dashoffset', Math.round((circ - circ * sonuc.skor / 10) * 10) / 10);
+	        arc.setAttribute('stroke', hapScoreColor(Math.ceil(sonuc.skor)));
+	    }
+	    if (sval) sval.textContent = sonuc.skor.toFixed(1);
+	    var chipTotal = document.getElementById('hap-chip-total');
+	    var chipCrit = document.getElementById('hap-chip-crit');
+	    var chipHigh = document.getElementById('hap-chip-high');
+	    var chipTutar = document.getElementById('hap-chip-tutar');
+	    if (chipTotal) chipTotal.textContent = sonuc.total + ' parca';
+	    if (chipCrit) chipCrit.textContent = sonuc.kritik + ' kritik';
+	    if (chipHigh) chipHigh.textContent = sonuc.yuksek + ' yuksek deger';
+	    if (chipTutar) {chipTutar.textContent = (sonuc.toplamTutar > 0
+	        ? sonuc.toplamTutar.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' TL toplam'
+	        : '-- TL toplam');}
+	    var msg = sonuc.skor >= 7 ? 'Agir hasar - mekanik mudahale gerekebilir'
+	            : sonuc.skor >= 4 ? 'Orta-yuksek hasar'
+	            : sonuc.skor >= 2 ? 'Orta hasar - coklu bolge'
+	            : 'Hafif hasar';
+	    var statusEl = document.getElementById('hap-status-info');
+	    if (statusEl) statusEl.textContent = 'Skor ' + sonuc.skor.toFixed(1) + '/10 — ' + msg;
+	}
+	/* URL'den veri çekip analiz et */
+	function hapVerileriGetir(dosyaId, currentHost) {
+	    var protocol = window.location.protocol;
+	    // URL'leri kontrol et, bazen tam yol gerekebilir
+	    var urls = [
+	        protocol + '//' + currentHost + '/eks/eks_hasar_yp_list_pert.php?id=' + dosyaId,
+	        protocol + '//' + currentHost + '/eks/eks_hasar_yp_list.php?id=' + dosyaId
+	    ];
+	    console.log("HAP: Sorgu baslatildi. URL listesi:", urls);
+	    var requestCount = 0;
+	    urls.forEach(function (targetUrl) {
+	        GM_xmlhttpRequest({
+	            method: 'GET',
+	            url: targetUrl,
+	            timeout: 5000, // 5 saniye zaman asimi
+				anonymous: false,
+	            onload: function (res) {
+	                requestCount++;
+	                console.log("HAP: Yanit geldi -> " + targetUrl + " Statu: " + res.status);
+	                if (res.status === 200) {
+	                    var doc = new DOMParser().parseFromString(res.responseText, 'text/html');
+	                    var rows = Array.from(doc.querySelectorAll('table tr'));
+	                    console.log("HAP: Bulunan satir sayisi:", rows.length);
+	                    if (rows.length > 5) { // Basliklar haric veri varsa
+	                        var sonuc = hapAnalizEt(rows);
+	                        if (sonuc && sonuc.total > 0) {
+	                            console.log("HAP: Analiz basarili, panel güncelleniyor.");
+	                            hapPanelGuncelle(sonuc);
+	                        } else {
+	                            console.warn("HAP: Satir bulundu ama parca parse edilemedi.");
+	                        }
+	                    }
+	                }
+	                if (requestCount === urls.length && document.getElementById('hap-status-info').textContent === 'Veriler sorgulanıyor...') {
+	                     document.getElementById('hap-status-info').textContent = 'Veri bulunamadı veya yetki hatası.';
+	                }
+	            },
+	            onerror: function (err) {
+	                console.error("HAP: Baglanti hatasi!", err);
+	            }
+	        });
+	    });
+	}
     const injectStyles = () => {
         if (document.getElementById('ks-dynamic-styles')) return;
         const style = document.createElement('style');
@@ -120,74 +418,46 @@
                 border-left: 1px solid ${config.themeColor};
                 z-index: 5; pointer-events: none;
             }
-            .ks-draggable-panel.collapsed {
-                transform: translateX(${config.width});
-            }
+            .ks-draggable-panel.collapsed { transform: translateX(${config.width}); }
             @keyframes ks-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
             @keyframes ks-scan  { to{transform:translateY(50%)} }
             @keyframes ksBlink  { 0%,100%{opacity:1} 50%{opacity:0.3} }
 			.custom-line {
-			    border: 0;
-			    height: 1px;
-			    margin: 5px auto;
-			    display: block;
-			    width: 80%;
+                border: 0; height: 1px; margin: 5px auto; display: block; width: 80%;
 			    background: linear-gradient(90deg, #1a1a1a 0%, ${config.backColor} 40%, #1a1a1a 50%, ${config.backColor} 60%, #1a1a1a 100%);
 			    background-size: 200% 100%;
 			    animation: neonFlowslide 1.5s linear infinite;
 			    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 			}
-			@keyframes neonFlowslide {
-			    0% { background-position: 200% 0%; }
-			    100% { background-position: 0% 0%; }
-			}
-            .ks-scanline {
-                position: absolute; inset: 0;
-                pointer-events: none; overflow: hidden; z-index: 0;
-            }
+            @keyframes neonFlowslide { 0% { background-position: 200% 0%; } 100% { background-position: 0% 0%; } }
+            .ks-scanline { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
             .ks-scanline::after {
                 content: '';
                 position: absolute; top: -100%; left: 0; width: 100%; height: 200%;
                 background: repeating-linear-gradient( 0deg, transparent, transparent 3px, ${config.themeColor}08 3px, ${config.themeColor}08 4px );
                 animation: ks-scan 10s linear infinite;
             }
-            .ks-corner-br {
-                position: absolute; bottom: 8px; right: 8px;
-                width: 10px; height: 10px;
-                border-bottom: 1px solid ${config.themeColor}33;
-                border-right: 1px solid ${config.themeColor}33;
-                pointer-events: none; z-index: 2;
-            }
-            /* ── Toggle ── */
+            .ks-corner-br { position: absolute; bottom: 8px; right: 8px; width: 10px; height: 10px; border-bottom: 1px solid ${config.themeColor}33; border-right: 1px solid ${config.themeColor}33; pointer-events: none; z-index: 2; }
             #ks-panel-toggle {
                 position: fixed !important;
 				right: ${config.width};
                 top: 50% !important;
                 transform: translateY(-50%) !important;
-                width: 22px !important;
-                height: 54px !important;
+                width: 22px !important; height: 54px !important;
                 background: ${config.backColor} !important;
                 border: 1px solid ${config.themeColor} !important;
                 border-right: none !important;
                 border-radius: 6px 0 0 6px !important;
                 box-shadow: 0px 0px 10px 2px ${config.themeColor}66 !important;
                 cursor: pointer !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
+                display: flex !important; flex-direction: column !important;
+                align-items: center !important; justify-content: center !important;
                 gap: 4px !important;
                 z-index: ${Number(config.zIndex) - 10} !important;
-                transition: right 0.4s cubic-bezier(0.4,0,0.2,1),
-                            background 0.2s ease !important;
+                transition: right 0.4s cubic-bezier(0.4,0,0.2,1), background 0.2s ease !important;
             }
-            #ks-panel-toggle:hover { background: ${config.themeColor}80 !important; box-shadow: 0px 0px 5px 2px ${config.themeColor}66 !important;}
-            .ks-tbar {
-                width: 9px; height: 1.5px;
-                background: white;
-                display: block;
-                transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
-            }
+            #ks-panel-toggle:hover { background: ${config.themeColor}80 !important; box-shadow: 0px 0px 5px 2px ${config.themeColor}66 !important; }
+            .ks-tbar { width: 9px; height: 1.5px; background: white; display: block; transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease; }
             #ks-panel-toggle.ks-closed .ks-tbar:nth-child(1) { transform: translateY(2.5px) rotate(-45deg); }
             #ks-panel-toggle.ks-closed .ks-tbar:nth-child(2) { opacity: 0; width: 0; }
             #ks-panel-toggle.ks-closed .ks-tbar:nth-child(3) { transform: translateY(-2.5px) rotate(45deg); }
@@ -201,32 +471,11 @@
 				filter: brightness(1.3); font-weight: 700;
             }
             .ks-header:hover { background: white; }
-            .ks-title-diamond {
-                width: 12px; height: 12px;
-                background: ${config.themeColor};
-                transform: rotate(45deg); flex-shrink: 0;
-                animation: ks-pulse 2.5s ease-in-out infinite;
-            }
+            .ks-title-diamond { width: 12px; height: 12px; background: ${config.themeColor}; transform: rotate(45deg); flex-shrink: 0; animation: ks-pulse 2.5s ease-in-out infinite; }
             .ks-title-wrap { display: flex; flex-direction: column; flex: 1; }
-            .ks-title-text {
-                font-family: var(--fontier);
-                font-size: 12px; font-weight: 700;
-                color: ${config.themeColor};
-                letter-spacing: 2px; text-transform: uppercase;
-                pointer-events: none;
-            }
-            .ks-title-sub {
-                font-family: var(--fontier);
-                font-size: 10px; color: ${config.themeColor};
-                letter-spacing: 1.5px; text-transform: uppercase;
-                pointer-events: none;
-            }
-            .ks-header-ver {
-                font-family: var(--fontier);
-                font-size: 11px; color: ${config.themeColor};
-                border: 1px solid ${config.themeColor};
-                padding: 1px 4px; letter-spacing: 1px; flex-shrink: 0;
-            }
+            .ks-title-text { font-family: var(--fontier); font-size: 12px; font-weight: 700; color: ${config.themeColor}; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; }
+            .ks-title-sub { font-family: var(--fontier); font-size: 10px; color: ${config.themeColor}; letter-spacing: 1.5px; text-transform: uppercase; pointer-events: none; }
+            .ks-header-ver { font-family: var(--fontier); font-size: 11px; color: ${config.themeColor}; border: 1px solid ${config.themeColor}; padding: 1px 4px; letter-spacing: 1px; flex-shrink: 0; }
             /* ── İçerik ── */
             .ks-content {
                 overflow-y: auto; overflow-x: hidden;
@@ -241,35 +490,25 @@
             .ks-content * { max-width: 100% !important; box-sizing: border-box !important; }
             /* ── Butonlar ── */
             .ks-btn {
-                background: #0c5e9dd9;
-                color: white !important;
+                background: #0c5e9dd9; color: white !important;
                 border: 1px solid ${config.themeColor};
-                padding: 5px 6px;
-                font-family: var(--fontier);
+                padding: 5px 6px; font-family: var(--fontier);
                 font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
                 cursor: pointer; text-transform: uppercase;
                 transition: all 0.15s ease; outline: none; width: 100%;
                 height: 100%;
             }
-            .ks-btn:hover {
-                background: ${config.themeColor}30; color: #fff !important;
-                border-color: ${config.themeColor}77;
-            }
+            .ks-btn:hover { background: ${config.themeColor}30; color: #fff !important; border-color: ${config.themeColor}77; }
             .ks-btn:active { transform: translateY(1px); }
             .ks-btn-danger {
-                background: #d61111cf !important;
-                color: #ffffff !important;
+                background: #d61111cf !important; color: #ffffff !important;
                 border: 1px solid rgba(220,50,50,0.3) !important;
-                padding: 5px 6px;
-                font-family: var(--fontier);
+                padding: 5px 6px; font-family: var(--fontier);
                 font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
                 cursor: pointer; text-transform: uppercase;
                 transition: all 0.15s ease; outline: none; width: 100%;
             }
-            .ks-btn-danger:hover {
-                background: rgba(220,50,50,0.22) !important; color: #fff !important;
-                border-color: rgba(220,50,50,0.6) !important;
-            }
+            .ks-btn-danger:hover { background: rgba(220,50,50,0.22) !important; color: #fff !important; border-color: rgba(220,50,50,0.6) !important; }
             .ks-btn-danger:active { transform: translateY(1px); }
             .ks-divider { border: none; border-top: 1px solid ${config.themeColor}10; margin: 3px 0; flex-shrink: 0; }
             .ks-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
@@ -282,66 +521,72 @@
                 border-left: 2px solid ${config.themeColor}55 !important;
                 outline: none !important; resize: vertical !important; font-size: 11px !important;
             }
-            #page-note-input:focus {
-                border-color: ${config.themeColor}44 !important;
-                border-left-color: ${config.themeColor} !important;
-            }
+            #page-note-input:focus { border-color: ${config.themeColor}44 !important; border-left-color: ${config.themeColor} !important; }
             /* ── Tooltip ── */
             .ks-tooltip-container { position: relative; display: block; width: 100%; }
             .ks-tooltip-box { display: none !important; }
             #ks-dynamic-tooltip {
                 position: fixed;
                 z-index: ${Number(config.zIndex) + 100000};
-                max-width: 220px;
-                padding: 0;
+                max-width: 220px; padding: 0;
                 background: #17181be6;
                 border: 1px solid ${config.themeColor};
                 border-left: 2px solid ${config.themeColor};
-                color: #fff;
-                font-family: var(--fontier);
+                color: #fff; font-family: var(--fontier);
                 font-size: 12px; line-height: 1.2;
-                pointer-events: none;
-                opacity: 0; visibility: hidden;
+                pointer-events: none; opacity: 0; visibility: hidden;
                 transition: opacity 0.15s ease;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             }
             #ks-dynamic-tooltip.visible { opacity: 1; visibility: visible; }
-            #ks-dynamic-tooltip .ks-tip-head {
-                padding: 6px 10px 5px;
-                border-bottom: 1px solid ${config.themeColor};
-                background: ${config.themeColor}0f;
+            #ks-dynamic-tooltip .ks-tip-head { padding: 6px 10px 5px; border-bottom: 1px solid ${config.themeColor}; background: ${config.themeColor}0f; }
+            #ks-dynamic-tooltip .ks-tip-head strong { display: block; color: color-mix(in srgb, ${config.themeColor}, white 80%); filter: brightness(1.3); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.3px; }
+            #ks-dynamic-tooltip .ks-tip-body { padding: 7px 10px 8px; font-size: 11px; color: #a8b4c0; }
+
+            /* ════ HASAR PANELİ STİLLERİ ════ */
+            #hasar-section { padding: 4px 0; }
+            #hap-score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+            #hap-ring-wrap { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
+            #hap-skor-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 13px; font-weight: 700; color: #fff; }
+            #hap-chips { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+            .hap-chip { font-size: 9px; padding: 1px 6px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+            .hap-chip-n { background: #222; color: #aaa; border: 1px solid #333; }
+            .hap-chip-r { background: #2e0808; color: #E24B4A; border: 1px solid #7a1f1f; }
+            .hap-chip-y { background: #2e1f08; color: #EF9F27; border: 1px solid #7a4f0f; }
+            .hap-chip-b { background: #0a1e2e; color: #5aa8e0; border: 1px solid #1a3e5e; }
+            #hap-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: auto auto auto;
+                gap: 3px; margin-bottom: 6px;
             }
-            #ks-dynamic-tooltip .ks-tip-head strong {
-                display: block;
-                color: color-mix(in srgb, ${config.themeColor}, white 80%);
-				filter: brightness(1.3);
-                font-size: 13px; font-weight: 800;
-                text-transform: uppercase; letter-spacing: 1.3px;
+            .hap-cell {
+                background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+                padding: 4px 2px; display: flex; flex-direction: column;
+                align-items: center; min-height: 52px;
+                transition: background .3s, border-color .3s;
             }
-            #ks-dynamic-tooltip .ks-tip-body {
-                padding: 7px 10px 8px;
-                font-size: 11px; color: #a8b4c0;
-            }
+            .hap-cell-span { grid-row: span 2; min-height: 107px; }
+            .hap-cell-lbl { font-size: 7px; color: #555; text-align: center; white-space: pre-line; line-height: 1.2; font-weight: 600; letter-spacing: .02em; }
+            .hap-cell-n { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.1; margin-top: 2px; }
+            .hap-cell-tl { font-size: 7px; color: #888; min-height: 9px; text-align: center; line-height: 1; }
+            .hap-bar-wrap { width: 100%; height: 2px; background: #2a2a2a; border-radius: 1px; margin-top: 3px; }
+            .hap-bar { height: 100%; border-radius: 1px; width: 0%; transition: width .4s; }
+            #hap-leg { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
+            .hap-leg-item { display: flex; align-items: center; gap: 2px; font-size: 8px; color: #666; }
+            .hap-leg-dot { width: 5px; height: 5px; border-radius: 50%; }
+            #hap-status-info { font-size: 8px; color: #ff9800; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; text-align: center; }
         `;
         document.head.appendChild(style);
     };
     const initPanel = () => {
         if (document.getElementById('ks-master-panel')) return;
         const bodyStyle = `
-        body.ks-panel-open {
-        margin-right: ${config.width};
-        overflow-x: hidden !important;
-        transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    	}
-            #ks-content {
-                max-height: calc(100vh - 60px);
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: #333 #1a1a2e;
-            }
-            #ks-content::-webkit-scrollbar { width: 5px; }
-            #ks-content::-webkit-scrollbar-track { background: #1a1a2e; }
-            #ks-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        body.ks-panel-open { margin-right: ${config.width}; overflow-x: hidden !important; transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        #ks-content { max-height: calc(100vh - 60px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 #1a1a2e; }
+		#ks-content::-webkit-scrollbar { width: 5px; }
+		#ks-content::-webkit-scrollbar-track { background: #1a1a2e; }
+		#ks-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         `;
         injectStyles(bodyStyle);
         const isCollapsedSaved = localStorage.getItem('ks-panel-collapsed') === 'true';
@@ -365,64 +610,29 @@
         const toggleBtn = document.createElement('div');
         toggleBtn.id = 'ks-panel-toggle';
         toggleBtn.title = 'Paneli Aç / Kapat';
-        toggleBtn.innerHTML = `
-            <span class="ks-tbar"></span>
-            <span class="ks-tbar"></span>
-            <span class="ks-tbar"></span>
-        `;
+        toggleBtn.innerHTML = `<span class="ks-tbar"></span><span class="ks-tbar"></span><span class="ks-tbar"></span>`;
         document.body.appendChild(panel);
         document.body.appendChild(toggleBtn);
         const content = document.getElementById('ks-content');
         let isScrolling = false, startY, scrollStart;
-
-        content.addEventListener('mousedown', (e) => {
-            isScrolling = true;
-            startY = e.pageY - content.offsetTop;
-            scrollStart = content.scrollTop;
-            content.style.cursor = 'grabbing';
-            content.style.userSelect = 'none';
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isScrolling) return;
-            e.preventDefault();
-            const y = e.pageY - content.offsetTop;
-            const walk = (y - startY) * 1.5;
-            content.scrollTop = scrollStart - walk;
-        });
-        document.addEventListener('mouseup', () => {
-            isScrolling = false;
-            content.style.cursor = 'default';
-            content.style.userSelect = 'auto';
-        });
+        content.addEventListener('mousedown', (e) => { isScrolling = true; startY = e.pageY - content.offsetTop; scrollStart = content.scrollTop; content.style.cursor = 'grabbing'; content.style.userSelect = 'none'; });
+        document.addEventListener('mousemove', (e) => { if (!isScrolling) return; e.preventDefault(); const y = e.pageY - content.offsetTop; const walk = (y - startY) * 1.5; content.scrollTop = scrollStart - walk; });
+        document.addEventListener('mouseup', () => { isScrolling = false; content.style.cursor = 'default'; content.style.userSelect = 'auto'; });
         const applyState = (collapsed) => {
             panel.classList.toggle('collapsed', collapsed);
             toggleBtn.classList.toggle('ks-closed', collapsed);
             document.body.classList.toggle('ks-panel-open', !collapsed);
             toggleBtn.style.right = collapsed ? '0px' : config.width;
-
-            // Margin'i config.width'den dinamik oku
-            if (!collapsed) {
-                document.body.style.marginRight = config.width;
-                document.body.style.width = `calc(100% - ${config.width})`;
-            } else {
-                document.body.style.marginRight = '0px';
-                document.body.style.width = '100%';
-                setTimeout(() => {
-                    window.scrollTo({ left: 0, behavior: 'smooth' });
-                    document.documentElement.scrollLeft = 0;
-                    document.body.scrollLeft = 0;
-                }, 400);
-            }
-
+            if (!collapsed) { document.body.style.marginRight = config.width; document.body.style.width = `calc(100% - ${config.width})`; }
+            else { document.body.style.marginRight = '0px'; document.body.style.width = '100%'; setTimeout(() => { window.scrollTo({ left: 0, behavior: 'smooth' }); document.documentElement.scrollLeft = 0; document.body.scrollLeft = 0; }, 400); }
             localStorage.setItem('ks-panel-collapsed', String(collapsed));
         };
         applyState(isCollapsedSaved);
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            applyState(!panel.classList.contains('collapsed'));
-        });
+        toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); applyState(!panel.classList.contains('collapsed')); });
     };
-    /* ── Tooltip sistemi — .ks-tooltip-box içindeki HTML'i okur ── */
+    /* ══════════════════════════════════════════════════════
+       TOOLTIP
+    ══════════════════════════════════════════════════════ */
     const tooltip = document.createElement('div');
     tooltip.id = 'ks-dynamic-tooltip';
     document.body.appendChild(tooltip);
@@ -431,7 +641,6 @@
         if (!container) return;
         const box = container.querySelector('.ks-tooltip-box');
         if (!box) return;
-        /* İçeriği strong (başlık) + geri kalan (gövde) olarak ayır */
         const rawHTML = box.innerHTML.trim();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = rawHTML;
@@ -439,11 +648,7 @@
         const headText = strongEl ? strongEl.outerHTML : '';
         if (strongEl) strongEl.remove();
         const bodyText = tempDiv.innerHTML.trim();
-        tooltip.innerHTML = `
-            <div class="ks-tip-head">${headText}</div>
-            <div class="ks-tip-body">${bodyText}</div>
-        `;
-        /* Rengi data-tip-color veya themeColor'dan al */
+        tooltip.innerHTML = `<div class="ks-tip-head">${headText}</div><div class="ks-tip-body">${bodyText}</div>`;
         const tipColor = container.dataset.tipColor || config.themeColor;
         tooltip.style.borderLeftColor = tipColor;
         tooltip.style.borderColor = tipColor + '44';
@@ -463,20 +668,17 @@
         tooltip.style.left = left + 'px';
         tooltip.style.top = top + 'px';
     });
-    document.addEventListener('mouseout', (e) => {
-        if (e.target.closest('.ks-tooltip-container')) {
-            tooltip.classList.remove('visible');
-        }
-    });
+    document.addEventListener('mouseout', (e) => { if (e.target.closest('.ks-tooltip-container')) tooltip.classList.remove('visible'); });
+    /* ══════════════════════════════════════════════════════
+       UNLOCK
+    ══════════════════════════════════════════════════════ */
     let isUnlocked = false;
     const unlockAllElements = (s) => {
         const sel = '[disabled],.disabled,[readonly],[aria-readonly="true"],[aria-disabled="true"],.ks-unlocked,.dx-texteditor-input';
         document.querySelectorAll(sel).forEach(el => {
             if (s) {
                 if (el.disabled) { el.dataset.wd = "1"; el.disabled = false; }
-                if (el.readOnly || el.hasAttribute('readonly') || el.getAttribute('aria-readonly') === "true") {
-                    el.dataset.wr = "1"; el.readOnly = false; el.removeAttribute('readonly'); el.setAttribute('aria-readonly', 'false');
-                }
+                if (el.readOnly || el.hasAttribute('readonly') || el.getAttribute('aria-readonly') === "true") { el.dataset.wr = "1"; el.readOnly = false; el.removeAttribute('readonly'); el.setAttribute('aria-readonly', 'false'); }
                 if (el.classList.contains('disabled')) { el.dataset.wc = "1"; el.classList.remove('disabled'); }
                 el.classList.add('ks-unlocked');
                 const st = { 'pointer-events': 'auto', 'opacity': '1', 'background-color': '#fff', 'border': '1px solid #e4e4e4', 'cursor': 'text' };
@@ -491,6 +693,9 @@
         });
         window.isUnlocked = s;
     };
+    /* ══════════════════════════════════════════════════════
+       STATUS BAR & SETTINGS MODAL
+    ══════════════════════════════════════════════════════ */
     const WARNING_COLOR = 'rgb(250, 250, 150)';
     const SUCCESS_COLOR = '#00ff88';
     const PANEL_ID = 'ks-global-status-indicator';
@@ -498,8 +703,7 @@
         const injectFonts = () => {
             if (document.getElementById('ks2-fonts')) return;
             const link = document.createElement('link');
-            link.id = 'ks2-fonts';
-            link.rel = 'stylesheet';
+            link.id = 'ks2-fonts'; link.rel = 'stylesheet';
             link.href = 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap';
             document.head.appendChild(link);
         };
@@ -509,26 +713,14 @@
             style.id = PANEL_ID + '-style';
             style.innerText = `
                 #${PANEL_ID} {
-                    position: fixed !important;
-                    bottom: ${config.bottom} !important;
-                    left: ${config.right} !important;
-                    height: 24px !important;
-                    width: 24px !important;
-                    background: rgba(10, 10, 10, 0.60) !important;
-                    backdrop-filter: blur(${config.blur}) !important;
-                    color: white !important;
-                    font-family: var(--fontier);
-                    font-size: 12px !important;
-                    font-weight: 800 !important;
+                    position: fixed !important; bottom: ${config.bottom} !important; left: ${config.right} !important;
+                    height: 24px !important; width: 24px !important;
+                    background: rgba(10, 10, 10, 0.60) !important; backdrop-filter: blur(${config.blur}) !important;
+                    color: white !important; font-family: var(--fontier); font-size: 12px !important; font-weight: 800 !important;
                     z-index: ${Number(config.zIndex) + 9999} !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    overflow: hidden !important;
-                    white-space: nowrap !important;
-                    cursor: pointer !important;
-                    border-radius: 0px 12px 0px 12px !important;
-                    border: 2px solid ${config.themeColor} !important;
+                    display: flex !important; align-items: center !important; justify-content: center !important;
+                    overflow: hidden !important; white-space: nowrap !important; cursor: pointer !important;
+                    border-radius: 0px 12px 0px 12px !important; border: 2px solid ${config.themeColor} !important;
                     box-shadow: 0px 0px 10px 1px ${config.themeColor}66 !important;
                     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
                     animation: ks-glow-pulse 3s infinite ease-in-out !important;
@@ -940,9 +1132,7 @@
                         el.addEventListener('mouseleave', () => { panelTip.style.opacity = '0'; panelTip.style.visibility = 'hidden'; });
                     });
                 };
-                const hidePanelTip = () => {
-                    const tip = document.getElementById('ks-dynamic-tooltip'); if (tip) { tip.style.opacity = '0'; tip.style.visibility = 'hidden'; }
-                };
+                const hidePanelTip = () => { const tip = document.getElementById('ks-dynamic-tooltip'); if (tip) { tip.style.opacity = '0'; tip.style.visibility = 'hidden'; } };
                 const showFullContent = () => {
                     kstatus.classList.add('active');
                     kstatus.setAttribute('data-hover', 'true');
@@ -1004,6 +1194,7 @@
                         { key: 'KS_PANEL_rycorn', icon: '⚠️', title: 'Rayiç Pert Oran', desc: '%30 ve %60 eşik oranlarını takip etmeyi sağlayan yüzdelik bar', sub: true },
                         { key: 'KS_PANEL_pys', icon: '🌐', title: 'Piyasa Kontrol', desc: 'Dış kaynak veri çekimi', sub: true },
                         { key: 'KS_PANEL_not', icon: '📝', title: 'Notlar', desc: 'Panel not bölümü', sub: true },
+                        { key: 'KS_PANEL_hasar', icon: '💥', title: 'Hasar Analiz', desc: 'Gelişmiş parça/bölge hasar analiz paneli', sub: true },
                     ]
                 },
                 {
@@ -1068,21 +1259,12 @@
                             <div class="ks2-brand">
                                 <div class="ks2-brand-hex">
                                     <div class="ks2-brand-diamond"><div class="ks2-brand-diamond-inner"></div></div>
-                                    <div>
-                                        <div class="ks2-brand-title">KS TOOLS</div>
-                                        <div class="ks2-brand-sub">KONTROL PANELİ</div>
+                                    <div><div class="ks2-brand-title">KS TOOLS</div><div class="ks2-brand-sub">KONTROL PANELİ</div></div>
                                     </div>
                                 </div>
-                            </div>
-                            <nav class="ks2-nav">
-                                <div class="ks2-nav-sec">// MODÜLLER</div>
-                                ${navHTML}
-                            </nav>
+                            <nav class="ks2-nav"><div class="ks2-nav-sec">// MODÜLLER</div>${navHTML}</nav>
                             <div class="ks2-sidebar-bottom">
-                                <div class="ks2-theme-row">
-                                    <span class="ks2-theme-lbl">// TEMA</span>
-                                    <span class="ks2-ver-tag">v${GM_info.script.version}</span>
-                                </div>
+                                <div class="ks2-theme-row"><span class="ks2-theme-lbl">// TEMA</span><span class="ks2-ver-tag">v${GM_info.script.version}</span></div>
                                 <div class="ks2-color-dots" id="ks2-color-dots">
                                     <div class="ks2-cdot ks2-sel" data-c="#00d4ff" style="background:rgba(0,212,255,0.8);border:1px solid #00d4ff"></div>
                                     <div class="ks2-cdot" data-c="#00ff9d" style="background:rgba(0,255,157,0.8);border:1px solid transparent"></div>
@@ -1095,38 +1277,22 @@
                         </aside>
                         <div id="ks2-main">
                             <div class="ks2-topbar">
-                                <div class="ks2-topbar-left">
-                                    <span class="ks2-bracket">[</span>
-                                    <span class="ks2-topbar-title" id="ks2-sec-title">OTOANALİZ DOSYA PANELİ</span>
-                                    <span class="ks2-bracket">]</span>
-                                </div>
+                                <div class="ks2-topbar-left"><span class="ks2-bracket">[</span><span class="ks2-topbar-title" id="ks2-sec-title">OTOANALİZ DOSYA PANELİ</span><span class="ks2-bracket">]</span></div>
                                 <div class="ks2-ctrl-row">
                                     <span class="ks2-ctrl-lbl">ANA KONTROL</span>
-                                    <label class="ks2-sw">
-                                        <input type="checkbox" id="ks2-master" ${getSetting('KS_SYS') ? 'checked' : ''}>
-                                        <span class="ks2-sw-track"></span>
-                                    </label>
+                                    <label class="ks2-sw"><input type="checkbox" id="ks2-master" ${getSetting('KS_SYS') ? 'checked' : ''}><span class="ks2-sw-track"></span></label>
                                 </div>
                             </div>
                             <div class="ks2-content">${sectionsHTML}</div>
                             <div class="ks2-footer">
                                 <div class="ks2-footer-stats">
-                                    <div>
-                                        <div class="ks2-stat-val" id="ks2-active-cnt">${getActiveCount()}</div>
-                                        <div class="ks2-stat-lbl">AKTİF MODÜL</div>
-                                    </div>
+                                    <div><div class="ks2-stat-val" id="ks2-active-cnt">${getActiveCount()}</div><div class="ks2-stat-lbl">AKTİF MODÜL</div></div>
                                     <div class="ks2-stat-divider"></div>
-                                    <div>
-                                        <div class="ks2-stat-val">${totalItems}</div>
-                                        <div class="ks2-stat-lbl">TOPLAM</div>
-                                    </div>
+                                    <div><div class="ks2-stat-val">${totalItems}</div><div class="ks2-stat-lbl">TOPLAM</div></div>
                                 </div>
                                 <div class="ks2-footer-btns">
                                     <button class="ks2-fbtn ks2-fbtn-cancel" id="ks2-btn-cancel"><span>VAZGEÇ</span></button>
-                                    <button class="ks2-fbtn ks2-fbtn-save" id="ks2-btn-save">
-                                        <span>KAYDET</span>
-                                        <span class="ks2-fbtn-glow"></span>
-                                    </button>
+                                    <button class="ks2-fbtn ks2-fbtn-save" id="ks2-btn-save"><span>KAYDET</span><span class="ks2-fbtn-glow"></span></button>
                                 </div>
                             </div>
                         </div>
@@ -1136,10 +1302,7 @@
                 // ── Kartları oluştur ────────────────────────────────────────────
                 const updateStats = () => {
                     document.getElementById('ks2-active-cnt').textContent = getActiveCount();
-                    SECTIONS.forEach(sec => {
-                        const el = document.getElementById('ks2-cnt-' + sec.id);
-                        if (el) el.textContent = getSecCount(sec);
-                    });
+                    SECTIONS.forEach(sec => { const el = document.getElementById('ks2-cnt-' + sec.id); if (el) el.textContent = getSecCount(sec); });
                 };
                 const toggleCard = (key, on) => {
                     setSetting(key, on);
@@ -1159,14 +1322,10 @@
                         card.className = 'ks2-mod-card' + (on ? ' ks2-on' : '');
                         card.dataset.key = item.key;
                         card.innerHTML = `
-                            <div class="ks2-corner ks2-corner-tl"></div>
-                            <div class="ks2-corner ks2-corner-br"></div>
+                            <div class="ks2-corner ks2-corner-tl"></div><div class="ks2-corner ks2-corner-br"></div>
                             <div class="ks2-card-top">
                                 <div class="ks2-card-icon">${item.icon}</div>
-                                <label class="ks2-sw" onclick="event.stopPropagation()">
-                                    <input type="checkbox" data-key="${item.key}" ${on ? 'checked' : ''}>
-                                    <span class="ks2-sw-track"></span>
-                                </label>
+                                <label class="ks2-sw" onclick="event.stopPropagation()"><input type="checkbox" data-key="${item.key}" ${on ? 'checked' : ''}><span class="ks2-sw-track"></span></label>
                             </div>
                             <div class="ks2-card-title">${item.title}</div>
                             <div class="ks2-card-desc">${item.desc}</div>
@@ -1174,7 +1333,6 @@
                                 <span class="ks2-status-pill" id="ks2-pill-${item.key}">${on ? '● AKTİF' : '○ KAPALI'}</span>
                                 <span class="ks2-sub-tag ${item.sub ? 'ks2-tag-alt' : 'ks2-tag-core'}">${item.sub ? 'ALT MODÜL' : 'ANA MODÜL'}</span>
                             </div>`;
-
                         const chk = card.querySelector('input');
                         chk.addEventListener('change', (e) => { e.stopPropagation(); toggleCard(item.key, chk.checked); });
                         card.addEventListener('click', () => { const v = !getSetting(item.key); chk.checked = v; toggleCard(item.key, v); });
@@ -1194,8 +1352,7 @@
                 // ── Bulk toggle ─────────────────────────────────────────────────
                 overlay.querySelectorAll('.ks2-bulk-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const secId = btn.dataset.grid;
-                        const on = btn.dataset.val === '1';
+                        const secId = btn.dataset.grid, on = btn.dataset.val === '1';
                         const sec = SECTIONS.find(s => s.id === secId);
                         if (!sec) return;
                         sec.items.forEach(item => { toggleCard(item.key, on); });
@@ -1209,8 +1366,7 @@
                 overlay.querySelectorAll('.ks2-cdot').forEach(dot => {
                     dot.addEventListener('click', () => {
                         overlay.querySelectorAll('.ks2-cdot').forEach(d => { d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel'); });
-                        dot.style.borderColor = dot.dataset.c;
-                        dot.classList.add('ks2-sel');
+                        dot.style.borderColor = dot.dataset.c; dot.classList.add('ks2-sel');
                         overlay.querySelector('#ks2-root').style.setProperty('--ks2-cy', dot.dataset.c);
                         setSetting('KS_THEME', dot.dataset.c);
                     });
@@ -1219,23 +1375,20 @@
                 const savedTheme = getSetting('KS_THEME');
                 if (savedTheme) {
                     overlay.querySelector('#ks2-root').style.setProperty('--ks2-cy', savedTheme);
-                    overlay.querySelectorAll('.ks2-cdot').forEach(d => {
-                        d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel');
-                        if (d.dataset.c === savedTheme) { d.style.borderColor = savedTheme; d.classList.add('ks2-sel'); }
-                    });
+                    overlay.querySelectorAll('.ks2-cdot').forEach(d => { d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel'); if (d.dataset.c === savedTheme) { d.style.borderColor = savedTheme; d.classList.add('ks2-sel'); } });
                 }
                 // ── Footer butonları ────────────────────────────────────────────
                 overlay.querySelector('#ks2-btn-cancel').addEventListener('click', closeModal);
-                overlay.querySelector('#ks2-btn-save').addEventListener('click', () => {
-                    closeModal();
-                    if (confirm('Ayarlar kaydedildi. Sayfa yenilensin mi?')) window.location.reload();
-                });
+                overlay.querySelector('#ks2-btn-save').addEventListener('click', () => { closeModal(); if (confirm('Ayarlar kaydedildi. Sayfa yenilensin mi?')) window.location.reload(); });
                 window.openSettingsModal = openSettingsModal;
                 //document.addEventListener('keydown', (e) => { if (e.altKey && e.key === 's') openSettingsModal(); });
             };
         };
         setInterval(injectPanel, 2000); injectPanel();
     }
+    /* ══════════════════════════════════════════════════════
+       SETTINGS READ
+    ══════════════════════════════════════════════════════ */
     const KS_SYSTEM = GM_getValue('KS_SYS', false);
     const ANALIZPANEL = GM_getValue('KS_PANEL', false);
     const ANALIZPANEL_hlt = GM_getValue('KS_PANEL_hlt', false);
@@ -1254,6 +1407,7 @@
     const ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false);
     const ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false);
     const ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false);
+    const ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false);
     const MANUEL = GM_getValue('KS_MANU', false);
     const REFERANS = GM_getValue('KS_REF', false);
     const DONANIM = GM_getValue('KS_DNM', false);
@@ -1269,46 +1423,135 @@
         const magdurpanel = location.href.includes("eks_hasar_magdur.php");
         /* ===== 1. PANEL VE STİL ===== */
         initPanel();
+        const urlParams = new URLSearchParams(window.location.search);
+        const dosyaId = urlParams.get('id');
+        const currentHost = window.location.hostname;
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Giriş Kontrol Paneli";
             panelContent.innerHTML = `
+			<div id="hasar-section">
+                <hr class="custom-line">
+                <div style="text-align:center;font-size:9px;opacity:0.5;letter-spacing:.06em;margin-bottom:4px;">
+                    HASAR ANALİZ — DOSYA: ${dosyaId}
+                </div>
+                <!-- Skor + chip satırı -->
+                <div id="hap-score-row">
+                    <div id="hap-ring-wrap">
+                        <svg width="50" height="50" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="#2a2a2a" stroke-width="4"/>
+                            <circle id="hap-arc" cx="25" cy="25" r="20" fill="none" stroke="#E24B4A"
+                                stroke-width="4" stroke-linecap="round"
+                                stroke-dasharray="125.7" stroke-dashoffset="125.7"
+                                transform="rotate(-90 25 25)" style="transition:.5s"/>
+                        </svg>
+                        <span id="hap-skor-val">--</span>
+                    </div>
+                    <div id="hap-chips">
+                        <div id="hap-chip-total" class="hap-chip hap-chip-n">-- parca</div>
+                        <div id="hap-chip-crit"  class="hap-chip hap-chip-r">-- kritik</div>
+                        <div id="hap-chip-high"  class="hap-chip hap-chip-y">-- yuksek deger</div>
+                        <div id="hap-chip-tutar" class="hap-chip hap-chip-b">-- TL toplam</div>
+                    </div>
+                </div>
+                <!-- Lejant -->
+                <div id="hap-leg">
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#1D9E75"></div>1-2</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#EF9F27"></div>3-5</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#D85A30"></div>6-9</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#E24B4A"></div>10+</div>
+                </div>
+                <!-- 3x3 araç grid -->
+                <div id="hap-grid">
+                    <!-- Sıra 1: Ön -->
+                    <div id="hap-z-fl" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nSOL</span>
+                        <span class="hap-cell-n" id="hap-z-fl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-fc" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nORTA</span>
+                        <span class="hap-cell-n" id="hap-z-fc-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fc-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fc-bar"></div></div>
+                    </div>
+                    <div id="hap-z-fr" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nSAG</span>
+                        <span class="hap-cell-n" id="hap-z-fr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fr-bar"></div></div>
+                    </div>
+                    <!-- Sıra 2: Orta -->
+                    <div id="hap-z-dl" class="hap-cell">
+                        <span class="hap-cell-lbl">SOL\nKAPI</span>
+                        <span class="hap-cell-n" id="hap-z-dl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-dl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-ch" class="hap-cell">
+                        <span class="hap-cell-lbl">SASE\nKABIN</span>
+                        <span class="hap-cell-n" id="hap-z-ch-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-ch-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-ch-bar"></div></div>
+                    </div>
+                    <div id="hap-z-dr" class="hap-cell">
+                        <span class="hap-cell-lbl">SAG\nKAPI</span>
+                        <span class="hap-cell-n" id="hap-z-dr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-dr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dr-bar"></div></div>
+                    </div>
+                    <!-- Sıra 3: Sas/Kabin row 2 + Arka -->
+                    <div id="hap-z-rl" class="hap-cell">
+                        <span class="hap-cell-lbl">ARK\nSOL</span>
+                        <span class="hap-cell-n" id="hap-z-rl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-rc" class="hap-cell">
+                        <span class="hap-cell-lbl">ARKA\nORTA</span>
+                        <span class="hap-cell-n" id="hap-z-rc-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rc-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rc-bar"></div></div>
+                    </div>
+                    <div id="hap-z-rr" class="hap-cell">
+                        <span class="hap-cell-lbl">ARK\nSAG</span>
+                        <span class="hap-cell-n" id="hap-z-rr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rr-bar"></div></div>
+                    </div>
+                </div>
+                <div id="hap-status-info">Veriler sorgulanıyor...</div>
+            </div>
             <div id="panelContent" style ="color:#ffffff; text-align:center;">⏳ Yükleniyor...</div>
             <hr class="custom-line">
 			<div id="pys-section">
 				<div id="shb-res-box"></div>
-				<div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%;">
+                <div class="ks-grid-container" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;">
             	     <div class="ks-tooltip-container">
-            	         <button id="btn-auto-analiz" class="ks-btn" style="width: 100%;">Piyasa Göster</button>
-            	         <div class="ks-tooltip-box">
-            	             Piyasayı otomatik olarak panel arayüzü üzerinde gösterir. Aynı araç için sürekli kontrol sağlamaya çalışmayın, site erişimi kilitleyecektir.
-            	         </div>
+                        <button id="btn-auto-analiz" class="ks-btn" style="width:100%;">Piyasa Göster</button>
+                        <div class="ks-tooltip-box">Piyasayı otomatik olarak panel arayüzü üzerinde gösterir. Aynı araç için sürekli kontrol sağlamaya çalışmayın, site erişimi kilitleyecektir.</div>
             	     </div>
             	     <div class="ks-tooltip-container">
-            	         <button id="btn-auto-look" class="ks-btn" style="width: 100%;">Piyasa Listesine Git</button>
-            	         <div class="ks-tooltip-box">
-            	             Listenin bulunduğu siteyi yeni sekmede açar.
-            	         </div>
+                        <button id="btn-auto-look" class="ks-btn" style="width:100%;">Piyasa Listesine Git</button>
+                        <div class="ks-tooltip-box">Listenin bulunduğu siteyi yeni sekmede açar.</div>
             	     </div>
             	 </div>
 			</div>
     		<hr class="custom-line" id="action-divider">
-    		<div id="action-section" class="ks-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%;">
+            <div id="action-section" class="ks-grid-container" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;">
                 <div class="ks-tooltip-container">
-                    <button id="autoSelectBtn" class="ks-btn" style="width:100%; height: 100%;">⚡ Ön Giriş</button>
+                    <button id="autoSelectBtn" class="ks-btn" style="width:100%;height:100%;">⚡ Ön Giriş</button>
                     <div class="ks-tooltip-box">
                         <strong>⚡ Otomatik Giriş (F4)</strong><br>
                         Kaza ihbar türü, Eksperiz şekli, Alkol durumu, Devir-Satış, Eksik/Aşkın Sigorta, Muafiyet, Taşınan yük, Ehliyet sınıfı ve Ekspertiz tarihi gibi seçimleri doğrulamayı unutmayın.
                     </div>
                 </div>
 				<div class="ks-tooltip-container">
-                <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%; height: 100%;" onclick="c('kaydet();')">💾 KAYDET</button>
-                    <div class="ks-tooltip-box">
-                        <strong>💾 Kaydet (F2)</strong><br>
-						Sitedeki kaydet butonları ile aynı işlevi görür.
-                    </div>
+                    <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%;height:100%;" onclick="c('kaydet();')">💾 KAYDET</button>
+                    <div class="ks-tooltip-box"><strong>💾 Kaydet (F2)</strong><br>Sitedeki kaydet butonları ile aynı işlevi görür.</div>
                 </div>
             </div>
 			<div id="not-section">
@@ -1322,35 +1565,28 @@
             	</div>
 			</div>
             `;
+
+            /* F2 / F4 kısayolları */
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'F2') {
-                    e.preventDefault();
-                    const btn = document.getElementById('btnKaydetYeni') || document.getElementsByName('btnKaydetYeni')[0];
-                    if (btn && btn.offsetParent !== null) btn.click();
-                }
-                if (e.key === 'F4') {
-                    e.preventDefault();
-                    const btn = document.getElementById('autoSelectBtn') || document.getElementsByName('autoSelectBtn')[0];
-                    if (btn && btn.offsetParent !== null) btn.click();
-                }
+                if (e.key === 'F2') { e.preventDefault(); const btn = document.getElementById('btnKaydetYeni') || document.getElementsByName('btnKaydetYeni')[0]; if (btn && btn.offsetParent !== null) btn.click(); }
+                if (e.key === 'F4') { e.preventDefault(); const btn = document.getElementById('autoSelectBtn') || document.getElementsByName('autoSelectBtn')[0]; if (btn && btn.offsetParent !== null) btn.click(); }
             });
-            if (!ANALIZPANEL_pys) {
-                const pysSection = document.getElementById('pys-section');
-                if (pysSection) { pysSection.style.display = 'none'; }
+
+            /* Görünürlük kontrolü */
+            if (!ANALIZPANEL_pys) { const el = document.getElementById('pys-section'); if (el) el.style.display = 'none'; }
+            if (!ANALIZPANEL_not) { const el = document.getElementById('not-section'); if (el) el.style.display = 'none'; }
+            if (!ANALIZPANEL_hasar) { const el = document.getElementById('hasar-section'); if (el) el.style.display = 'none'; }
+            if (magdurpanel) {
+                const as = document.getElementById('action-section'); if (as) as.style.display = 'none';
+                const ad = document.getElementById('action-divider'); if (ad) ad.style.display = 'none';
             }
-            if (!ANALIZPANEL_not) {
-                const notSection = document.getElementById('not-section');
-                if (notSection) { notSection.style.display = 'none'; }
+            /* ── Hasar verisi çek ── */
+            if (ANALIZPANEL_hasar) {
+                setTimeout(function () { hapVerileriGetir(dosyaId, currentHost); }, 800);
             }
-            if (typeof magdurpanel !== 'undefined' && magdurpanel) {
-                const actionSection = document.getElementById('action-section');
-                const actionDivider = document.getElementById('action-divider');
-                if (actionSection) actionSection.style.display = 'none';
-                if (actionDivider) actionDivider.style.display = 'none';
-            }
-            /* ===== 2. YARDIMCI FONKSİYONLAR ===== */
+            /* ── YARDIMCI FONKSİYONLAR ── */
             const $ = (id) => document.getElementById(id) || document.querySelector(`[name="${id}"]`);
-            const getValue = (id) => ($(id)?.value || $(id)?.textContent || '').trim();
+            const getValue = (id) => ($( id)?.value || $(id)?.textContent || '').trim();
             const parseNum = (id) => { const val = getValue(id).replace(/,/g, ''); return val === '' ? 0 : Number(val); };
             const getDate = (prefix) => {
                 const [g, a, y] = [getValue(prefix + '_GUN'), getValue(prefix + '_AY'), getValue(prefix + '_YIL')];
@@ -4605,5 +4841,85 @@
 				};
                 saveBtn.parentNode.insertBefore(quickBtn, saveBtn);
             }
+		    const injectButtons = () => {
+        const modalHeader = document.querySelector('.modal-header.ui-draggable-handle');
+        if (modalHeader && !document.getElementById('clipboard-fill-btn')) {
+            const container = document.createElement('div');
+            container.style = "display:flex; gap:10px; margin:0 auto;";
+
+            const btnRand = document.createElement('button');
+            btnRand.textContent = 'RASGELE DOLDUR';
+            btnRand.style = "padding:8px 15px; background:#dc3545; color:#fff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;";
+            btnRand.onclick = (e) => { e.preventDefault(); fillCategoriesRandomly(); };
+
+            const btnClip = document.createElement('button');
+            btnClip.id = 'clipboard-fill-btn';
+            btnClip.textContent = 'PANODAN DOLDUR (CLIPBOARD)';
+            btnClip.style = "padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;";
+            btnClip.onclick = (e) => { e.preventDefault(); processClipboard(); };
+
+            container.append(btnRand, btnClip);
+            modalHeader.insertBefore(container, modalHeader.firstChild);
+        }
+    };
+
+    const processClipboard = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            const rows = text.split('\n').map(line => line.split('\t'));
+            const dataMap = new Map();
+
+            rows.forEach(row => {
+                if (row.length >= 5) {
+                    const stokKodu = row[1]?.trim();
+                    dataMap.set(stokKodu, {
+                        ad: row[2]?.trim(),
+                        miktar: row[3]?.trim(),
+                        fiyat: row[4]?.trim()
+                    });
+                }
+            });
+
+            document.querySelectorAll('tr').forEach(tr => {
+                const oemCodeInput = tr.querySelector('input[name^="oemCode"]');
+                if (oemCodeInput && dataMap.has(oemCodeInput.value)) {
+                    const data = dataMap.get(oemCodeInput.value);
+                    const index = oemCodeInput.name.match(/\d+/)[0];
+
+                    const nameInp = tr.querySelector(`input[name="partName[${index}]"]`);
+                    const qtyInp = tr.querySelector(`input[name="partQty[${index}]"]`);
+                    const priceInp = tr.querySelector(`input[name="partPrice[${index}]"]`);
+
+                    if (nameInp) nameInp.value = data.ad;
+                    if (qtyInp) qtyInp.value = data.miktar;
+                    if (priceInp) priceInp.value = data.fiyat;
+
+                    fillCategoriesRandomly(tr);
+                }
+            });
+        } catch (err) { alert("Pano erişim hatası!"); }
+    };
+
+    const fillCategoriesRandomly = (scope = document) => {
+        const selects = scope.querySelectorAll('select.part-category-select, select[name^="partCategory"]');
+        const usedValues = new Set();
+
+        selects.forEach((select) => {
+            let options = Array.from(select.options).filter(opt =>
+                opt.value && opt.value !== "0" && !opt.text.toLowerCase().includes("seçiniz")
+            );
+
+            if (options.length > 0) {
+                const randomOpt = options[Math.floor(Math.random() * options.length)];
+                select.value = randomOpt.value;
+                const event = new Event('change', { bubbles: true });
+                select.dispatchEvent(event);
+                if (window.jQuery && $(select).data('select2')) $(select).trigger('change');
+            }
+        });
+    };
+
+    const observer = new MutationObserver(() => injectButtons());
+    observer.observe(document.body, { childList: true, subtree: true });
     }
 })();
