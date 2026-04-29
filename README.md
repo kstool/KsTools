@@ -2,14 +2,14 @@
 
 **KS TOOLS**, otomotiv ekspertiz ve sigorta hasar süreçlerini modernize etmek için geliştirilmiş, yüksek performanslı bir **Userscript (Tampermonkey)** çözümüdür. 
 
-Başta **Otoanaliz**, **SBM**, **Türkiye Sigorta** ve **Sahibinden** olmak üzere, bilirkişi ve sigorta uzmanlarının günlük kullandığı platformlara gelişmiş otomasyon ve dinamik bir arayüz (HUD) kazandırır.
+Başta **Otoanaliz**, **SBM**, **Türkiye Sigorta**, **Hithasar sistemini kullanan Quick-Corpus-Anadolu vs.(osea tech)** ve **Sahibinden** olmak üzere, bilirkişi ve sigorta uzmanlarının günlük kullandığı platformlara gelişmiş otomasyon ve dinamik bir arayüz (HUD) kazandırır.
 
 ---
 
 ## ✨ Öne Çıkan Özellikler
 
 ### 📊 Akıllı HUD & Kontrol Merkezi
-* **Dinamik Durum Paneli:** Ekranın sağ alt köşesinde, bağlantı durumunu (IP) ve versiyonu izleyen, `glow-pulse` efektli modern bir HUD.
+* **Dinamik Durum Paneli:** Ekranın sol alt köşesinde, aracın versiyonunu takip edebilir, ayarlara girebilir ve hızlıca güncelleyebilirsiniz.
 * **Merkezi Ayar Menüsü (Modal):** ⚙️ İkonu ile tetiklenen, modülleri kategorik olarak (Otoanaliz, Ek Paneller, Ek Modüller) yönetmenizi sağlayan şık arayüz.
 * **Görsel Denetim:** "Girilmeyen Hücre Boyama" özelliği ile veri setlerindeki eksikleri anında fark edin.
 
@@ -38,6 +38,7 @@ Script, yalnızca ilgili sayfaya girdiğinizde devreye giren "Smart-Trigger" (Ak
 * **SBM Portalı:** Genel sorgu ekranlarında hızlı seçim, KTT listelerinde sayıların 3'lü bölümlenmesi ve tutanak resimlerinin indirilmesi.
 * **Otoanaliz:** Otoanaliz portalları için optimize edilmiş tam uyumlu veri işleme araçları.
 * **Türkiye Sigorta:** Yan kaydırma menüsü, hızlı giriş yöntemleri ile uyumlu veri işleme araçları.
+* **Quick-Corpus-Anadolu Sigorta:** Hızlı giriş ve parça kategorisi randomize ederek girme yöntemleri.
 * **Sahibinden:** Piyasa araştırması ve rayiç bedel tespiti için KM/Fiyat analiz desteği.
 * **WhatsApp Web:** Ekspertiz dosyalarına gelen medyalara hızlı indirme yöntemi.
 
@@ -46,8 +47,8 @@ Script, yalnızca ilgili sayfaya girdiğinizde devreye giren "Smart-Trigger" (Ak
 ## 🛠️ Teknik Detaylar
 
 * **Mimari:** Modern JavaScript (ES6+).
-* **UI/UX:** `backdrop-filter: blur` ile cam panel tasarımı, Inter font ailesi ve kurumsal renk paleti.
-* **Performans:** `setInterval` optimizasyonu ile sayfa yüklerini etkilemeden çalışır.
+* **UI/UX:** `Fütüristik` ve `Siber` stillerine sahip panel tasarımı, `Exo 2` google font ailesi, hafif ve dikkat çeken renk paleti.
+* **Performans:** `setInterval` ve değişiklik takip kontrolü optimizasyonları ile sayfa yüklerini etkilemeden çalışır.
 * **Depolama:** Kullanıcı tercihleri `GM_getValue` ile tarayıcı yerelinde (local) güvenle saklanır.
 * **Yazıcı Dostu:** Arayüzler Rapor çıktıları alımı sırasında (`@media print`) panel kendini otomatik olarak gizler.
 
@@ -91,4 +92,4 @@ Script, yalnızca ilgili sayfaya girdiğinizde devreye giren "Smart-Trigger" (Ak
 * Verileriniz tamamen yerel tarayıcınızda işlenir; hiçbir sunucuya veri aktarımı yapılmaz.
 
 ---
-*Bu araç, otomotiv bilirkişi süreçlerini dijitalleştirmek ve operasyonel hataları sıfıra indirmek için tasarlanmıştır.*
+*Bu araç, otomotiv bilirkişi süreçlerini dijitalleştirmek, hızlandırmak ve operasyonel hataları sıfıra indirmek için tasarlanmıştır.*
