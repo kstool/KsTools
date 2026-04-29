@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.54
+// @version      1.55
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -4747,179 +4747,122 @@
         }, 2000);
     }
     // Quick - Corpus - Anadolu Sigorta
-    if (KS_SYSTEM && QCASIGORTA && /quicksigorta\.com|anadolusigorta\.com|corpussigorta\.com/.test(location.href)) {
-        const format = v => {
-            v = v.replace(/\D/g, '').substring(0, 8);
-            return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v);
-        };
-        const lockValue = (input, val) => {
-            let _v = val;
-            const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-            Object.defineProperty(input, 'value', {
-                get: () => _v,
-                set: (nv) => { if (/^\d{2}\.\d{2}\.\d{4}$/.test(nv)) _v = nv; },
-                configurable: true
-            });
-            desc.set.call(input, val);
-        };
-        const destroyPicker = (input) => {
-            if (input._flatpickr) try { input._flatpickr.destroy(); } catch (e) { }
-            if (window.jQuery) try { window.jQuery(input).datepicker('destroy'); } catch (e) { }
-            document.querySelectorAll('.datepicker, .datepicker-dropdown, .flatpickr-calendar').forEach(el => el.remove());
-        };
-        const applyDateLogic = (input) => {
-            if (input.dataset.ksHandled) return;
-            input.dataset.ksHandled = 'true';
-            setTimeout(() => (input._flatpickr || (window.jQuery && window.jQuery(input).data('datepicker'))) && destroyPicker(input), 800);
-            input.addEventListener('input', (e) => {
-                const pos = input.selectionStart, oldLen = input.value.length;
-                input.value = format(input.value);
-                const move = input.value.length - oldLen;
-                input.setSelectionRange(pos + move, pos + move);
-            }, true);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === 'Tab') {
-                    e.stopImmediatePropagation();
-                    if (e.key === 'Enter') e.preventDefault();
-                    const f = format(input.value);
-                    if (f.length === 10) {
-                        lockValue(input, f);
-                        destroyPicker(input);
-                        ['input', 'change'].forEach(t => input.dispatchEvent(new Event(t, { bubbles: true })));
-                    }
-                    if (e.key === 'Enter') {
-                        const nodes = [...document.querySelectorAll('input:not([disabled]):not([readonly])')];
-                        const next = nodes[nodes.indexOf(input) + 1];
-                        if (next) next.focus();
-                    }
-                }
-            }, true);
-            input.addEventListener('blur', () => {
-                if (/^\d{2}\.\d{2}\.\d{4}$/.test(input.value)) {
-                    const s = input.value;
-                    [0, 50].forEach(t => setTimeout(() => input.value !== s && lockValue(input, s), t));
-                }
-            }, true);
-        };
-        const handleAutoFill = () => {
-            const field = (id) => document.getElementById(id);
-            const ev = (el) => ['input', 'change'].forEach(t => el.dispatchEvent(new Event(t, { bubbles: true })));
-            const target = field('insuredVehicleOwner'), n = field('insuredName'), s = field('insuredSurname');
-            if (target && n && s && !target.dataset.l) {
-                target.dataset.l = "1";
-                target.addEventListener('focus', () => {
-                    const full = (n.value + ' ' + s.value).trim();
-                    if (full.length > 1) { target.value = full; ev(target); }
-                });
-            }
-            const rep = field('cdExpertOfficeReportNo'), dat = field('cdAssignDate');
-            if (rep && dat && !rep.dataset.l) {
-                rep.dataset.l = "1";
-                rep.addEventListener('focus', () => {
-                    if (!rep.value && dat.value.length >= 4) { rep.value = dat.value.substring(dat.value.length - 4); ev(rep); }
-                });
-            }
-            [['cdExpertiseLocationLatitude', '36'], ['cdExpertiseLocationLongitude', '42']].forEach(([id, val]) => {
-                const el = field(id);
-                if (el && !el.dataset.l) {
-                    el.dataset.l = "1";
-                    el.addEventListener('focus', () => { if (el.value === "0,000000" || !el.value) { el.value = val; ev(el); } });
-                }
-            });
-        };
-        const run = () => { document.querySelectorAll('input.inputDate, input[name*="date" i], input[id*="Date" i]').forEach(applyDateLogic); handleAutoFill(); };
-        new MutationObserver(run).observe(document.body, { childList: true, subtree: true }); run();
-        const saveBtn = document.getElementById('btnSaveExpertise');
-            if (saveBtn) {
-                const quickBtn = document.createElement('button');
-                quickBtn.type = 'button';
-                quickBtn.className = 'btn btn-sm btn-warning me-1';
-                quickBtn.id = 'btnQuickEntry';
-                quickBtn.innerHTML = '<i class="fa fa-bolt"></i> Hızlı Giriş';
-                quickBtn.onclick = () => {
-					alert("KSTools tarafından eklenen bu buton otomatik giriş için kullanılacaktır. Geçici olarak devre dışı! ")
-				};
-                saveBtn.parentNode.insertBefore(quickBtn, saveBtn);
-            }
-		    const injectButtons = () => {
-        const modalHeader = document.querySelector('.modal-header.ui-draggable-handle');
-        if (modalHeader && !document.getElementById('clipboard-fill-btn')) {
-            const container = document.createElement('div');
-            container.style = "display:flex; gap:10px; margin:0 auto;";
-
-            const btnRand = document.createElement('button');
-            btnRand.textContent = 'RASGELE DOLDUR';
-            btnRand.style = "padding:8px 15px; background:#dc3545; color:#fff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;";
-            btnRand.onclick = (e) => { e.preventDefault(); fillCategoriesRandomly(); };
-
-            const btnClip = document.createElement('button');
-            btnClip.id = 'clipboard-fill-btn';
-            btnClip.textContent = 'PANODAN DOLDUR (CLIPBOARD)';
-            btnClip.style = "padding:8px 15px; background:#007bff; color:#fff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;";
-            btnClip.onclick = (e) => { e.preventDefault(); processClipboard(); };
-
-            container.append(btnRand, btnClip);
-            modalHeader.insertBefore(container, modalHeader.firstChild);
-        }
+if (KS_SYSTEM && QCASIGORTA && /quicksigorta\.com|anadolusigorta\.com|corpussigorta\.com/.test(location.href)) {
+    const format = v => {
+        v = v.replace(/\D/g, '').substring(0, 8);
+        return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v);
     };
 
-    const processClipboard = async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            const rows = text.split('\n').map(line => line.split('\t'));
-            const dataMap = new Map();
+    const lockValue = (input, val) => {
+        let _v = val;
+        const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        Object.defineProperty(input, 'value', {
+            get: () => _v,
+            set: (nv) => { if (/^\d{2}\.\d{2}\.\d{4}$/.test(nv)) _v = nv; },
+            configurable: true
+        });
+        desc.set.call(input, val);
+    };
 
-            rows.forEach(row => {
-                if (row.length >= 5) {
-                    const stokKodu = row[1]?.trim();
-                    dataMap.set(stokKodu, {
-                        ad: row[2]?.trim(),
-                        miktar: row[3]?.trim(),
-                        fiyat: row[4]?.trim()
-                    });
-                }
-            });
+    const destroyPicker = (input) => {
+        const jq = window.jQuery;
+        if (input._flatpickr) try { input._flatpickr.destroy(); } catch (e) { }
+        if (jq) try { jq(input).datepicker('destroy'); } catch (e) { }
+        document.querySelectorAll('.datepicker, .datepicker-dropdown, .flatpickr-calendar').forEach(el => el.remove());
+    };
 
-            document.querySelectorAll('tr').forEach(tr => {
-                const oemCodeInput = tr.querySelector('input[name^="oemCode"]');
-                if (oemCodeInput && dataMap.has(oemCodeInput.value)) {
-                    const data = dataMap.get(oemCodeInput.value);
-                    const index = oemCodeInput.name.match(/\d+/)[0];
-
-                    const nameInp = tr.querySelector(`input[name="partName[${index}]"]`);
-                    const qtyInp = tr.querySelector(`input[name="partQty[${index}]"]`);
-                    const priceInp = tr.querySelector(`input[name="partPrice[${index}]"]`);
-
-                    if (nameInp) nameInp.value = data.ad;
-                    if (qtyInp) qtyInp.value = data.miktar;
-                    if (priceInp) priceInp.value = data.fiyat;
-
-                    fillCategoriesRandomly(tr);
-                }
-            });
-        } catch (err) { alert("Pano erişim hatası!"); }
+    const applyDateLogic = (input) => {
+        if (input.dataset.ksHandled) return;
+        input.dataset.ksHandled = 'true';
+        const jq = window.jQuery;
+        setTimeout(() => (input._flatpickr || (jq && jq(input).data('datepicker'))) && destroyPicker(input), 800);
+        input.addEventListener('input', (e) => {
+            const pos = input.selectionStart, oldLen = input.value.length;
+            input.value = format(input.value);
+            const move = input.value.length - oldLen;
+            input.setSelectionRange(pos + move, pos + move);
+        }, true);
     };
 
     const fillCategoriesRandomly = (scope = document) => {
         const selects = scope.querySelectorAll('select.part-category-select, select[name^="partCategory"]');
-        const usedValues = new Set();
-
+        const jq = window.jQuery;
         selects.forEach((select) => {
-            let options = Array.from(select.options).filter(opt =>
-                opt.value && opt.value !== "0" && !opt.text.toLowerCase().includes("seçiniz")
-            );
-
+            let options = Array.from(select.options).filter(opt => opt.value && opt.value !== "0" && !opt.text.toLowerCase().includes("seçiniz"));
             if (options.length > 0) {
                 const randomOpt = options[Math.floor(Math.random() * options.length)];
                 select.value = randomOpt.value;
                 const event = new Event('change', { bubbles: true });
                 select.dispatchEvent(event);
-                if (window.jQuery && $(select).data('select2')) $(select).trigger('change');
+                if (jq && jq(select).data('select2')) jq(select).trigger('change');
             }
         });
     };
 
-    const observer = new MutationObserver(() => injectButtons());
+    const processClipboard = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            const rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
+            const dataMap = new Map();
+            rows.forEach(row => {
+                if (row.length >= 2) {
+                    dataMap.set(row[1]?.trim(), { ad: row[2]?.trim(), miktar: row[3]?.trim(), fiyat: row[4]?.trim() });
+                }
+            });
+            document.querySelectorAll('tr').forEach(tr => {
+                const oemInp = tr.querySelector('input[name^="oemCode"]');
+                const oemVal = oemInp ? oemInp.value : tr.innerText.match(/\d{5,}/)?.[0];
+                if (oemVal && dataMap.has(oemVal)) {
+                    const data = dataMap.get(oemVal);
+                    const idx = oemInp ? oemInp.name.match(/\d+/)[0] : "0";
+                    const setVal = (name, val) => {
+                        const el = tr.querySelector(`input[name="${name}[${idx}]"]`);
+                        if (el && val) { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
+                    };
+                    setVal('partName', data.ad);
+                    setVal('partQty', data.qty || data.miktar);
+                    setVal('partPrice', data.fiyat);
+                    fillCategoriesRandomly(tr);
+                }
+            });
+        } catch (err) { console.error("Pano hatası:", err); }
+    };
+
+    const injectButtons = () => {
+        const searchBtn = document.getElementById('searchOemCodes');
+        if (searchBtn && !document.getElementById('ks-extra-btns')) {
+            const container = document.createElement('span');
+            container.id = 'ks-extra-btns';
+            container.className = 'ms-2';
+            const btn = (txt, clr, fn) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-sm ms-1';
+                b.style = `background:${clr}; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:5px 10px;`;
+                b.textContent = txt;
+                b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+                return b;
+            };
+            container.append(btn('RASGELE DOLDUR', '#dc3545', fillCategoriesRandomly), btn('PANODAN DOLDUR', '#007bff', processClipboard));
+            searchBtn.parentNode.appendChild(container);
+        }
+    };
+
+    const run = () => {
+        document.querySelectorAll('input.inputDate, input[name*="date" i]').forEach(applyDateLogic);
+        injectButtons();
+        const saveBtn = document.getElementById('btnSaveExpertise');
+        if (saveBtn && !document.getElementById('btnQuickEntry')) {
+            const qb = document.createElement('button');
+            qb.id = 'btnQuickEntry';
+            qb.className = 'btn btn-sm btn-warning me-1';
+            qb.innerHTML = '<i class="fa fa-bolt"></i> Hızlı Giriş';
+            saveBtn.parentNode.insertBefore(qb, saveBtn);
+        }
+    };
+
+    const observer = new MutationObserver(run);
     observer.observe(document.body, { childList: true, subtree: true });
-    }
+    run();
+}
 })();
