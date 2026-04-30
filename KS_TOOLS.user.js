@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.55
+// @version      1.57
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -9,14 +9,14 @@
 // @run-at       document-end
 // @grant        unsafeWindow
 // @grant        GM_addStyle
-// @grant        GM_setValue
+// @grant        GM_deleteValue
 // @grant        GM_getValue
+// @grant        GM_setValue
 // @grant        GM_info
 // @grant        GM_openInTab
 // @grant        GM_download
 // @grant        GM_notification
 // @grant        GM_xmlhttpRequest
-// @connect      * ```
 // @connect      sahibinden.com
 // @connect      google.com
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
@@ -26,6 +26,7 @@
     'use strict';
     /* ---Eklenecekler
         *** paneller düzenlenecek
+		parça hasar paneli düzenlenecek
         Ek tasarım şekilleri
         sağ üste danseden doge
         Gerekli evrak gösteren panel - duruma bağlı
@@ -39,333 +40,179 @@
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart","loginfrm","login","signin","sign"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
-        bottom: '0px', right: '0px', width: '250px',
-        themeColor: '#1cb2cd', Color: 'white', borderRadius: '4px', blur: '15px',
-        backColor: '#3d3e41', isCollapsed: false, wasDragging: false, zIndex: 3169999
+        bottom: '0px', right: '0px', width: '250px', borderRadius: '4px', blur: '15px',
+        themeColor: '#1cb2cd', backColor: '#3d3e41', Color: 'white',
+        isCollapsed: false, wasDragging: false, zIndex: 3169999
     };
     const getSetting = (key) => GM_getValue(key, true);
     const setSetting = (key, val) => GM_setValue(key, val);
     const themes = {
-        'online.sbm.org': 'white', // SBM Beyaz
-        'quicksigorta': '#d1a401', // Quick Sarı (Canlı Ton)
-        'anadolusigorta': '#005ba4', // Anadolu Mavi
-        'corpussigorta': '#8b5e34', // Corpus
-        'turkiyesigorta': '#1cb2cd', // Türkiye Sigorta Deniz Mavisi
-        'otohasar.hepiyi': '#55ac05', // Hepiyi Turuncu/Kırmızı
-        'otohasar.atlas': '#005596', // Atlas Mavi
-        'otohasar.mapfre': '#e00d26', // Mapfre Kırmızı
-        'otohasar.akcozum2': '#eb5311', // Aksigorta Turuncu
-        'otohasar.bereket': '#04b03d', // Bereket Yeşil
-        'otohasar.turknippon': '#0054a6', // Türk Nippon Mavi
-        'otohasar.allianz': '#164481', // Allianz Lacivert
-        'otohasar.sompo': '#e20613', // Sompo Kırmızı
-        'otohasar.hdi': '#007a33', // HDI Yeşil
-        'otohasar.groupama': '#007a33', // Groupama Yeşil
-        'otohasar.axa': '#00008f', // AXA Mavi
-        'otohasar.ray': '#ed1c24', // Ray Sigorta Kırmızı
-        'otohasar.unico': '#e30613', // Unico Kırmızı
-        'otohasar.doga': '#009640', // Doğa Yeşil
-        'otohasar.allianz': '#164481'
+        'online.sbm.org': 'white', 'quicksigorta': '#d1a401', 'anadolusigorta': '#005ba4', 'corpussigorta': '#8b5e34', 'turkiyesigorta': '#1cb2cd', 'otohasar.hepiyi': '#55ac05', 'otohasar.atlas': '#005596', 'otohasar.mapfre': '#e00d26',
+        'otohasar.akcozum2': '#eb5311', 'otohasar.bereket': '#04b03d', 'otohasar.turknippon': '#0054a6', 'otohasar.allianz': '#164481', 'otohasar.sompo': '#e20613', 'otohasar.hdi': '#007a33', 'otohasar.groupama': '#007a33', 'otohasar.axa': '#00008f',
+        'otohasar.ray': '#ed1c24', 'otohasar.unico': '#e30613', 'otohasar.doga': '#009640', 'otohasar.allianz': '#164481'
     };
-    const matchedKey = Object.keys(themes).find(key => url.includes(key));
-    if (matchedKey) config.themeColor = themes[matchedKey];
-	/* ══════════════════════════════════════════════════════
-	   HASAR ANALİZ — yardımcı fonksiyonlar (global scope)
-	══════════════════════════════════════════════════════ */
-	function hapNorm(t) {
-	    if (!t) return '';
-	    return t.toUpperCase()
-	        .replace(/\u0130/g, 'I').replace(/\u0131/g, 'I')
-	        .replace(/\u011e/g, 'G').replace(/\u011f/g, 'G')
-	        .replace(/\u00dc/g, 'U').replace(/\u00fc/g, 'U')
-	        .replace(/\u015e/g, 'S').replace(/\u015f/g, 'S')
-	        .replace(/\u00d6/g, 'O').replace(/\u00f6/g, 'O')
-	        .replace(/\u00c7/g, 'C').replace(/\u00e7/g, 'C');
-	}
-	function hapHas(text, words) { var n = hapNorm(text); return words.some(function (w) { return n.indexOf(hapNorm(w)) !== -1; }); }
-	function hapFmtTL(val) {
-	    if (!val || val === 0) return '';
-	    if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M\u20BA';
-	    if (val >= 1000) return Math.round(val / 1000) + 'K\u20BA';
-	    return Math.round(val) + '\u20BA';
-	}
-	function hapScoreColor(n) {
-	    if (n === 0) return '#555';
-	    if (n <= 2) return '#1D9E75';
-	    if (n <= 5) return '#EF9F27';
-	    if (n <= 9) return '#D85A30';
-	    return '#E24B4A';
-	}
-	function hapBgColor(n) {
-	    if (n === 0) return '#1a1a1a';
-	    if (n <= 2) return '#0c2e22';
-	    if (n <= 5) return '#2e1f08';
-	    if (n <= 9) return '#2e1208';
-	    return '#2e0808';
-	}
-	function hapBorderColor(n) {
-	    if (n === 0) return '#333';
-	    if (n <= 2) return '#1D9E75';
-	    if (n <= 5) return '#EF9F27';
-	    if (n <= 9) return '#D85A30';
-	    return '#E24B4A';
-	}
-	/* Bölge tanımları */
-	var HAP_BOLGELER = [
-	    { id: 'hap-z-fl', label: 'On Sol', short: 'ON\nSOL',
-	      kw: ['TAMPON, ON SOL','FAR, SOL','LAMBA, SINYAL ON SOL','BRAKET, TAMPON BAGL. ON SOL',
-	           'BRAKET, TAMPON ON SOL','AMORTISÖR, KABIN ON SOL','SPORT, KABIN ALT SOL',
-	           'AMORTISÖR, KABIN ON/ARKA SOL','BASAMAK GOVDESI, SOL','CAMURLUK SOL',
-	           'FAR SOL','SINYAL SOL','ON SOL'] },
-	    { id: 'hap-z-fc', label: 'On Orta', short: 'ON\nORTA',
-	      kw: ['TAMPON, ON ORTA','PANJUR','IZGARA','RADYATOR','INTERCOOLER',
-	           'CAM, ON','KROS DEMIR ON','PERVANE, FAN','FAN TASIYICI','DAVLUMBAZ',
-	           'HORTUM','DEPO, RADYATOR','BORU, SU','BORU, RADYATOR',
-	           'SENSOR, YAGMUR','MEKANIZMA SILECEK','MOTOR, SILECEK','KOL, SILECEK',
-	           'SAC SASI ON','AMORTISÖR, TAMPON ON','MUHAFAZA TAMPON ON',
-	           'BAKALIT, TAMPON','FILTRE, HAVA','SPOYLER, TAVAN',
-	           'GUNESLIK TK. KABIN DIS ON UST','GUNESLIK',
-	           'BRAKET, TAMPON BAGL. ON','FAR,','LAMBA, SINYAL ON',
-	           'BRAKET, SASE','BRAKET, SASE BAGL'] },
-	    { id: 'hap-z-fr', label: 'On Sag', short: 'ON\nSAG',
-	      kw: ['TAMPON, ON SAG','BRAKET, TAMPON BAGL. ON SAG','BRAKET TAMPON ON SAG',
-	           'AMORTISÖR, KABIN ON SAG','SPORT, KABIN ALT SAG','MENTESE, PANJUR ON SAG',
-	           'BAKALIT, PANJUR YAN ON SAG','BRAKET, BASAMAK BAGL. ON ALT SAG',
-	           'BASAMAK GOVDESI, SAG','FAR SAG','FAR, SAG','SINYAL SAG','ON SAG'] },
-	    { id: 'hap-z-dl', label: 'Sol Kapi', short: 'SOL\nKAPI',
-	      kw: ['BASAMAK, CAMURLUK UST','BASAMAK, PLASTIK ALT','BASAMAK GOVDESI, SOL',
-	           'SPORT, BASAMAK BAGL. SAG/SOL','MUHAFAZA, BAKALIT CAMURLUK KENAR SAG',
-	           'MUHAFAZA, BAKALIT CAMURLUK IC SAG','CAMURLUK, BASAMAK SAG',
-	           'BRAKET, BASAMAK','CAMURLUK SOL','KAPI SOL','SOL KAPI'] },
-	    { id: 'hap-z-ch', label: 'Sase/Motor/Kabin', short: 'SASE\nKABIN',
-	      kw: ['KABIN,','TESISAT, TORPEDO','GOGUS TORPEDO','KAPAK, TORPEDO',
-	           'KROS, TAVAN','KROS, KABIN','BAKALIT, KABIN','KAPAK, KABIN',
-	           'BAKALIT, DIREK IC','KOL, TUTAMAK KABIN','PERDE, TK. KABIN',
-	           'SIGORTA','AMORTISÖR, KABIN','SPORT, KABIN AMORTISÖR',
-	           'SPORT, KOL KABIN DENGE','KOL, KROSS KABIN DENGE',
-	           'DEMIR, KROS KABIN','BRAKET, KABIN','KILIT, KABIN SEMERI',
-	           'SILINDIR, KABIN','BRAKET KABIN SILINDIR','FAN GOBEGI',
-	           'RADYATOR, TK.','ISITICI, KABIN WEBASTO','UNITE ELEKT.',
-	           'KAMERA SERIT','SPORT KAMERA YOL','DUGME, KABIN','DUGME, CAM',
-	           'HORTUM, ISITICI','BRAKET, RADYATOR BAGL.','MOTOR, SILECEK',
-	           'SPOYLER','PANEL, KABIN','KABIN IC','TORPIDO','TAVAN IC',
-	           'RADAR','AEBS','ACC','WEBASTO','KALORIFERI','MOTOR, FAN'] },
-	    { id: 'hap-z-dr', label: 'Sag Kapi', short: 'SAG\nKAPI',
-	      kw: ['KILIT, KAPI','MEKANIZMA, CAM ACMA SAG','MOTOR, CAM MEKANIZMA',
-	           'PANEL, KAPI DOSEME IC SAG','BAKALIT, KAPI IC','LASTIK, KAPI CAM',
-	           'LASTIK, KAPI IC','KIZAK, KAPI CAM','DOSEME, KAPI SAG',
-	           'SPORT, KAPI IC SAG','KOL, KAPI IC CEKME SAG',
-	           'BAKALIT, KAPI DIS IC SAG','BAKALIT, KAPI DIS SAG',
-	           'TESISAT, KAPI SAG','CAM, KAPI SAG','LASTIK, KAPI DOSEME IC',
-	           'HOPARLOR, KAPI','SUS, PANEL YAPISTIRMA SAG',
-	           'AYNA, DIS DIKIZ KOMPLE SAG','BAKALIT, KAPI IC SAG',
-	           'CIVATA, KAPI','KAPI SAG','SAG KAPI'] },
-	    { id: 'hap-z-rl', label: 'Arka Sol', short: 'ARK\nSOL',
-	      kw: ['CAMURLUK, ARKA SAG','PACALIK CAMURLUK ARKA','BAKALIT, CAM KENAR YAN SAG',
-	           'SPOYLER, KABIN YAN SAG UST','LASTIK, SPOYLER KABIN YAN',
-	           'BRAKET SPOYLER BAGL. KABIN YAN','AYNA, KALDIRIM','KAPAK, AYNA KALDIRIM',
-	           'DOLAP KAPAK','KAPAK, TAKIM KUTUSU SAG','BRAKET, KAPAK BAGL.',
-	           'BAKALIT, AYAK BASAMAK','BAKALIT, KABIN ALT KENAR',
-	           'MENTESE, SPOYLER','YAN SOL','ARKA SOL'] },
-	    { id: 'hap-z-rc', label: 'Arka Orta', short: 'ARKA\nORTA',
-	      kw: ['MUHAFAZA, BAKALIT PANJUR ARKA','ARKA TAMPON','TAMPON ARKA',
-	           'STOP LAMBASI','ARKA CAM','ARKA ORTA'] },
-	    { id: 'hap-z-rr', label: 'Arka Sag', short: 'ARK\nSAG',
-	      kw: ['CAMURLUK, BASAMAK SAG','BRAKET, BASAMAK BAGL. SAG',
-	           'MUHAFAZA, BAKALIT CAMURLUK IC SAG','BRAKET, MUHAFAZA CAMURLUK IC BAGL.',
-	           'BRAKET, CAMURLUK MUHAFAZA BAGL','BRAKET, SIGORTA KUTU ALT',
-	           'BAKALIT, AYAK BASAMAK SAG','BRAKET, BASAMAK SAG',
-	           'YAN SAG','ARKA SAG'] }
-	];
-	var HAP_KRITIK = ['AMORTISÖR','SASE','KROS','INTERCOOLER','RADYATOR','SILINDIR','RADAR','WEBASTO','FAN GOBEGI','KABIN, TRIMSIZ','TESISAT, TORPEDO'];
-	var HAP_YUKSEK_ESIK = 15000;
-	/* Parça satırını parse et: {ad, fiyat, adet} döndürür */
-	function hapParseSatir(row) {
-	    var cells = row.querySelectorAll('td');
-	    // Başlık satırı veya boş satırı atla
-	    if (cells.length < 5 || row.innerText.includes('Parça Adı')) return null;
+    const matchedKey = Object.keys(themes).find(key => url.includes(key)); if (matchedKey) config.themeColor = themes[matchedKey];
+    /* ══════════════════════════════════════════════════════
+       HASAR ANALİZ - DİNAMİK TABLO YÖNETİMİ
+    ══════════════════════════════════════════════════════ */
+    function hapNorm(t) {
+		return t ? t.toUpperCase().replace(/İ/g,'I').replace(/ı/g,'I').replace(/Ğ/g,'G').replace(/ğ/g,'G').replace(/Ü/g,'U').replace(/ü/g,'U').replace(/Ş/g,'S').replace(/ş/g,'S').replace(/Ö/g,'O').replace(/ö/g,'O').replace(/Ç/g,'C').replace(/ç/g,'C') : ''; }
+    function hapKelimeVar(norm, kelimeler) { return kelimeler.some(k => new RegExp('(?<![A-Z0-9])' + hapNorm(k) + '(?![A-Z0-9])').test(norm)); }
+    function hapBolgeTestpit(parcaAdi) {
+        const n = hapNorm(parcaAdi),
+              onVar = hapKelimeVar(n, ['ON', 'FRONT']),
+              arkaVar = hapKelimeVar(n, ['ARKA', 'REAR']),
+              solVar = hapKelimeVar(n, ['SOL', 'LEFT']),
+              sagVar = hapKelimeVar(n, ['SAG', 'RIGHT']),
+              farVar = hapKelimeVar(n, ['FAR','SINYAL','AYDINLATMA','SIS LAMBASI','LAMBA','LED']),
+              stopVar = hapKelimeVar(n, ['STOP']),
+              tamponVar = hapKelimeVar(n, ['TAMPON','BUMPER']),
+              camurlukVar = hapKelimeVar(n, ['CAMURLUK','DAVLUMBAZ','MUDGUARD','FENDER']),
+              kapiVar = hapKelimeVar(n, ['KAPI', 'DOOR', 'BASAMAK', 'AYNA', 'MIRROR']);
+        if (farVar) return sagVar ? 'hap-z-fr' : (solVar ? 'hap-z-fl' : 'hap-z-fc');
+        if (stopVar) return sagVar ? 'hap-z-rr' : (solVar ? 'hap-z-rl' : 'hap-z-rc');
+        if (tamponVar) {
+            if (onVar) return sagVar ? 'hap-z-fr' : (solVar ? 'hap-z-fl' : 'hap-z-fc');
+            if (arkaVar) return sagVar ? 'hap-z-rr' : (solVar ? 'hap-z-rl' : 'hap-z-rc');
+            return onVar || !arkaVar ? 'hap-z-fc' : 'hap-z-rc'; }
+        if (camurlukVar) {
+            if (onVar) return sagVar ? 'hap-z-fr' : (solVar ? 'hap-z-fl' : null);
+            if (arkaVar) return sagVar ? 'hap-z-rr' : (solVar ? 'hap-z-rl' : null);
+            return sagVar ? 'hap-z-rr' : (solVar ? 'hap-z-rl' : null); }
+        if (kapiVar || solVar || sagVar) {
+            if (onVar || (!arkaVar && (solVar || sagVar))) return solVar ? 'hap-z-dl' : 'hap-z-dr';
+            if (arkaVar) return solVar ? 'hap-z-rl' : 'hap-z-rr';
+            return solVar ? 'hap-z-dl' : 'hap-z-dr'; }
+        if (onVar) return solVar ? 'hap-z-fl' : (sagVar ? 'hap-z-fr' : 'hap-z-fc');
+        if (arkaVar) return solVar ? 'hap-z-rl' : (sagVar ? 'hap-z-rr' : 'hap-z-rc');
+        const kabinKw = ['KABIN','SASE','KROS','TORPEDO','MOTOR','RADYATOR','INTERCOOLER','SILINDIR','FAN','WEBASTO','RADAR','AEBS','ACC','TESISAT','PERVANE','HORTUM','AKU','EXHAUST','EGZOZ'];
+        return hapKelimeVar(n, kabinKw) ? 'hap-z-ch' : null;
+    }
+    const HAP_KRITIK_KW = ['AMORTISÖR','SASE','KROS','INTERCOOLER','RADYATOR','SILINDIR','RADAR','WEBASTO','FAN','TESISAT','FREN','BRAKE','BALATA','DISK'];
+    function hapKritikMi(ad) { const n = hapNorm(ad); return HAP_KRITIK_KW.some(k => n.includes(hapNorm(k))); }
+    const HAP_YUKSEK_ESIK = 15000;
+    const hapScoreColor = n => n === 0 ? '#555' : n <= 2 ? '#1D9E75' : n <= 5 ? '#EF9F27' : n <= 9 ? '#D85A30' : '#E24B4A';
+    const hapBgColor = n => n === 0 ? '#1a1a1a' : n <= 2 ? '#0c2e22' : n <= 5 ? '#2e1f08' : n <= 9 ? '#2e1208' : '#2e0808';
+    const hapBorderColor = n => n === 0 ? '#333' : n <= 2 ? '#1D9E75' : n <= 5 ? '#EF9F27' : n <= 9 ? '#D85A30' : '#E24B4A';
+    function hapFmtTL(v) { return !v ? '' : v >= 1e6 ? (v / 1e6).toFixed(1) + 'M₺' : v >= 1e3 ? Math.round(v / 1e3) + 'K₺' : Math.round(v) + '₺'; }
+    function hapCellText(c) { return c ? (c.textContent || '').replace(/\u00a0/g, ' ').trim() : ''; }
+    function hapAnalizEt(rows) {
+        const res = { bSayac: {}, bTutar: {}, total: 0, kritik: 0, yuksek: 0, toplamTutar: 0, skor: 0 };
+        ['hap-z-fl','hap-z-fc','hap-z-fr','hap-z-dl','hap-z-ch','hap-z-dr','hap-z-rl','hap-z-rc','hap-z-rr'].forEach(id => { res.bSayac[id] = 0; res.bTutar[id] = 0; });
 
-	    var ad = '', fiyat = 0, adet = 1;
+        let adIdx = -1, fiyatIdx = -1, adetIdx = -1;
+        const headerRow = rows.find(r => r.querySelector('.koyubaslik'));
 
-	    // 1. ADET BULMA (Senin listende index 5: Adet)
-	    var adetRaw = parseInt(cells[5].innerText.trim(), 10);
-	    if (!isNaN(adetRaw) && adetRaw > 0) adet = adetRaw;
+        if (headerRow) {
+            headerRow.querySelectorAll('.koyubaslik').forEach((h, i) => {
+                const t = hapNorm(h.textContent).replace(/\s+/g, '');
+                if (t.includes('PARCAADI')) adIdx = i;
+                // Sistem fiyatı sütunu öncelikli, yoksa birim fiyat
+                if (t.includes('SISTEMFIYATI')) fiyatIdx = i;
+                else if (t.includes('BIRIMFIYAT') && fiyatIdx === -1) fiyatIdx = i;
+                if (t.includes('ADET')) adetIdx = i;
+            });
+        }
 
-	    // 2. FİYAT BULMA (Index 6: Birim Fiyat, Index 7: Tutar)
-	    // Tutar yerine Birim Fiyatı almak analizi daha doğru yapar (Eşik değer kontrolü için)
-	    var priceStr = cells[6].innerText.trim()
-	        .replace(/\u00a0/g, '') // Non-breaking space temizle
-	        .replace(/[^\d,.]/g, ''); // Sayı, nokta ve virgül dışındakileri temizle (TL simgesi vs)
+        if (adIdx === -1) return res;
 
-	    // Türk formatı (1.234,56) -> Global format (1234.56) dönüşümü
-	    if (priceStr.includes(',') && priceStr.includes('.')) {
-	        priceStr = priceStr.replace(/\./g, '').replace(',', '.');
-	    } else if (priceStr.includes(',')) {
-	        priceStr = priceStr.replace(',', '.');
-	    }
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length <= Math.max(adIdx, fiyatIdx) || row.querySelector('th') || cells[adIdx].classList.contains('koyubaslik')) return;
 
-	    var pv = parseFloat(priceStr);
-	    if (!isNaN(pv)) fiyat = pv;
+            const ad = cells[adIdx].textContent.trim();
+            if (!ad || ad.length < 2) return;
 
-	    // 3. PARÇA ADI BULMA (Index 4: Parça Adı)
-	    // Sabit index kullanmak "en uzun metni ara" mantığından daha güvenlidir
-	    if (cells[4]) {
-	        ad = cells[4].innerText.trim();
-	    }
+            /*// Fiyat temizleme mantığı güncellendi
+            let fRaw = cells[fiyatIdx].textContent.trim();
+            if (!fRaw) return;
 
-	    // Eğer ad hala boşsa fallback (eski mantık)
-	    if (!ad || ad.length < 2) {
-	        for (var i = 0; i < cells.length; i++) {
-	            var ct = cells[i].innerText.trim();
-	            if (ct.length > ad.length && !/^\d/.test(ct) && ct.length < 100) ad = ct;
-	        }
-	    }
+            // "13.649,52" formatını "13649.52" haline getirir
+            let fClean = fRaw.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+            const fiyat = parseFloat(fClean) || 0;*/
 
-	    if (!ad || fiyat === 0) return null;
-	    return { ad: ad, fiyat: fiyat, adet: adet };
-	}
-	/* Ana analiz fonksiyonu */
-	function hapAnalizEt(rows) {
-	    var sonuc = {
-	        bSayac: {}, bTutar: {}, total: 0, kritik: 0,
-	        yuksek: 0, toplamTutar: 0, skor: 0
-	    };
+            // --- YENİ FİYAT MANTIĞI ---
+            let fRaw = cells[fiyatIdx].textContent.replace(/[^\d]/g, ''); // Sadece rakamları al: "13.649,52" -> "1364952"
+            if (!fRaw) return;
+            // Rakamı al ve son 2 haneyi kuruş yapacak şekilde 100'e böl
+            const fiyat = parseFloat(fRaw) / 100;
 
-	    HAP_BOLGELER.forEach(function (b) {
-	        sonuc.bSayac[b.id] = 0;
-	        sonuc.bTutar[b.id] = 0;
-	    });
+            // Adet temizleme
+            let aRaw = adetIdx !== -1 ? cells[adetIdx].textContent.replace(/[^\d]/g, '') : "1";
+            const adet = parseInt(aRaw) || 1;
 
-	    var parcalar = [];
-	    rows.forEach(function (row) {
-	        var p = hapParseSatir(row);
-	        if (p) parcalar.push(p);
-	    });
+            const tutar = fiyat * adet;
 
-	    if (parcalar.length === 0) return sonuc;
+            if (tutar > 0) {
+                res.total++;
+                res.toplamTutar += tutar;
 
-	    parcalar.forEach(function (p) {
-	        var nt = hapNorm(p.ad);
-	        var tutar = p.fiyat * p.adet;
-	        sonuc.toplamTutar += tutar;
-	        sonuc.total++;
+                // Kritik parça kontrolü
+                if (hapKritikMi(ad)) res.kritik++;
+                if (tutar >= HAP_YUKSEK_ESIK) res.yuksek++;
 
-	        // Bölge eşleşmesi
-	        HAP_BOLGELER.forEach(function (b) {
-	            if (b.kw.some(function (k) { return nt.indexOf(hapNorm(k)) !== -1; })) {
-	                sonuc.bSayac[b.id]++;
-	                sonuc.bTutar[b.id] += tutar;
-	            }
-	        });
+                const bId = hapBolgeTestpit(ad);
+                if (bId) {
+                    res.bSayac[bId]++;
+                    res.bTutar[bId] += tutar;
+                }
+            }
+        });
 
-	        // Kritik parça kontrolü (Şasi, Airbag, Radyatör vb.)
-	        if (HAP_KRITIK.some(function (k) { return nt.indexOf(hapNorm(k)) !== -1; })) {
-	            sonuc.kritik++;
-	        }
-
-	        // Yüksek değer kontrolü (Örn: 15.000 TL üzeri)
-	        if (p.fiyat >= (typeof HAP_YUKSEK_ESIK !== 'undefined' ? HAP_YUKSEK_ESIK : 15000)) {
-	            sonuc.yuksek++;
-	        }
-	    });
-
-	    // SKOR MANTIĞI: Daha dengeli bir hesaplama
-	    // Parça sayısı, kritik parça varlığı ve toplam tutarın ağırlığı
-	    var temelSkor = (sonuc.total * 0.1) + (sonuc.kritik * 1.2) + (sonuc.yuksek * 0.5);
-	    // Eğer 1 milyon TL üzeri hasar varsa skoru direkt yukarı çek
-	    if (sonuc.toplamTutar > 1000000) temelSkor += 2;
-
-	    sonuc.skor = Math.min(Math.round(temelSkor * 10) / 10, 10);
-
-	    return sonuc;
-	}
-	/* Panel içindeki hasar HTML'ini güncelle */
-	function hapPanelGuncelle(sonuc) {
-	    if (!sonuc) return;
-	    var maxB = Math.max.apply(null, HAP_BOLGELER.map(function (b) { return sonuc.bSayac[b.id]; }).concat([1]));
-	    HAP_BOLGELER.forEach(function (b) {
-	        var n = sonuc.bSayac[b.id];
-	        var tl = sonuc.bTutar[b.id];
-	        var cell = document.getElementById(b.id);
-	        if (!cell) return;
-	        cell.style.background = hapBgColor(n);
-	        cell.style.borderColor = hapBorderColor(n);
-	        var nEl = document.getElementById(b.id + '-n');
-	        var tEl = document.getElementById(b.id + '-tl');
-	        var bEl = document.getElementById(b.id + '-bar');
-	        if (nEl) { nEl.textContent = n; nEl.style.color = n === 0 ? '#444' : hapScoreColor(n); }
-	        if (tEl) { tEl.textContent = n > 0 ? hapFmtTL(tl) : ''; tEl.style.color = hapScoreColor(n); }
-	        if (bEl) { bEl.style.width = Math.round((n / maxB) * 100) + '%'; bEl.style.background = hapScoreColor(n); }
-	    });
-	    /* Skor halka */
-	    var arc = document.getElementById('hap-arc');
-	    var sval = document.getElementById('hap-skor-val');
-	    var circ = 131.9;
-	    if (arc) {
-	        arc.setAttribute('stroke-dashoffset', Math.round((circ - circ * sonuc.skor / 10) * 10) / 10);
-	        arc.setAttribute('stroke', hapScoreColor(Math.ceil(sonuc.skor)));
-	    }
-	    if (sval) sval.textContent = sonuc.skor.toFixed(1);
-	    var chipTotal = document.getElementById('hap-chip-total');
-	    var chipCrit = document.getElementById('hap-chip-crit');
-	    var chipHigh = document.getElementById('hap-chip-high');
-	    var chipTutar = document.getElementById('hap-chip-tutar');
-	    if (chipTotal) chipTotal.textContent = sonuc.total + ' parca';
-	    if (chipCrit) chipCrit.textContent = sonuc.kritik + ' kritik';
-	    if (chipHigh) chipHigh.textContent = sonuc.yuksek + ' yuksek deger';
-	    if (chipTutar) {chipTutar.textContent = (sonuc.toplamTutar > 0
-	        ? sonuc.toplamTutar.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' TL toplam'
-	        : '-- TL toplam');}
-	    var msg = sonuc.skor >= 7 ? 'Agir hasar - mekanik mudahale gerekebilir'
-	            : sonuc.skor >= 4 ? 'Orta-yuksek hasar'
-	            : sonuc.skor >= 2 ? 'Orta hasar - coklu bolge'
-	            : 'Hafif hasar';
-	    var statusEl = document.getElementById('hap-status-info');
-	    if (statusEl) statusEl.textContent = 'Skor ' + sonuc.skor.toFixed(1) + '/10 — ' + msg;
-	}
-	/* URL'den veri çekip analiz et */
-	function hapVerileriGetir(dosyaId, currentHost) {
-	    var protocol = window.location.protocol;
-	    // URL'leri kontrol et, bazen tam yol gerekebilir
-	    var urls = [
-	        protocol + '//' + currentHost + '/eks/eks_hasar_yp_list_pert.php?id=' + dosyaId,
-	        protocol + '//' + currentHost + '/eks/eks_hasar_yp_list.php?id=' + dosyaId
-	    ];
-	    console.log("HAP: Sorgu baslatildi. URL listesi:", urls);
-	    var requestCount = 0;
-	    urls.forEach(function (targetUrl) {
-	        GM_xmlhttpRequest({
-	            method: 'GET',
-	            url: targetUrl,
-	            timeout: 5000, // 5 saniye zaman asimi
-				anonymous: false,
-	            onload: function (res) {
-	                requestCount++;
-	                console.log("HAP: Yanit geldi -> " + targetUrl + " Statu: " + res.status);
-	                if (res.status === 200) {
-	                    var doc = new DOMParser().parseFromString(res.responseText, 'text/html');
-	                    var rows = Array.from(doc.querySelectorAll('table tr'));
-	                    console.log("HAP: Bulunan satir sayisi:", rows.length);
-	                    if (rows.length > 5) { // Basliklar haric veri varsa
-	                        var sonuc = hapAnalizEt(rows);
-	                        if (sonuc && sonuc.total > 0) {
-	                            console.log("HAP: Analiz basarili, panel güncelleniyor.");
-	                            hapPanelGuncelle(sonuc);
-	                        } else {
-	                            console.warn("HAP: Satir bulundu ama parca parse edilemedi.");
-	                        }
-	                    }
-	                }
-	                if (requestCount === urls.length && document.getElementById('hap-status-info').textContent === 'Veriler sorgulanıyor...') {
-	                     document.getElementById('hap-status-info').textContent = 'Veri bulunamadı veya yetki hatası.';
-	                }
-	            },
-	            onerror: function (err) {
-	                console.error("HAP: Baglanti hatasi!", err);
-	            }
-	        });
-	    });
-	}
+        // Skor hesaplama mantığı (Hassasiyet artırıldı)
+        res.skor = Math.min(Math.round(((res.total * 0.15) + (res.toplamTutar / 25000) + (res.kritik * 1.5)) * 10) / 10, 10);
+        return res;
+    }
+    const HAP_BOLGELER = [
+        { id:'hap-z-fl', label:'On Sol' }, { id:'hap-z-fc', label:'On Orta' }, { id:'hap-z-fr', label:'On Sag' },
+        { id:'hap-z-dl', label:'Sol Kapi' }, { id:'hap-z-ch', label:'Sase/Kabin' }, { id:'hap-z-dr', label:'Sag Kapi' },
+        { id:'hap-z-rl', label:'Arka Sol' }, { id:'hap-z-rc', label:'Arka Orta' }, { id:'hap-z-rr', label:'Arka Sag' }
+    ];
+    function hapPanelGuncelle(sonuc) {
+        if (!sonuc) return;
+        const maxB = Math.max(...HAP_BOLGELER.map(b => sonuc.bSayac[b.id]), 1);
+        HAP_BOLGELER.forEach(b => {
+            const n = sonuc.bSayac[b.id], tl = sonuc.bTutar[b.id], cell = document.getElementById(b.id);
+            if (!cell) return;
+            cell.style.background = hapBgColor(n);
+            cell.style.borderColor = hapBorderColor(n);
+            const nE = document.getElementById(b.id+'-n'), tE = document.getElementById(b.id+'-tl'), bE = document.getElementById(b.id+'-bar');
+            if (nE) { nE.textContent = n; nE.style.color = n === 0 ? '#444' : hapScoreColor(n); }
+            if (tE) { tE.textContent = n > 0 ? hapFmtTL(tl) : ''; tE.style.color = hapScoreColor(n); }
+            if (bE) { bE.style.width = Math.round((n / maxB) * 100) + '%'; bE.style.background = hapScoreColor(n); }
+        });
+        const arc = document.getElementById('hap-arc'), sval = document.getElementById('hap-skor-val'), circ = 131.9;
+        if (arc) { arc.setAttribute('stroke-dashoffset', (circ - circ * sonuc.skor / 10).toFixed(1)); arc.setAttribute('stroke', hapScoreColor(Math.ceil(sonuc.skor))); }
+        if (sval) sval.textContent = sonuc.skor.toFixed(1);
+        const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        setT('hap-chip-total', sonuc.total + ' Parça');
+        setT('hap-chip-crit', sonuc.kritik + ' Kritik');
+        setT('hap-chip-high', sonuc.yuksek + ' Yüksek değer');
+        setT('hap-chip-tutar', sonuc.toplamTutar > 0 ? sonuc.toplamTutar.toLocaleString('tr-TR') + ' TL Toplam' : '-- TL Toplam');
+        const msg = sonuc.skor >= 7 ? 'Ağır hasar' : sonuc.skor >= 4 ? 'Orta - Yüksek hasar' : sonuc.skor >= 2 ? 'Orta hasar' : 'Hafif hasar';
+        setT('hap-status-info', 'Skor ' + sonuc.skor.toFixed(1) + '/10 — ' + msg);
+    }
+    function hapVerileriGetir(dosyaId, currentHost) {
+        const urls = [`${location.protocol}//${currentHost}/eks/eks_hasar_yp_list_pert.php?id=${dosyaId}`, `${location.protocol}//${currentHost}/eks/eks_hasar_yp_list.php?id=${dosyaId}`];
+        let count = 0, best = null;
+        urls.forEach(url => {
+            GM_xmlhttpRequest({
+                method: 'GET', url: url, timeout: 8000,
+                onload: res => {
+                    count++;
+                    if (res.status === 200) {
+                        const rows = Array.from(new DOMParser().parseFromString(res.responseText, 'text/html').querySelectorAll('table tr'));
+                        if (rows.length > 3) { const s = hapAnalizEt(rows); if (!best || s.total > best.total) best = s; }
+                    }
+                    if (count === urls.length) best && best.total > 0 ? hapPanelGuncelle(best) : (document.getElementById('hap-status-info') && (document.getElementById('hap-status-info').textContent = 'Veri yok.'));
+                },
+                onerror: () => { count++; if (count === urls.length && !best) document.getElementById('hap-status-info').textContent = 'Baglanti hatasi.'; }
+            });
+        });
+    }
+    /* ══════════════════════════════════════════════════════
+       STYLE AND PANEL
+    ══════════════════════════════════════════════════════ */
     const injectStyles = () => {
         if (document.getElementById('ks-dynamic-styles')) return;
         const style = document.createElement('style');
@@ -549,7 +396,7 @@
             #hap-ring-wrap { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
             #hap-skor-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 13px; font-weight: 700; color: #fff; }
             #hap-chips { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-            .hap-chip { font-size: 9px; padding: 1px 6px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+            .hap-chip { font-size: 11px; padding: 1px 6px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
             .hap-chip-n { background: #222; color: #aaa; border: 1px solid #333; }
             .hap-chip-r { background: #2e0808; color: #E24B4A; border: 1px solid #7a1f1f; }
             .hap-chip-y { background: #2e1f08; color: #EF9F27; border: 1px solid #7a4f0f; }
@@ -567,15 +414,15 @@
                 transition: background .3s, border-color .3s;
             }
             .hap-cell-span { grid-row: span 2; min-height: 107px; }
-            .hap-cell-lbl { font-size: 7px; color: #555; text-align: center; white-space: pre-line; line-height: 1.2; font-weight: 600; letter-spacing: .02em; }
+            .hap-cell-lbl { font-size: 10px; color: #fff; text-align: center; white-space: pre-line; line-height: 1; font-weight: 600; letter-spacing: .02em; }
             .hap-cell-n { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.1; margin-top: 2px; }
-            .hap-cell-tl { font-size: 7px; color: #888; min-height: 9px; text-align: center; line-height: 1; }
+            .hap-cell-tl { font-size: 12px; color: #fff; min-height: 10px; text-align: center; line-height: 1; }
             .hap-bar-wrap { width: 100%; height: 2px; background: #2a2a2a; border-radius: 1px; margin-top: 3px; }
             .hap-bar { height: 100%; border-radius: 1px; width: 0%; transition: width .4s; }
             #hap-leg { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 5px; }
-            .hap-leg-item { display: flex; align-items: center; gap: 2px; font-size: 8px; color: #666; }
+            .hap-leg-item { display: flex; align-items: center; gap: 2px; font-size: 8px; color: #fff; }
             .hap-leg-dot { width: 5px; height: 5px; border-radius: 50%; }
-            #hap-status-info { font-size: 8px; color: #ff9800; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; text-align: center; }
+            #hap-status-info { font-size: 12px; color: #ff9800; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; text-align: center; }
         `;
         document.head.appendChild(style);
     };
@@ -633,8 +480,7 @@
     /* ══════════════════════════════════════════════════════
        TOOLTIP
     ══════════════════════════════════════════════════════ */
-    const tooltip = document.createElement('div');
-    tooltip.id = 'ks-dynamic-tooltip';
+    const tooltip = document.createElement('div'); tooltip.id = 'ks-dynamic-tooltip';
     document.body.appendChild(tooltip);
     document.addEventListener('mouseover', (e) => {
         const container = e.target.closest('.ks-tooltip-container');
@@ -672,8 +518,7 @@
     /* ══════════════════════════════════════════════════════
        UNLOCK
     ══════════════════════════════════════════════════════ */
-    let isUnlocked = false;
-    const unlockAllElements = (s) => {
+    let isUnlocked = false; const unlockAllElements = (s) => {
         const sel = '[disabled],.disabled,[readonly],[aria-readonly="true"],[aria-disabled="true"],.ks-unlocked,.dx-texteditor-input';
         document.querySelectorAll(sel).forEach(el => {
             if (s) {
@@ -696,9 +541,7 @@
     /* ══════════════════════════════════════════════════════
        STATUS BAR & SETTINGS MODAL
     ══════════════════════════════════════════════════════ */
-    const WARNING_COLOR = 'rgb(250, 250, 150)';
-    const SUCCESS_COLOR = '#00ff88';
-    const PANEL_ID = 'ks-global-status-indicator';
+    const WARNING_COLOR = 'rgb(250, 250, 150)', SUCCESS_COLOR = '#00ff88', PANEL_ID = 'ks-global-status-indicator';
     if (window.self === window.top) {
         const injectFonts = () => {
             if (document.getElementById('ks2-fonts')) return;
@@ -1233,9 +1076,9 @@
                     document.body.style.overflow = '';
                 };
                 // ESC ile kapat
-                const escHandler = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); } };
+                /*const escHandler = (e) => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escHandler); } };
                 document.addEventListener('keydown', escHandler);
-                overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });*/
                 // Sidebar nav HTML
                 const navHTML = SECTIONS.map((sec, i) => `
                     <div class="ks2-nav-item ${i === 0 ? 'ks2-active' : ''}" data-sec="${sec.id}" data-title="${sec.title}">
@@ -1291,7 +1134,7 @@
                                     <div><div class="ks2-stat-val">${totalItems}</div><div class="ks2-stat-lbl">TOPLAM</div></div>
                                 </div>
                                 <div class="ks2-footer-btns">
-                                    <button class="ks2-fbtn ks2-fbtn-cancel" id="ks2-btn-cancel"><span>VAZGEÇ</span></button>
+                                    <button class="ks2-fbtn ks2-fbtn-cancel" id="ks2-btn-cancel"><span>Hafızayı Temizle!</span></button>
                                     <button class="ks2-fbtn ks2-fbtn-save" id="ks2-btn-save"><span>KAYDET</span><span class="ks2-fbtn-glow"></span></button>
                                 </div>
                             </div>
@@ -1378,9 +1221,28 @@
                     overlay.querySelectorAll('.ks2-cdot').forEach(d => { d.style.borderColor = 'transparent'; d.classList.remove('ks2-sel'); if (d.dataset.c === savedTheme) { d.style.borderColor = savedTheme; d.classList.add('ks2-sel'); } });
                 }
                 // ── Footer butonları ────────────────────────────────────────────
-                overlay.querySelector('#ks2-btn-cancel').addEventListener('click', closeModal);
-                overlay.querySelector('#ks2-btn-save').addEventListener('click', () => { closeModal(); if (confirm('Ayarlar kaydedildi. Sayfa yenilensin mi?')) window.location.reload(); });
-                window.openSettingsModal = openSettingsModal;
+                const cancelBtn = overlay.querySelector('#ks2-btn-cancel');
+                const saveBtn = overlay.querySelector('#ks2-btn-save');
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        const keysToReset = [
+                            'KS_PANEL', 'KS_PANEL_hlt', 'KS_PANEL_pol', 'KS_PANEL_sgs', 'KS_PANEL_rc', 'KS_PANEL_pert', 'KS_PANEL_hsr', 'KS_PANEL_srtp', 'KS_PANEL_srad', 'KS_PANEL_tra', 'KS_PANEL_sad', 'KS_PANEL_aad', 'KS_PANEL_mull', 'KS_PANEL_ryc', 'KS_PANEL_rycorn', 'KS_PANEL_pys', 'KS_PANEL_not', 'KS_PANEL_hasar', 'KS_MANU', 'KS_REF', 'KS_DNM', 'KS_IMG', 'KS_TRS', 'KS_QCA', 'KS_SAHIB', 'KS_SBM', 'KS_WP', 'KS_NTF'
+                        ];
+
+                        if (confirm('Ana kontrol hariç tüm alt özellikler kapatılacak ve hafıza sıfırlanacak. Onaylıyor musunuz?')) {
+							keysToReset.forEach(key => GM_setValue(key, false));
+                            GM_setValue('KS_SYS', true); alert('Alt özellikler kapatıldı. Sayfa yenileniyor!'); window.location.reload();
+                        }
+                    });
+                }
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', (e) => {
+                        e.preventDefault(); closeModal();
+                        if (confirm('Ayarlar kaydedildi. Değişikliklerin uygulanması için sayfa yenilensin mi?')) { window.location.reload(); }
+                    });
+                }
+                //window.openSettingsModal = openSettingsModal;
                 //document.addEventListener('keydown', (e) => { if (e.altKey && e.key === 's') openSettingsModal(); });
             };
         };
@@ -1389,35 +1251,21 @@
     /* ══════════════════════════════════════════════════════
        SETTINGS READ
     ══════════════════════════════════════════════════════ */
-    const KS_SYSTEM = GM_getValue('KS_SYS', false);
-    const ANALIZPANEL = GM_getValue('KS_PANEL', false);
-    const ANALIZPANEL_hlt = GM_getValue('KS_PANEL_hlt', false);
-    const ANALIZPANEL_pol = GM_getValue('KS_PANEL_pol', false);
-    const ANALIZPANEL_sgs = GM_getValue('KS_PANEL_sgs', false);
-    const ANALIZPANEL_rc = GM_getValue('KS_PANEL_rc', false);
-    const ANALIZPANEL_pert = GM_getValue('KS_PANEL_pert', false);
-    const ANALIZPANEL_hsr = GM_getValue('KS_PANEL_hsr', false);
-    const ANALIZPANEL_srtp = GM_getValue('KS_PANEL_srtp', false);
-    const ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false);
-    const ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false);
-    const ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false);
-    const ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false);
-    const ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false);
-    const ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false);
-    const ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false);
-    const ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false);
-    const ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false);
-    const ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false);
-    const MANUEL = GM_getValue('KS_MANU', false);
-    const REFERANS = GM_getValue('KS_REF', false);
-    const DONANIM = GM_getValue('KS_DNM', false);
-    const RESIM = GM_getValue('KS_IMG', false);
-    const TRSIGORTA = GM_getValue('KS_TRS', false);
-    const QCASIGORTA = GM_getValue('KS_QCA', false);
-    const SAHIBINDEN = GM_getValue('KS_SAHIB', false);
-    const SBM = GM_getValue('KS_SBM', false);
-    const WHATSAPP = GM_getValue('KS_WP', false);
-    const BILDIRIM = GM_getValue('KS_NTF', false);
+    const KS_SYSTEM = GM_getValue('KS_SYS', false),
+    ANALIZPANEL = GM_getValue('KS_PANEL', false), ANALIZPANEL_hlt = GM_getValue('KS_PANEL_hlt', false),
+    ANALIZPANEL_pol = GM_getValue('KS_PANEL_pol', false), ANALIZPANEL_sgs = GM_getValue('KS_PANEL_sgs', false),
+    ANALIZPANEL_rc = GM_getValue('KS_PANEL_rc', false), ANALIZPANEL_pert = GM_getValue('KS_PANEL_pert', false),
+    ANALIZPANEL_hsr = GM_getValue('KS_PANEL_hsr', false), ANALIZPANEL_srtp = GM_getValue('KS_PANEL_srtp', false),
+    ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false), ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false),
+    ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false), ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false),
+    ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false), ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false),
+    ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
+    ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false),
+    MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false),
+    DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
+    TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false),
+    SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
+    WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false);
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php") || location.href.includes("eks_hasar_magdur.php"))) {
         const magdurpanel = location.href.includes("eks_hasar_magdur.php");
@@ -1432,99 +1280,6 @@
             const headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Giriş Kontrol Paneli";
             panelContent.innerHTML = `
-			<div id="hasar-section">
-                <hr class="custom-line">
-                <div style="text-align:center;font-size:9px;opacity:0.5;letter-spacing:.06em;margin-bottom:4px;">
-                    HASAR ANALİZ — DOSYA: ${dosyaId}
-                </div>
-                <!-- Skor + chip satırı -->
-                <div id="hap-score-row">
-                    <div id="hap-ring-wrap">
-                        <svg width="50" height="50" viewBox="0 0 50 50">
-                            <circle cx="25" cy="25" r="20" fill="none" stroke="#2a2a2a" stroke-width="4"/>
-                            <circle id="hap-arc" cx="25" cy="25" r="20" fill="none" stroke="#E24B4A"
-                                stroke-width="4" stroke-linecap="round"
-                                stroke-dasharray="125.7" stroke-dashoffset="125.7"
-                                transform="rotate(-90 25 25)" style="transition:.5s"/>
-                        </svg>
-                        <span id="hap-skor-val">--</span>
-                    </div>
-                    <div id="hap-chips">
-                        <div id="hap-chip-total" class="hap-chip hap-chip-n">-- parca</div>
-                        <div id="hap-chip-crit"  class="hap-chip hap-chip-r">-- kritik</div>
-                        <div id="hap-chip-high"  class="hap-chip hap-chip-y">-- yuksek deger</div>
-                        <div id="hap-chip-tutar" class="hap-chip hap-chip-b">-- TL toplam</div>
-                    </div>
-                </div>
-                <!-- Lejant -->
-                <div id="hap-leg">
-                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#1D9E75"></div>1-2</div>
-                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#EF9F27"></div>3-5</div>
-                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#D85A30"></div>6-9</div>
-                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#E24B4A"></div>10+</div>
-                </div>
-                <!-- 3x3 araç grid -->
-                <div id="hap-grid">
-                    <!-- Sıra 1: Ön -->
-                    <div id="hap-z-fl" class="hap-cell">
-                        <span class="hap-cell-lbl">ON\nSOL</span>
-                        <span class="hap-cell-n" id="hap-z-fl-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-fl-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fl-bar"></div></div>
-                    </div>
-                    <div id="hap-z-fc" class="hap-cell">
-                        <span class="hap-cell-lbl">ON\nORTA</span>
-                        <span class="hap-cell-n" id="hap-z-fc-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-fc-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fc-bar"></div></div>
-                    </div>
-                    <div id="hap-z-fr" class="hap-cell">
-                        <span class="hap-cell-lbl">ON\nSAG</span>
-                        <span class="hap-cell-n" id="hap-z-fr-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-fr-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fr-bar"></div></div>
-                    </div>
-                    <!-- Sıra 2: Orta -->
-                    <div id="hap-z-dl" class="hap-cell">
-                        <span class="hap-cell-lbl">SOL\nKAPI</span>
-                        <span class="hap-cell-n" id="hap-z-dl-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-dl-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dl-bar"></div></div>
-                    </div>
-                    <div id="hap-z-ch" class="hap-cell">
-                        <span class="hap-cell-lbl">SASE\nKABIN</span>
-                        <span class="hap-cell-n" id="hap-z-ch-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-ch-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-ch-bar"></div></div>
-                    </div>
-                    <div id="hap-z-dr" class="hap-cell">
-                        <span class="hap-cell-lbl">SAG\nKAPI</span>
-                        <span class="hap-cell-n" id="hap-z-dr-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-dr-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dr-bar"></div></div>
-                    </div>
-                    <!-- Sıra 3: Sas/Kabin row 2 + Arka -->
-                    <div id="hap-z-rl" class="hap-cell">
-                        <span class="hap-cell-lbl">ARK\nSOL</span>
-                        <span class="hap-cell-n" id="hap-z-rl-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-rl-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rl-bar"></div></div>
-                    </div>
-                    <div id="hap-z-rc" class="hap-cell">
-                        <span class="hap-cell-lbl">ARKA\nORTA</span>
-                        <span class="hap-cell-n" id="hap-z-rc-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-rc-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rc-bar"></div></div>
-                    </div>
-                    <div id="hap-z-rr" class="hap-cell">
-                        <span class="hap-cell-lbl">ARK\nSAG</span>
-                        <span class="hap-cell-n" id="hap-z-rr-n">0</span>
-                        <span class="hap-cell-tl" id="hap-z-rr-tl"></span>
-                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rr-bar"></div></div>
-                    </div>
-                </div>
-                <div id="hap-status-info">Veriler sorgulanıyor...</div>
-            </div>
             <div id="panelContent" style ="color:#ffffff; text-align:center;">⏳ Yükleniyor...</div>
             <hr class="custom-line">
 			<div id="pys-section">
@@ -1564,6 +1319,94 @@
             	    <textarea id="page-note-input" style="width: 100%; height: 40px; background: #252525; color: black; border: 1px solid #333; border-radius: ${config.borderRadius}; padding: 2px; font-size: 12px; line-height: 1.2; resize: vertical; outline: none; box-sizing: border-box; display: block;" placeholder="Buraya notunu bırakabilirsin..."></textarea>
             	</div>
 			</div>
+			<div id="hasar-section">
+                <hr class="custom-line">
+				<div style="text-align:center;font-size:10px;opacity:0.5;letter-spacing:.06em;margin-bottom:4px;">PARÇA KONTROL SİSTEMİ %70 TUTARLIDIR!\nHASAR ANALİZ — DOSYA: ${dosyaId}</div>
+                <!-- Skor + chip satırı -->
+                <div id="hap-status-info">Veriler sorgulanıyor...</div>
+                <div id="hap-score-row">
+                    <div id="hap-ring-wrap">
+                        <svg width="50" height="50" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="#2a2a2a" stroke-width="4"/>
+                            <circle id="hap-arc" cx="25" cy="25" r="20" fill="none" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" stroke-dasharray="125.7" stroke-dashoffset="125.7" transform="rotate(-90 25 25)" style="transition:.5s"/>
+                        </svg>
+                        <span id="hap-skor-val">--</span>
+                    </div>
+                    <div id="hap-chips">
+                        <div id="hap-chip-total" class="hap-chip hap-chip-n">-- Parça</div>
+                        <div id="hap-chip-crit"  class="hap-chip hap-chip-r">-- Kritik</div>
+                        <div id="hap-chip-high"  class="hap-chip hap-chip-y">-- Yüksek değerli</div>
+                        <div id="hap-chip-tutar" class="hap-chip hap-chip-b">-- TL Toplam</div>
+                    </div>
+                </div>
+                <!-- Lejant -->
+                <div id="hap-leg">
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#1D9E75"></div>1-2</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#EF9F27"></div>3-5</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#D85A30"></div>6-9</div>
+                    <div class="hap-leg-item"><div class="hap-leg-dot" style="background:#E24B4A"></div>10+</div>
+                </div>
+                <!-- 3x3 araç grid -->
+                <div id="hap-grid">
+                    <!-- Sıra 1: Ön -->
+                    <div id="hap-z-fl" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nSOL</span>
+                        <span class="hap-cell-n" id="hap-z-fl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-fc" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nORTA</span>
+                        <span class="hap-cell-n" id="hap-z-fc-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fc-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fc-bar"></div></div>
+                    </div>
+                    <div id="hap-z-fr" class="hap-cell">
+                        <span class="hap-cell-lbl">ON\nSAG</span>
+                        <span class="hap-cell-n" id="hap-z-fr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-fr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-fr-bar"></div></div>
+                    </div>
+                    <!-- Sıra 2: Orta -->
+                    <div id="hap-z-dl" class="hap-cell">
+                        <span class="hap-cell-lbl">SOL\nKAPI</span>
+                        <span class="hap-cell-n" id="hap-z-dl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-dl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-ch" class="hap-cell">
+                        <span class="hap-cell-lbl"><span style="color:blue;">MEKA-ELKT</span>\nKABIN</span>
+                        <span class="hap-cell-n" id="hap-z-ch-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-ch-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-ch-bar"></div></div>
+                    </div>
+                    <div id="hap-z-dr" class="hap-cell">
+                        <span class="hap-cell-lbl">SAG\nKAPI</span>
+                        <span class="hap-cell-n" id="hap-z-dr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-dr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-dr-bar"></div></div>
+                    </div>
+                    <!-- Sıra 3: Sas/Kabin row 2 + Arka -->
+                    <div id="hap-z-rl" class="hap-cell">
+                        <span class="hap-cell-lbl">ARK\nSOL</span>
+                        <span class="hap-cell-n" id="hap-z-rl-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rl-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rl-bar"></div></div>
+                    </div>
+                    <div id="hap-z-rc" class="hap-cell">
+                        <span class="hap-cell-lbl">ARKA\nORTA</span>
+                        <span class="hap-cell-n" id="hap-z-rc-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rc-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rc-bar"></div></div>
+                    </div>
+                    <div id="hap-z-rr" class="hap-cell">
+                        <span class="hap-cell-lbl">ARK\nSAG</span>
+                        <span class="hap-cell-n" id="hap-z-rr-n">0</span>
+                        <span class="hap-cell-tl" id="hap-z-rr-tl"></span>
+                        <div class="hap-bar-wrap"><div class="hap-bar" id="hap-z-rr-bar"></div></div>
+                    </div>
+                </div>
+            </div>
             `;
 
             /* F2 / F4 kısayolları */
@@ -4747,122 +4590,114 @@
         }, 2000);
     }
     // Quick - Corpus - Anadolu Sigorta
-if (KS_SYSTEM && QCASIGORTA && /quicksigorta\.com|anadolusigorta\.com|corpussigorta\.com/.test(location.href)) {
-    const format = v => {
-        v = v.replace(/\D/g, '').substring(0, 8);
-        return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v);
-    };
-
-    const lockValue = (input, val) => {
-        let _v = val;
-        const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-        Object.defineProperty(input, 'value', {
-            get: () => _v,
-            set: (nv) => { if (/^\d{2}\.\d{2}\.\d{4}$/.test(nv)) _v = nv; },
-            configurable: true
-        });
-        desc.set.call(input, val);
-    };
-
-    const destroyPicker = (input) => {
-        const jq = window.jQuery;
-        if (input._flatpickr) try { input._flatpickr.destroy(); } catch (e) { }
-        if (jq) try { jq(input).datepicker('destroy'); } catch (e) { }
-        document.querySelectorAll('.datepicker, .datepicker-dropdown, .flatpickr-calendar').forEach(el => el.remove());
-    };
-
-    const applyDateLogic = (input) => {
-        if (input.dataset.ksHandled) return;
-        input.dataset.ksHandled = 'true';
-        const jq = window.jQuery;
-        setTimeout(() => (input._flatpickr || (jq && jq(input).data('datepicker'))) && destroyPicker(input), 800);
-        input.addEventListener('input', (e) => {
-            const pos = input.selectionStart, oldLen = input.value.length;
-            input.value = format(input.value);
-            const move = input.value.length - oldLen;
-            input.setSelectionRange(pos + move, pos + move);
-        }, true);
-    };
-
-    const fillCategoriesRandomly = (scope = document) => {
-        const selects = scope.querySelectorAll('select.part-category-select, select[name^="partCategory"]');
-        const jq = window.jQuery;
-        selects.forEach((select) => {
-            let options = Array.from(select.options).filter(opt => opt.value && opt.value !== "0" && !opt.text.toLowerCase().includes("seçiniz"));
-            if (options.length > 0) {
-                const randomOpt = options[Math.floor(Math.random() * options.length)];
-                select.value = randomOpt.value;
-                const event = new Event('change', { bubbles: true });
-                select.dispatchEvent(event);
-                if (jq && jq(select).data('select2')) jq(select).trigger('change');
+    if (KS_SYSTEM && QCASIGORTA && /quicksigorta\.com|anadolusigorta\.com|corpussigorta\.com/.test(location.href)) {
+        const format = v => {
+            v = v.replace(/\D/g, '').substring(0, 8);
+            return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v);
+        };
+        const lockValue = (input, val) => {
+            let _v = val;
+            const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            Object.defineProperty(input, 'value', {
+                get: () => _v,
+                set: (nv) => { if (/^\d{2}\.\d{2}\.\d{4}$/.test(nv)) _v = nv; },
+                configurable: true
+            });
+            desc.set.call(input, val);
+        };
+        const destroyPicker = (input) => {
+            const jq = window.jQuery;
+            if (input._flatpickr) try { input._flatpickr.destroy(); } catch (e) { }
+            if (jq) try { jq(input).datepicker('destroy'); } catch (e) { }
+            document.querySelectorAll('.datepicker, .datepicker-dropdown, .flatpickr-calendar').forEach(el => el.remove());
+        };
+        const applyDateLogic = (input) => {
+            if (input.dataset.ksHandled) return;
+            input.dataset.ksHandled = 'true';
+            const jq = window.jQuery;
+            setTimeout(() => (input._flatpickr || (jq && jq(input).data('datepicker'))) && destroyPicker(input), 800);
+            input.addEventListener('input', (e) => {
+                const pos = input.selectionStart, oldLen = input.value.length;
+                input.value = format(input.value);
+                const move = input.value.length - oldLen;
+                input.setSelectionRange(pos + move, pos + move);
+            }, true);
+        };
+        const fillCategoriesRandomly = (scope = document) => {
+            const selects = scope.querySelectorAll('select.part-category-select, select[name^="partCategory"]');
+            if (!selects.length) return;
+            const jq = window.jQuery;
+            selects.forEach((select) => {
+                let options = Array.from(select.options).filter(opt => opt.value && opt.value !== "0" && !opt.text.toLowerCase().includes("seçiniz"));
+                if (options.length > 0) {
+                    const randomOpt = options[Math.floor(Math.random() * options.length)];
+                    select.value = randomOpt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (jq && jq(select).data('select2')) jq(select).trigger('change');
+                }
+            });
+        };
+        const processClipboard = async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                const rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
+                const dataMap = new Map();
+                rows.forEach(row => {
+                    if (row.length >= 2) {
+                        dataMap.set(row[1]?.trim(), { ad: row[2]?.trim(), miktar: row[3]?.trim(), fiyat: row[4]?.trim() });
+                    }
+                });
+                document.querySelectorAll('tr').forEach(tr => {
+                    const oemInp = tr.querySelector('input[name^="oemCode"]');
+                    const oemVal = oemInp ? oemInp.value : tr.innerText.match(/\d{5,}/)?.[0];
+                    if (oemVal && dataMap.has(oemVal)) {
+                        const data = dataMap.get(oemVal);
+                        const idx = oemInp ? oemInp.name.match(/\d+/)[0] : "0";
+                        const setVal = (name, val) => {
+                            const el = tr.querySelector(`input[name="${name}[${idx}]"]`);
+                            if (el && val) { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
+                        };
+                        setVal('partName', data.ad);
+                        setVal('partQty', data.qty || data.miktar);
+                        setVal('partPrice', data.fiyat);
+                        fillCategoriesRandomly(tr);
+                    }
+                });
+            } catch (err) { console.error("Pano hatası:", err); }
+        };
+        const injectButtons = () => {
+            const searchBtn = document.getElementById('searchOemCodes');
+            if (searchBtn && !document.getElementById('ks-extra-btns')) {
+                const container = document.createElement('span');
+                container.id = 'ks-extra-btns';
+                container.className = 'ms-2';
+                const btn = (txt, clr, fn) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn btn-sm ms-1';
+                    b.style = `background:${clr}; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:5px 10px;`;
+                    b.textContent = txt;
+                    b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+                    return b;
+                };
+                container.append(btn('RASGELE DOLDUR', '#dc3545', fillCategoriesRandomly), btn('PANODAN DOLDUR', '#007bff', processClipboard));
+                searchBtn.parentNode.appendChild(container);
             }
-        });
-    };
-
-    const processClipboard = async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            const rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
-            const dataMap = new Map();
-            rows.forEach(row => {
-                if (row.length >= 2) {
-                    dataMap.set(row[1]?.trim(), { ad: row[2]?.trim(), miktar: row[3]?.trim(), fiyat: row[4]?.trim() });
-                }
-            });
-            document.querySelectorAll('tr').forEach(tr => {
-                const oemInp = tr.querySelector('input[name^="oemCode"]');
-                const oemVal = oemInp ? oemInp.value : tr.innerText.match(/\d{5,}/)?.[0];
-                if (oemVal && dataMap.has(oemVal)) {
-                    const data = dataMap.get(oemVal);
-                    const idx = oemInp ? oemInp.name.match(/\d+/)[0] : "0";
-                    const setVal = (name, val) => {
-                        const el = tr.querySelector(`input[name="${name}[${idx}]"]`);
-                        if (el && val) { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
-                    };
-                    setVal('partName', data.ad);
-                    setVal('partQty', data.qty || data.miktar);
-                    setVal('partPrice', data.fiyat);
-                    fillCategoriesRandomly(tr);
-                }
-            });
-        } catch (err) { console.error("Pano hatası:", err); }
-    };
-
-    const injectButtons = () => {
-        const searchBtn = document.getElementById('searchOemCodes');
-        if (searchBtn && !document.getElementById('ks-extra-btns')) {
-            const container = document.createElement('span');
-            container.id = 'ks-extra-btns';
-            container.className = 'ms-2';
-            const btn = (txt, clr, fn) => {
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'btn btn-sm ms-1';
-                b.style = `background:${clr}; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:5px 10px;`;
-                b.textContent = txt;
-                b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
-                return b;
-            };
-            container.append(btn('RASGELE DOLDUR', '#dc3545', fillCategoriesRandomly), btn('PANODAN DOLDUR', '#007bff', processClipboard));
-            searchBtn.parentNode.appendChild(container);
-        }
-    };
-
-    const run = () => {
-        document.querySelectorAll('input.inputDate, input[name*="date" i]').forEach(applyDateLogic);
-        injectButtons();
-        const saveBtn = document.getElementById('btnSaveExpertise');
-        if (saveBtn && !document.getElementById('btnQuickEntry')) {
-            const qb = document.createElement('button');
-            qb.id = 'btnQuickEntry';
-            qb.className = 'btn btn-sm btn-warning me-1';
-            qb.innerHTML = '<i class="fa fa-bolt"></i> Hızlı Giriş';
-            saveBtn.parentNode.insertBefore(qb, saveBtn);
-        }
-    };
-
-    const observer = new MutationObserver(run);
-    observer.observe(document.body, { childList: true, subtree: true });
-    run();
-}
+        };
+        const run = () => {
+            document.querySelectorAll('input.inputDate, input[name*="date" i]').forEach(applyDateLogic);
+            injectButtons();
+            const saveBtn = document.getElementById('btnSaveExpertise');
+            if (saveBtn && !document.getElementById('btnQuickEntry')) {
+                const qb = document.createElement('button');
+                qb.id = 'btnQuickEntry';
+                qb.className = 'btn btn-sm btn-warning me-1';
+                qb.innerHTML = '<i class="fa fa-bolt"></i> Hızlı Giriş';
+                saveBtn.parentNode.insertBefore(qb, saveBtn);
+            }
+        };
+        const observer = new MutationObserver(run);
+        observer.observe(document.body, { childList: true, subtree: true });
+        run();
+    }
 })();
