@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.58
+// @version      1.59
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -26,7 +26,7 @@
     'use strict';
     /* ---Eklenecekler
         *** paneller düzenlenecek
-		parça hasar paneli düzenlenecek
+        parça hasar paneli düzenlenecek
         Ek tasarım şekilleri
         sağ üste danseden doge
         Gerekli evrak gösteren panel - duruma bağlı
@@ -37,7 +37,7 @@
     */
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
-    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart","loginfrm","login","signin","sign"];
+    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart", "loginfrm", "login", "signin", "sign"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = {
         bottom: '0px', right: '0px', width: '250px', borderRadius: '4px', blur: '15px',
@@ -66,7 +66,6 @@
         if (n <= 9) return '#ff5e00'; // Derin Turuncu
         return '#ff0000'; // Saf Kırmızı (Kritik)
     }
-
     // Hücre arka planları için daha belirgin 'Glow' (parlama) efektli koyu tonlar
     function hapBgColor(n) {
         if (n === 0) return '#1a1a1a';
@@ -75,7 +74,6 @@
         if (n <= 9) return '#2d0a02'; // Koyu Yanık Turuncu
         return '#330000'; // Koyu Bordo/Kırmızı
     }
-
     // Kenarlıklar (Borders) için yüksek kontrastlı vurgu renkleri
     function hapBdColor(n) {
         if (n === 0) return '#333333';
@@ -84,59 +82,59 @@
         if (n <= 9) return '#ff7700'; // Parlak Turuncu
         return '#ff3333'; // Parlak Kırmızı
     }
-    function hapFmtTL(v) { if (!v) return ''; return v >= 1e6 ? (v / 1e6).toFixed(1) + 'M₺' : v >= 1e3 ? Math.round(v / 1e3) + 'K₺' : Math.round(v) + '₺'; }
-
+    function hapFmtTL(v) { if (!v) return ''; return v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'K' : Math.round(v) + ''; }
     /* ── Normalize ── */
     function hapNorm(t) {
         return t ? t.toUpperCase()
-            .replace(/İ/g,'I').replace(/ı/g,'I').replace(/Ğ/g,'G').replace(/ğ/g,'G')
-            .replace(/Ü/g,'U').replace(/ü/g,'U').replace(/Ş/g,'S').replace(/ş/g,'S')
-            .replace(/Ö/g,'O').replace(/ö/g,'O').replace(/Ç/g,'C').replace(/ç/g,'C') : '';
+            .replace(/İ/g, 'I').replace(/ı/g, 'I').replace(/Ğ/g, 'G').replace(/ğ/g, 'G')
+            .replace(/Ü/g, 'U').replace(/ü/g, 'U').replace(/Ş/g, 'S').replace(/ş/g, 'S')
+            .replace(/Ö/g, 'O').replace(/ö/g, 'O').replace(/Ç/g, 'C').replace(/ç/g, 'C') : '';
     }
     function hapKwMatch(norm, kws) { return kws.some(k => norm.includes(hapNorm(k))); }
-
     /* ── Mekanik / Elektrik tanımları ── */
-	const HAP_MEK = [
-	    { id:'amortisör', label:'Amortisör', kw:['AMORTISÖR','SHOCK','SÜSPANSIYON','TAKKOZ'] },
-	    { id:'fren', label:'Fren / Balata', kw:['FREN','BRAKE','BALATA','DISK','KAPLİN','KALİPER'] },
-	    { id:'radyator', label:'Radyatör', kw:['RADYATOR','RADIATOR','PETEK'] },
-	    { id:'motor', label:'Motor / Sil.', kw:['MOTOR','SILINDIR','ENGINE','BLOK','KULAK'] },
-	    { id:'intercool', label:'İntercooler', kw:['INTERCOOLER','ARA SOĞUTUCU'] },
-	    { id:'sase', label:'Şase / Kros', kw:['SASE','KROS','CHASSIS','TRAVERS','PODYE'] },
-	    { id:'fan', label:'Fan', kw:['FAN','PERVANE','DAVULBAZ'] },
-	    { id:'hortum', label:'Hortum / Tes.', kw:['HORTUM','TESISAT','BORU','RAKOR'] },
-	    { id:'egzoz', label:'Egzoz', kw:['EGZOZ','EXHAUST','KATALIZÖR','PARTIKÜL','SUSTURUCU'] },
-	    { id:'sanziman', label:'Şanzıman / Vites', kw:['SANZIMAN','VITES','GEARBOX','DIFERANSIYEL','BASKI','BALATA'] },
-	    { id:'direksiyon', label:'Direksiyon Sis.', kw:['DIREKSIYON','POMPA','KUTU','ROT','MIL'] },
-	    { id:'yakit', label:'Yakıt Sistemi', kw:['POMPA','ENJEKTÖR','DEPO','TANK','FILTRE'] },
-	    { id:'turbo', label:'Turboşarj', kw:['TURBO','SALYANGOZ','TURBINE'] },
-	];
+    const HAP_MEK = [
+        { id: 'amortisör', label: 'Amortisör', kw: ['AMORTISÖR', 'SHOCK', 'SÜSPANSIYON', 'TAKKOZ'] },
+        { id: 'fren', label: 'Fren / Balata', kw: ['FREN', 'BRAKE', 'BALATA', 'DISK', 'KAPLİN', 'KALİPER'] },
+        { id: 'radyator', label: 'Radyatör', kw: ['RADYATOR', 'RADIATOR', 'PETEK'] },
+        { id: 'motor', label: 'Motor / Sil.', kw: ['MOTOR', 'SILINDIR', 'ENGINE', 'BLOK', 'KULAK'] },
+        { id: 'intercool', label: 'İntercooler', kw: ['INTERCOOLER', 'ARA SOĞUTUCU'] },
+        { id: 'sase', label: 'Şase / Kros', kw: ['SASE', 'KROS', 'CHASSIS', 'TRAVERS', 'PODYE'] },
+        { id: 'fan', label: 'Fan', kw: ['FAN', 'PERVANE', 'DAVULBAZ'] },
+        { id: 'hortum', label: 'Hortum / Tes.', kw: ['HORTUM', 'TESISAT', 'BORU', 'RAKOR'] },
+        { id: 'egzoz', label: 'Egzoz', kw: ['EGZOZ', 'EXHAUST', 'KATALIZÖR', 'PARTIKÜL', 'SUSTURUCU'] },
+        { id: 'sanziman', label: 'Şanzıman / Vites', kw: ['SANZIMAN', 'VITES', 'GEARBOX', 'DIFERANSIYEL', 'BASKI', 'BALATA'] },
+        { id: 'direksiyon', label: 'Direksiyon Sis.', kw: ['DIREKSIYON', 'POMPA', 'KUTU', 'ROT', 'MIL'] },
+        { id: 'yakit', label: 'Yakıt Sistemi', kw: ['POMPA', 'ENJEKTÖR', 'DEPO', 'TANK', 'FILTRE'] },
+        { id: 'turbo', label: 'Turboşarj', kw: ['TURBO', 'SALYANGOZ', 'TURBINE'] },
+    ];
     const HAP_ELK = [
-        { id:'radar', label:'Radar / ACC', kw:['RADAR','AEBS','ACC','KÖR NOKTA'] },
-        { id:'webasto',label:'Webasto', kw:['WEBASTO','ISITICI','KALORIFER'] },
-        { id:'aku', label:'Akü / Elekt.', kw:['AKU','AKÜ','BATTERY','ALTERNATÖR','ŞARJ'] },
-        { id:'far', label:'Far / Sinyal', kw:['FAR','SINYAL','LED','LAMBA','AYDINLATMA','XENON'] },
-        { id:'stop', label:'Stop Lambası', kw:['STOP','REFLÖKTÖR'] },
-        { id:'sis', label:'Sis Lambası', kw:['SIS'] },
-        { id:'ecu', label:'Beyin / Modül', kw:['ECU','BEYIN','MODÜL','BEYİN','KONTROL ÜNITESI'] },
-        { id:'sensor', label:'Sensörler', kw:['SENSÖR','SENSOR','PARK','YAĞMUR','OKSIJEN','ABS SENSÖR'] },
-        { id:'mars', label:'Marş Sistemi', kw:['MARŞ','DINAMO','STARTER'] },
-        { id:'klima', label:'Klima Sistemi', kw:['KLIMA','KOMPRESÖR','EVAPORATÖR','POLEN'] },
-        { id:'kilit', label:'Merkezi Kilit', kw:['KILIT','KAPATMA','ALARM','KUMANDA'] },
+        { id: 'radar', label: 'Radar / ACC', kw: ['RADAR', 'AEBS', 'ACC', 'KÖR NOKTA'] },
+        { id: 'webasto', label: 'Webasto', kw: ['WEBASTO', 'ISITICI', 'KALORIFER'] },
+        { id: 'aku', label: 'Akü / Elekt.', kw: ['AKU', 'AKÜ', 'BATTERY', 'ALTERNATÖR', 'ŞARJ'] },
+        { id: 'far', label: 'Far / Sinyal', kw: ['FAR', 'SINYAL', 'LED', 'LAMBA', 'AYDINLATMA', 'XENON'] },
+        { id: 'stop', label: 'Stop Lambası', kw: ['STOP', 'REFLÖKTÖR'] },
+        { id: 'sis', label: 'Sis Lambası', kw: ['SIS'] },
+        { id: 'ecu', label: 'Beyin / Modül', kw: ['ECU', 'BEYIN', 'MODÜL', 'BEYİN', 'KONTROL ÜNITESI'] },
+        { id: 'sensor', label: 'Sensörler', kw: ['SENSÖR', 'SENSOR', 'PARK', 'YAĞMUR', 'OKSIJEN', 'ABS SENSÖR'] },
+        { id: 'mars', label: 'Marş Sistemi', kw: ['MARŞ', 'DINAMO', 'STARTER'] },
+        { id: 'klima', label: 'Klima Sistemi', kw: ['KLIMA', 'KOMPRESÖR', 'EVAPORATÖR', 'POLEN'] },
+        { id: 'kilit', label: 'Merkezi Kilit', kw: ['KILIT', 'KAPATMA', 'ALARM', 'KUMANDA'] },
     ];
     /* ── Bölge → path id eşleşmesi ── */
     const HAP_ZONE_PATHS = {
-        'hap-z-fl': ['path-camurl-onSol','path-far-onSol','path-tampon-onSol'],
-        'hap-z-fc': ['path-kaput','path-tampon-on'],
-        'hap-z-fr': ['path-camurl-onSag','path-far-onSag','path-tampon-onSag'],
-        'hap-z-dl': ['path-kapi-onSol','path-kapi-arkaSol'],
-        'hap-z-ch': ['path-kabin','path-tavan'],
-        'hap-z-dr': ['path-kapi-onSag','path-kapi-arkaSag'],
-        'hap-z-rl': ['path-camurl-arkaSol','path-stop-sol'],
-        'hap-z-rc': ['path-bagaj','path-tampon-arka'],
-        'hap-z-rr': ['path-camurl-arkaSag','path-stop-sag'],
+        'hap-z-fl': ['path-camurl-onSol', 'path-far-onSol', 'path-tampon-onSol'], // path-soloncam çıktı
+        'hap-z-fc': ['path-kaput', 'path-tampon-on'], // path-oncam çıktı
+        'hap-z-fr': ['path-camurl-onSag', 'path-far-onSag', 'path-tampon-onSag'], // path-sagoncam çıktı
+        'hap-z-ml': ['path-ayna-sol'],
+        'hap-z-dl': ['path-kapi-onSol', 'path-kapi-arkaSol'], // path-solarkacam çıktı
+        'hap-z-ch': ['path-kabin', 'path-tavan'],
+        'hap-z-dr': ['path-kapi-onSag', 'path-kapi-arkaSag'], // path-sagarkacam çıktı
+        'hap-z-mr': ['path-ayna-sag'],
+        'hap-z-rl': ['path-camurl-arkaSol', 'path-stop-sol'],
+        'hap-z-rc': ['path-bagaj', 'path-tampon-arka'], // path-arkacam çıktı
+        'hap-z-rr': ['path-camurl-arkaSag', 'path-stop-sag'],
     };
-    const HAP_BOLGELER = ['hap-z-fl','hap-z-fc','hap-z-fr','hap-z-dl','hap-z-ch','hap-z-dr','hap-z-rl','hap-z-rc','hap-z-rr'];
+    const HAP_BOLGELER = ['hap-z-fl', 'hap-z-fc', 'hap-z-fr', 'hap-z-ml', 'hap-z-dl', 'hap-z-ch', 'hap-z-dr', 'hap-z-mr', 'hap-z-rl', 'hap-z-rc', 'hap-z-rr'];
     /* ══════════════════════════════════════════════════
        SEDAN SVG — üstten görünüm, gerçek path eğrileri
        viewBox: 0 0 200 460  (dar panel için)
@@ -144,168 +142,199 @@
     ══════════════════════════════════════════════════ */
     function hapBuildSedanSVG() {
         return `
-    <svg id="hap-car-svg" viewBox="0 0 200 460" xmlns="http://www.w3.org/2000/svg"
-         style="width:100%;display:block;margin:4px 0">
-      <!-- ────────────── GÖVDE ANA KONTUR ────────────── -->
-      <!-- Tüm araç dış formu: ön yuvarlak burun → yan düzlük → arka kuyruk -->
-      <path id="path-body-outline"
-        d="M 20,300 L 25,305 C 26,370 26,422 25,415 C 140,480 180,430 170,405 L 175,305 Z"
-        fill="#1a1a1a" stroke="#444" stroke-width="1.5"/>
-      <!-- ────────────── ÖN TAMPON ────────────── -->
-      <path id="path-tampon-on"
-        d="M 70,12 C 80,8 100,10 100,10 C 100,10 120,8 130,12 L 148,20 C 140,20 120,20 100,20 C 80,20 60,20 52,20 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fc" data-label="Ön Tampon"/>
-      <!-- ────────────── ÖN SOL FAR ────────────── -->
-      <path id="path-far-onSol"
-        d="M 40,22 L 40,20 C 40,14 70,10 74,10 L 40,32 Z"
-        fill="#7c7220" stroke="#2a5070" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fl" data-label="Ön Sol Far"/>
-       <!-- ────────────── ÖN SAĞ FAR ────────────── -->
-       <path id="path-far-onSag"
-         d="M 160,22 L 160,20 C 160,14 130,10 126,10 L 160,32 Z"
-         fill="#7c7220" stroke="#2a5070" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fr" data-label="Ön Sağ Far"/>
-       <!-- ────────────── ÖN SOL TAMPON KÖŞE ────────────── -->
-       <path id="path-tampon-onSol"
-         d="M 28,100 C 28,70 35,62 50,60 L 52,15 C 50,15 40,15 35,30 L 28,80 Z"
-         fill="#1d1d1d" stroke="#333" stroke-width="0.6" style="cursor:pointer"
-         data-zone="hap-z-fl" data-label="Ön Sol Tampon Köşe"/>
-       <!-- ────────────── ÖN SAĞ TAMPON KÖŞE ────────────── -->
-       <path id="path-tampon-onSag"
-         d="M 172,100 C 172,70 165,62 150,60 L 148,15 C 150,15 160,15 165,30 L 172,80 Z"
-         fill="#1d1d1d" stroke="#333" stroke-width="0.6" style="cursor:pointer"
-         data-zone="hap-z-fr" data-label="Ön Sağ Tampon Köşe"/>
-       <!-- ────────────── TEKERLEKLER ────────────── -->
-       <!-- Sol ön -->
-       <ellipse cx="26" cy="105" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
-       <ellipse cx="26" cy="105" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
-       <!-- Sağ ön -->
-       <ellipse cx="174" cy="105" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
-       <ellipse cx="174" cy="105" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
-       <!-- Sol arka -->
-       <ellipse cx="26" cy="348" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
-       <ellipse cx="26" cy="348" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
-       <!-- Sağ arka -->
-       <ellipse cx="174" cy="348" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
-       <ellipse cx="174" cy="348" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
-       <!-- ────────────── ÖN SOL ÇAMURLUK ────────────── -->
-       <path id="path-camurl-onSol"
-         d="M 28,120 C 30,40 38,20 55,20 L 52,52 L 42,115 C 36,116 28,120 26,130  Z"
-         fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fl" data-label="Ön Sol Çamurluk"/>
-       <!-- ────────────── ÖN SAĞ ÇAMURLUK ────────────── -->
-       <path id="path-camurl-onSag"
-         d="M 172,120 C 170,40 162,20 145,20 L 148,52 L 158,115 C 164,116 172,120 174,130 Z"
-         fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer"
-         data-zone="hap-z-fr" data-label="Ön Sağ Çamurluk"/>
-      <!-- ────────────── SOL ÖN KAPI ────────────── -->
-      <path id="path-kapi-onSol"
-        d="M 24,210 L 26,215 L 40,210 L 40,115 C 28,120 27,118 26,115 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-dl" data-label="Sol Ön Kapı"/>
-      <!-- ────────────── SAĞ ÖN KAPI ────────────── -->
-      <path id="path-kapi-onSag"
-        d="M 176,210 L 174,215 L 160,210 L 160,115 C 172,120 173,118 174,115 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer"
-        data-zone="hap-z-dr" data-label="Sağ Ön Kapı"/>
-      <!-- ────────────── SOL ARKA KAPI ────────────── -->
-      <path id="path-kapi-arkaSol"
-        d="M 25,230 L 25,310 L 40,320 L 40,215 C 22,215 25,225 25,218 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-dl" data-label="Sol Arka Kapı"/>
-      <!-- ────────────── SAĞ ARKA KAPI ────────────── -->
-      <path id="path-kapi-arkaSag"
-        d="M 175,230 L 175,310 L 160,320 L 160,215 C 178,215 175,225 175,218 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer"
-        data-zone="hap-z-dr" data-label="Sağ Arka Kapı"/>
-      <!-- ────────────── KABİN / TAVAN ────────────── -->
-      <path id="path-tavan"
-        d="M 42,115 C 52,112 75,110 100,110 C 125,110 148,112 158,115 L 160,202 L 160,315 L 158,320 C 148,323 125,325 100,325 C 75,325 52,323 42,320 L 40,315 L 40,202 Z"
-        fill="#1c1c1c" stroke="#2a2a2a" stroke-width="0.5" style="cursor:pointer" data-zone="hap-z-ch" data-label="Kabin / Tavan"/>
-      <!-- ────────────── CAMLAR ────────────── -->
-      <!-- Ön cam -->
-      <path id="path-oncam"
-        d="M 42,118 C 65,112 82,110 100,110 C 118,110 135,112 156,118 L 148,145 C 138,145 120,140 100,140 C 80,140 62,142 52,145 Z" fill="#1e2a38" stroke="#2a4060" stroke-width="0.6" pointer-events="none"/>
-      <!-- Arka cam -->
-      <path id="path-arkacam"
-        d="M 52,295 C 62,298 60,300 130,300 C 120,300 138,298 148,295 L 156,318 C 156,318 120,325 100,325 C 80,325 62,323 44,318 Z" fill="#1e2a38" stroke="#2a4060" stroke-width="0.6" pointer-events="none"/>
-      <!-- Sol pencere -->
-      <path d="M 43,130 L 42,205 L 42,310 L 43,310 L 52,290 L 51,148 Z" fill="#1e2a38" stroke="#2a4060" stroke-width="0.5" pointer-events="none"/>
-      <!-- Sağ pencere (Solun Tam Simetriği) -->
-      <path d="M 157,130 L 158,205 L 158,310 L 157,310 L 148,290 L 149,148 Z"
-            fill="#1e2a38" stroke="#2a4060" stroke-width="0.5" pointer-events="none"/>
-      <!-- ────────────── ARKA TAMPON ────────────── -->
-      <path id="path-tampon-arka"
-        d="M 26,410 C 26,410 32,425 60,440 C 80,450 120,450 140,440 C 168,425 174,410 174,410 C 174,410 150,438 100,440 C 50,438 26,410 26,410 Z"
-        fill="#1d1d1d" stroke="#333" stroke-width="0.8"
-        style="cursor: pointer; fill: rgb(6, 38, 18); stroke: rgb(0, 255, 136); stroke-width: 1.5;"
-        data-zone="hap-z-rc" data-label="Arka Tampon"/>
-      <!-- ────────────── SOL STOP ────────────── -->
-      <path id="path-stop-sol"
-       d="M 27,405 C 26,400 24,410 30,425 C 70,455 65,440 65,435 Z"
-       fill="#4a0000" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rl" data-label="Sol Stop"></path>
-      <!-- ────────────── SAĞ STOP ────────────── -->
-      <path id="path-stop-sag"
-        d="M 173,405 C 174,400 176,410 170,425 C 130,455 135,440 135,435 Z"
-        fill="#4a0000" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rr" data-label="Sağ Stop">
-      </path>
-      <!-- ────────────── ARKA SOL ÇAMURLUK ────────────── -->
-      <path id="path-camurl-arkaSol"
-        d="M 25,312 L 26,330 C 26,330 45,340 26,368 L 26,410 L 45,420 L 44,410 L 40,360 L 38,322 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rl" data-label="Arka Sol Çamurluk"/>
-      <!-- ────────────── ARKA SAĞ ÇAMURLUK ────────────── -->
-      <path id="path-camurl-arkaSag"
-        d="M 175,312 L 174,330 C 174,330 155,340 174,368 L 174,410 L 155,420 L 156,410 L 160,360 L 162,322 Z"
-        fill="#222" stroke="#333" stroke-width="0.8" style="cursor:pointer"
-        data-zone="hap-z-rr" data-label="Arka Sağ Çamurluk"/>
-      <!-- ────────────── BAGAJ ────────────── -->
-      <path id="path-bagaj"
-        d="M 40,326 L 45,395 C 55,435 75,430 100,430 C 125,430 145,435 155,395 L 160,326 C 140,330 120,330 100,330 C 80,330 60,330 40,326 Z"
-        fill="#252525" stroke="#333" stroke-width="0.8"
-        style="cursor: pointer; fill: rgb(6, 38, 18); stroke: rgb(0, 255, 136); stroke-width: 1.5;"
-        data-zone="hap-z-rc" data-label="Bagaj Kapağı">
-      </path>
-      <!-- ────────────── ETIKETLER ────────────── -->
-      <text x="100" y="40"  text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace">ÖN</text>
-      <text x="100" y="410" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace">ARKA</text>
-      <text x="16"  y="262" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace" transform="rotate(-90,16,262)">SOL</text>
-      <text x="184" y="262" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace" transform="rotate(90,184,262)">SAĞ</text>
-      <!-- ────────────── ZONE COUNTER BADGES ────────────── -->
-      <text id="hap-cnt-fl" x="40" y="63"  text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fl: ön sol -->
-      <text id="hap-cnt-fc" x="100" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fc: ön orta -->
-      <text id="hap-cnt-fr" x="159" y="63"  text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fr: ön sağ -->
-      <text id="hap-cnt-dl" x="10"  y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- dl: sol kapı -->
-      <text id="hap-cnt-ch" x="100" y="220" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- ch: kabin -->
-      <text id="hap-cnt-dr" x="190" y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- dr: sağ kapı -->
-      <text id="hap-cnt-rl" x="10"  y="390" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rl: arka sol -->
-      <text id="hap-cnt-rc" x="100" y="370" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rc: arka orta -->
-      <text id="hap-cnt-rr" x="190" y="390" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rr: arka sağ -->
-      <!-- TL küçük etiketler -->
-      <text id="hap-tl-fl" x="10"  y="83"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fl: ön sol -->
-      <text id="hap-tl-fc" x="100" y="95"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fc: ön orta -->
-      <text id="hap-tl-fr" x="190" y="83"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- fr: ön sağ -->
-      <text id="hap-tl-dl" x="10"  y="200" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- dl: sol kapı -->
-      <text id="hap-tl-ch" x="100" y="240" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- ch: kabin -->
-      <text id="hap-tl-dr" x="190" y="200" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- dr: sağ kapı -->
-      <text id="hap-tl-rl" x="10"  y="400" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rl: arka sol -->
-      <text id="hap-tl-rc" x="100" y="390" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rc: arka orta -->
-      <text id="hap-tl-rr" x="190" y="400" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>		<!-- rr: arka sağ -->
-    </svg>`;
+        <svg id="hap-car-svg" viewBox="0 0 200 460" xmlns="http://www.w3.org/2000/svg"
+             style="width:100%;display:block;margin:4px 0">
+          <!-- ────────────── GÖVDE ANA KONTUR ────────────── -->
+          <!-- Tüm araç dış formu: ön yuvarlak burun → yan düzlük → arka kuyruk -->
+          <path id="path-body-outline"
+            d="M 20,300 L 25,305 C 26,370 26,422 25,415 C 140,480 180,430 170,405 L 175,305 Z"
+            fill="#252525" stroke="#444" stroke-width="1.5"/>
+          <!-- ────────────── ÖN TAMPON ────────────── -->
+          <path id="path-tampon-on"
+            d="M 70,12 C 80,8 100,10 100,10 C 100,10 120,8 130,12 L 148,20 C 140,20 120,20 100,20 C 80,20 60,20 52,20 Z"
+            fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fc" data-label="Ön Tampon"/>
+          <!-- ────────────── ÖN SOL FAR ────────────── -->
+          <path id="path-far-onSol"
+            d="M 40,22 L 40,20 C 40,14 70,10 74,10 L 40,32 Z"
+            fill="#93a83f" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fl" data-label="Ön Sol Far"/>
+          <!-- ────────────── ÖN SAĞ FAR ────────────── -->
+          <path id="path-far-onSag"
+           d="M 160,22 L 160,20 C 160,14 130,10 126,10 L 160,32 Z"
+           fill="#93a83f" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fr" data-label="Ön Sağ Far"/>
+          <!-- ────────────── ÖN SOL TAMPON KÖŞE ────────────── -->
+          <path id="path-tampon-onSol"
+           d="M 28,100 C 28,70 35,62 50,60 L 52,15 C 50,15 40,15 35,30 L 28,80 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.6" style="cursor:pointer" data-zone="hap-z-fl" data-label="Ön Sol Tampon Köşe"/>
+          <!-- ────────────── ÖN SAĞ TAMPON KÖŞE ────────────── -->
+          <path id="path-tampon-onSag"
+           d="M 172,100 C 172,70 165,62 150,60 L 148,15 C 150,15 160,15 165,30 L 172,80 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.6" style="cursor:pointer" data-zone="hap-z-fr" data-label="Ön Sağ Tampon Köşe"/>
+          <!-- ────────────── TEKERLEKLER ────────────── -->
+          <!-- Sol ön -->
+           <ellipse cx="26" cy="105" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
+           <ellipse cx="26" cy="105" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
+          <!-- Sağ ön -->
+           <ellipse cx="174" cy="105" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
+           <ellipse cx="174" cy="105" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
+          <!-- Sol arka -->
+           <ellipse cx="26" cy="348" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
+           <ellipse cx="26" cy="348" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
+          <!-- Sağ arka -->
+           <ellipse cx="174" cy="348" rx="10" ry="16" fill="#111" stroke="#444" stroke-width="1" pointer-events="none"/>
+           <ellipse cx="174" cy="348" rx="5" ry="8" fill="#1a1a1a" stroke="#555" stroke-width="0.8" pointer-events="none"/>
+          <!-- ────────────── ÖN SOL ÇAMURLUK ────────────── -->
+          <path id="path-camurl-onSol"
+            d="M 28,100 C 30,40 38,20 55,20 L 52,52 L 42,113 C 36,111 28,117 26,123  Z"
+            fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fl" data-label="Ön Sol Çamurluk"/>
+          <!-- ────────────── ÖN SAĞ ÇAMURLUK ────────────── -->
+          <path id="path-camurl-onSag"
+           d="M 172,100 C 170,40 162,20 145,20 L 148,52 L 158,113 C 164,111 172,117 174,123 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor: pointer;" data-zone="hap-z-fr" data-label="Ön Sağ Çamurluk"></path>
+          <!-- ────────────── SOL ÖN KAPI ────────────── -->
+          <path id="path-kapi-onSol"
+           d="M 25,210 L 25,215 L 40,210 L 40,115 C 28,120 30,118 27,122 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-dl" data-label="Sol Ön Kapı"/>
+          <!-- ────────────── SAĞ ÖN KAPI ────────────── -->
+          <path id="path-kapi-onSag"
+           d="M 175,210 L 175,215 L 160,210 L 160,115 C 172,120 170,118 173,122 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor: pointer;" data-zone="hap-z-dr" data-label="Sağ Ön Kapı"></path>
+          <!-- ────────────── SOL ARKA KAPI ────────────── -->
+          <path id="path-kapi-arkaSol"
+           d="M 25,230 L 25,310 L 40,320 L 40,215 C 22,215 25,225 25,218 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-dl" data-label="Sol Arka Kapı"/>
+          <!-- ────────────── SAĞ ARKA KAPI ────────────── -->
+          <path id="path-kapi-arkaSag"
+           d="M 175,230 L 175,310 L 160,320 L 160,215 C 178,215 175,225 175,218 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-dr" data-label="Sağ Arka Kapı"/>
+          <!-- ────────────── KAPUT ────────────── -->
+          <path id="path-kaput"
+           d="M 55,22 C 60,19 80,19 100,19 C 120,19 140,19 148,22 L 158,115 C 148,105 125,105 100,105 C 75,105 52,105 42,115 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-fc" data-label="Kaput"/>
+          <!-- ────────────── KABİN / TAVAN ────────────── -->
+          <path id="path-tavan"
+           d="M 42,115 C 52,112 75,110 100,110 C 125,110 148,112 158,115 L 160,202 L 160,315 L 158,320 C 148,323 125,325 100,325 C 75,325 52,323 42,320 L 40,315 L 40,202 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.5" style="cursor:pointer" data-zone="hap-z-ch" data-label="Kabin / Tavan"/>
+          <!-- ────────────── CAMLAR ────────────── -->
+          <!-- Ön cam -->
+          <path id="path-oncam"
+		  d="M 44,118 C 65,112 82,113 100,113 C 118,113 135,112 154,118 L 148,145 C 138,145 120,142 100,142 C 80,142 62,142 52,145 Z"
+		  fill=" #1e2a38" stroke=" #4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-fc" data-label="Ön Cam"/>
+          <!-- Arka cam -->
+          <path id="path-arkacam"
+		  d="M 52,298 C 62,300 60,300 130,300 C 120,300 138,300 148,298 L 156,318 C 156,318 120,323 100,323 C 80,323 62,323 44,318 Z"
+		  fill=" #1e2a38" stroke=" #4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-rc" data-label="Arka Cam"/>
+          <!-- Sol ön pencere -->
+          <path id="path-soloncam"
+		  d="M 43,130 L 42,210 L 42,210 L 43,211 L 52,210 L 51,148 Z"
+          fill="#1e2a38" stroke="#4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-fl" data-label="Sol Ön Pencere"/>
+          <!-- Sağ ön pencere -->
+          <path id="path-sagoncam"
+		  d="M 157,130 L 158,210 L 158,210 L 157,211 L 148,210 L 149,148 Z"
+          fill="#1e2a38" stroke="#4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-fr" data-label="Sağ Ön Pencere"/>
+          <!-- Sol arka pencere -->
+          <path id="path-solarkacam"
+		  d="M 43,215 L 42,215 L 42,310 L 43,310 L 52,290 L 52,214 Z"
+          fill="#1e2a38" stroke="#4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-dl" data-label="Sol Arka Pencere"/>
+          <!-- Sağ arka pencere -->
+          <path id="path-sagarkacam"
+		  d="M 157,215 L 158,215 L 158,310 L 157,310 L 148,290 L 148,214 Z"
+		  fill="#1e2a38" stroke="#4c678f" stroke-width="0.6" pointer-events="none" data-zone="hap-z-dr" data-label="Sağ Arka Pencere"/>
+		  <!-- ────────────── SOL DİKİZ AYNASI ────────────── -->
+		  <path id="path-ayna-sol"
+		   d="M 30,120 C 30,120 15,125 18,135 L 40,125 L 40,118 Z"
+		   fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-ml" data-label="Sol Dikiz Aynası"/>
+		  <!-- ────────────── SAĞ DİKİZ AYNASI ────────────── -->
+		  <path id="path-ayna-sag"
+		   d="M 170,120 C 170,120 185,125 182,135 L 160,125 L 160,118 Z"
+		   fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-mr" data-label="Sağ Dikiz Aynası"></path>
+          <!-- ────────────── ARKA TAMPON ────────────── -->
+          <path id="path-tampon-arka"
+           d="M 26,410 C 26,410 32,425 60,440 C 80,450 120,450 140,440 C 168,425 174,410 174,410 C 174,410 150,438 100,440 C 50,438 26,410 26,410 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor: pointer;" data-zone="hap-z-rc" data-label="Arka Tampon"/>
+          <!-- ────────────── SOL STOP ────────────── -->
+          <path id="path-stop-sol"
+           d="M 27,405 C 26,400 24,410 30,425 C 70,455 65,440 65,435 Z"
+           fill="#4a0000" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rl" data-label="Sol Stop"></path>
+          <!-- ────────────── SAĞ STOP ────────────── -->
+          <path id="path-stop-sag"
+            d="M 173,405 C 174,400 176,410 170,425 C 130,455 135,440 135,435 Z"
+            fill="#4a0000" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rr" data-label="Sağ Stop">
+          </path>
+          <!-- ────────────── ARKA SOL ÇAMURLUK ────────────── -->
+          <path id="path-camurl-arkaSol"
+           d="M 25,312 L 26,330 C 26,330 45,340 26,368 L 26,410 L 45,420 L 44,410 L 40,360 L 38,322 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rl" data-label="Arka Sol Çamurluk"/>
+          <!-- ────────────── ARKA SAĞ ÇAMURLUK ────────────── -->
+          <path id="path-camurl-arkaSag"
+           d="M 175,312 L 174,330 C 174,330 155,340 174,368 L 174,410 L 155,420 L 156,410 L 160,360 L 162,322 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rr" data-label="Arka Sağ Çamurluk"/>
+          <!-- ────────────── BAGAJ ────────────── -->
+          <path id="path-bagaj"
+           d="M 40,326 L 45,395 C 55,435 75,430 100,430 C 125,430 145,435 155,395 L 160,326 C 140,330 120,330 100,330 C 80,330 60,330 40,326 Z"
+           fill="#252525" stroke="#888888" stroke-width="0.8" style="cursor:pointer" data-zone="hap-z-rc" data-label="Bagaj Kapağı">
+          </path>
+          <!-- ────────────── ETIKETLER ────────────── -->
+          <text x="100" y="40"  text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace">ÖN</text>
+          <text x="100" y="410" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace">ARKA</text>
+          <text x="16"  y="262" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace" transform="rotate(-90,16,262)">SOL</text>
+          <text x="184" y="262" text-anchor="middle" font-size="12" fill="#FFF" font-family="monospace" transform="rotate(90,184,262)">SAĞ</text>
+          <!-- ────────────── ZONE COUNTER BADGES ────────────── -->
+          <text id="hap-cnt-fl" x="12" y="63"  text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fl: ön sol -->
+          <text id="hap-cnt-fc" x="100" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fc: ön orta -->
+          <text id="hap-cnt-fr" x="190" y="63"  text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fr: ön sağ -->
+          <text id="hap-cnt-dl" x="10"  y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- dl: sol kapı -->
+          <text id="hap-cnt-ch" x="100" y="220" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- ch: kabin -->
+          <text id="hap-cnt-dr" x="190" y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- dr: sağ kapı -->
+          <text id="hap-cnt-rl" x="10"  y="390" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rl: arka sol -->
+          <text id="hap-cnt-rc" x="100" y="370" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rc: arka orta -->
+          <text id="hap-cnt-rr" x="190" y="390" text-anchor="middle" font-size="11" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rr: arka sağ -->
+		  <text id="hap-cnt-ml" x="10" y="130" text-anchor="middle" font-size="9" font-weight="bold" fill="#FFF" font-family="monospace"></text>
+		  <text id="hap-cnt-mr" x="190" y="130" text-anchor="middle" font-size="9" font-weight="bold" fill="#FFF" font-family="monospace"></text>
+          <!-- TL küçük etiketler -->
+          <text id="hap-tl-fl" x="10"  y="83"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fl: ön sol -->
+          <text id="hap-tl-fc" x="100" y="95"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fc: ön orta -->
+          <text id="hap-tl-fr" x="190" y="83"  text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- fr: ön sağ -->
+          <text id="hap-tl-dl" x="10"  y="200" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- dl: sol kapı -->
+          <text id="hap-tl-ch" x="100" y="240" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- ch: kabin -->
+          <text id="hap-tl-dr" x="190" y="200" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- dr: sağ kapı -->
+          <text id="hap-tl-rl" x="10"  y="400" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rl: arka sol -->
+          <text id="hap-tl-rc" x="100" y="390" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rc: arka orta -->
+          <text id="hap-tl-rr" x="190" y="400" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>	<!-- rr: arka sağ -->
+		  <text id="hap-tl-ml" x="10" y="145" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>
+		  <text id="hap-tl-mr" x="190" y="145" text-anchor="middle" font-size="10" font-weight="bold" fill="#FFF" font-family="monospace"></text>
+        </svg>`;
     }
     /* ── Tooltip ── */
     function hapShowTip(zoneId, label, sonuc) {
-        let tip = document.getElementById('hap-car-tip');
-        if (!tip) { tip = document.createElement('div'); tip.id = 'hap-car-tip'; document.body.appendChild(tip); }
-        const n = sonuc && sonuc.bSayac ? (sonuc.bSayac[zoneId] || 0) : 0;
-        const tl = sonuc && sonuc.bTutar ? (sonuc.bTutar[zoneId] || 0) : 0;
-        tip.style.cssText = `position:fixed;background:#111;border:1px solid ${hapBdColor(n)};color:#fff;
-            font-family:monospace;font-size:11px;padding:5px 10px;border-radius:4px;z-index:99999999;
-            pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .15s;`;
-        tip.innerHTML = `<b style="color: ${hapScoreColor(n)}">${label}</b><br>${n} parça${tl > 0 ? ' · ' + hapFmtTL(tl) : ''}`;
+        const n = sonuc?.bSayac?.[zoneId] || 0;
+        const tl = sonuc?.bTutar?.[zoneId] || 0;
+        const tipColor = hapBdColor(n);
+        const tooltip = document.getElementById('ks-dynamic-tooltip');
+        if (!tooltip) return;
+        tooltip.innerHTML = `
+            <div class="ks-tip-head"><strong style="color:${tipColor}">${label}</strong></div>
+            <div class="ks-tip-body">${n} parça${tl > 0 ? ' · ' + hapFmtTL(tl) : ''}</div>`;
+        tooltip.style.borderColor = tipColor + '44';
+        tooltip.style.borderLeftColor = tipColor;
+        tooltip.classList.add('visible');
+        // Mouse pozisyonu için son konumu kullan
+        const gap = 16, tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+        const mx = window._hapMouseX || window.innerWidth / 2;
+        const my = window._hapMouseY || window.innerHeight / 2;
+        tooltip.style.left = Math.max(8, Math.min(mx - tw / 2, window.innerWidth - tw - 8)) + 'px';
+        tooltip.style.top = (my - th - gap < 8 ? my + gap : my - th - gap) + 'px';
         clearTimeout(window._hapTipHide);
-        requestAnimationFrame(() => { tip.style.opacity = '1'; });
-        window._hapTipHide = setTimeout(() => { tip.style.opacity = '0'; }, 2500);
+        window._hapTipHide = setTimeout(() => tooltip.classList.remove('visible'), 2500);
     }
+    document.addEventListener('mousemove', e => {
+        window._hapMouseX = e.clientX;
+        window._hapMouseY = e.clientY;
+    });
     /* ══════════════════════════════════════════════════
        TAB SWITCH
     ══════════════════════════════════════════════════ */
-    window.hapSwTab = function(t) {
-        ['kaporta','mekanik','elektrik'].forEach((id, i) => {
+    window.hapSwTab = function (t) {
+        ['kaporta', 'mekanik', 'elektrik'].forEach((id, i) => {
             document.querySelectorAll('.hap-tab')[i].classList.toggle('active', id === t);
             const v = document.getElementById('hap-view-' + id);
             if (v) v.classList.toggle('active', id === t);
@@ -316,18 +345,18 @@
     ══════════════════════════════════════════════════ */
     function hapAnalizEt(rows) {
         const res = {
-            bSayac: {}, bTutar: {},
+            bSayac: {}, bTutar: {}, bCamSayac: {}, // ← bCamSayac eklendi
             total: 0, kritik: 0, yuksek: 0, toplamTutar: 0, skor: 0,
             mekParcalar: {}, elkParcalar: {}
         };
-        HAP_BOLGELER.forEach(id => { res.bSayac[id] = 0; res.bTutar[id] = 0; });
+        HAP_BOLGELER.forEach(id => { res.bSayac[id] = 0; res.bTutar[id] = 0; res.bCamSayac[id] = 0; });
         HAP_MEK.forEach(p => { res.mekParcalar[p.id] = { n: 0, tl: 0 }; });
         HAP_ELK.forEach(p => { res.elkParcalar[p.id] = { n: 0, tl: 0 }; });
         let adIdx = -1, fiyatIdx = -1, adetIdx = -1;
         const headerRow = rows.find(r => r.querySelector('.koyubaslik'));
         if (headerRow) {
             headerRow.querySelectorAll('.koyubaslik').forEach((h, i) => {
-                const t = hapNorm(h.textContent).replace(/\s+/g,'');
+                const t = hapNorm(h.textContent).replace(/\s+/g, '');
                 if (t.includes('PARCAADI')) adIdx = i;
                 if (t.includes('SISTEMFIYATI')) fiyatIdx = i;
                 else if (t.includes('BIRIMFIYAT') && fiyatIdx === -1) fiyatIdx = i;
@@ -342,52 +371,69 @@
                 cells[adIdx].classList.contains('koyubaslik')) return;
             const ad = cells[adIdx].textContent.trim();
             if (!ad || ad.length < 2) return;
-            const fRaw = cells[fiyatIdx].textContent.replace(/[^\d]/g,'');
+            const fRaw = cells[fiyatIdx].textContent.replace(/[^\d]/g, '');
             if (!fRaw) return;
             const fiyat = parseFloat(fRaw) / 100;
-            const aRaw = adetIdx !== -1 ? cells[adetIdx].textContent.replace(/[^\d]/g,'') : '1';
+            const aRaw = adetIdx !== -1 ? cells[adetIdx].textContent.replace(/[^\d]/g, '') : '1';
             const adet = parseInt(aRaw) || 1;
             const tutar = fiyat * adet;
             if (tutar <= 0) return;
             res.total++;
             res.toplamTutar += tutar;
             const norm = hapNorm(ad);
-            const KRIT = ['AMORTISÖR','SASE','KROS','INTERCOOLER','RADYATOR','SILINDIR',
-                          'RADAR','WEBASTO','FAN','TESISAT','FREN','BRAKE','BALATA','DISK'];
+            const KRIT = ['AMORTISÖR', 'SASE', 'KROS', 'INTERCOOLER', 'RADYATOR', 'SILINDIR', 'RADAR', 'WEBASTO', 'FAN', 'TESISAT', 'FREN', 'BRAKE', 'BALATA', 'DISK'];
             if (KRIT.some(k => norm.includes(hapNorm(k)))) res.kritik++;
             if (tutar >= 15000) res.yuksek++;
             HAP_MEK.forEach(p => { if (hapKwMatch(norm, p.kw)) { res.mekParcalar[p.id].n++; res.mekParcalar[p.id].tl += tutar; } });
             HAP_ELK.forEach(p => { if (hapKwMatch(norm, p.kw)) { res.elkParcalar[p.id].n++; res.elkParcalar[p.id].tl += tutar; } });
-            const on = norm.includes('ON') || norm.includes('FRONT');
-            const arka = norm.includes('ARKA') || norm.includes('REAR');
-            const sol = norm.includes('SOL') || norm.includes('LEFT');
-            const sag = norm.includes('SAG') || norm.includes('RIGHT');
-            const farv = hapKwMatch(norm, ['FAR','SINYAL','AYDINLATMA','SIS LAMBASI','LAMBA','LED']);
+            const on = /\bON\b/.test(norm) || norm.includes('FRONT');
+            const arka = /\bARKA\b/.test(norm) || norm.includes('REAR');
+            const sol = /\bSOL\b/.test(norm) || norm.includes('LEFT');
+            const sag = /\bSAG\b/.test(norm) || norm.includes('RIGHT');
+            const farv = hapKwMatch(norm, ['FAR', 'SINYAL', 'AYDINLATMA', 'SIS LAMBASI', 'LAMBA', 'LED']);
             const stopv = norm.includes('STOP');
-            const tampon = hapKwMatch(norm, ['TAMPON','BUMPER']);
-            const camurl = hapKwMatch(norm, ['CAMURLUK','DAVLUMBAZ','MUDGUARD','FENDER']);
-            const kapiv = hapKwMatch(norm, ['KAPI','DOOR','BASAMAK','AYNA','MIRROR']);
-            const kabinv = hapKwMatch(norm, ['KABIN','SASE','KROS','TORPEDO','MOTOR','RADYATOR',
-                           'INTERCOOLER','SILINDIR','FAN','WEBASTO','RADAR','AEBS','ACC',
-                           'TESISAT','PERVANE','HORTUM','AKU','EXHAUST','EGZOZ']);
+            const tampon = hapKwMatch(norm, ['TAMPON', 'BUMPER']);
+            const camurl = hapKwMatch(norm, ['CAMURLUK', 'DAVLUMBAZ', 'MUDGUARD', 'FENDER']);
+            const kapiv = hapKwMatch(norm, ['KAPI', 'DOOR']);
+            const kabinv = hapKwMatch(norm, ['KABIN', 'SASE', 'KROS', 'TORPIDO', 'TORPEDO', 'MOTOR', 'RADYATOR', 'INTERCOOLER', 'SILINDIR', 'FAN', 'WEBASTO', 'RADAR', 'AEBS', 'ACC', 'TESISAT', 'PERVANE', 'HORTUM', 'AKU', 'EXHAUST', 'EGZOZ']);
+            const camv = !camurl && (
+                /(^|\s)CAM(\s|$)/.test(norm) ||
+                norm.includes('GLASS') ||
+                norm.includes('WINDSHIELD') ||
+                norm.includes('PENCERE')
+            );
+            const aynav = hapKwMatch(norm, ['AYNA', 'MIRROR', 'DIKIZ']);
             let bId = null;
-            if (farv) bId = sag ? 'hap-z-fr' : sol ? 'hap-z-fl' : 'hap-z-fc';
+            if (camv) {
+                if (on && !sol && !sag) bId = 'hap-z-fc';
+                else if (arka && !sol && !sag) bId = 'hap-z-rc';
+                else if (on && sol) bId = 'hap-z-fl';
+                else if (on && sag) bId = 'hap-z-fr';
+                else if (arka && sol) bId = 'hap-z-dl';
+                else if (arka && sag) bId = 'hap-z-dr';
+                else if (sol) bId = 'hap-z-dl';
+                else if (sag) bId = 'hap-z-dr';
+                else bId = 'hap-z-fc';
+            }
+            else if (aynav) bId = sol ? 'hap-z-ml' : sag ? 'hap-z-mr' : 'hap-z-ml';
+            else if (farv) bId = sag ? 'hap-z-fr' : sol ? 'hap-z-fl' : 'hap-z-fc';
             else if (stopv) bId = sag ? 'hap-z-rr' : sol ? 'hap-z-rl' : 'hap-z-rc';
             else if (tampon) bId = on ? (sag ? 'hap-z-fr' : sol ? 'hap-z-fl' : 'hap-z-fc') : arka ? (sag ? 'hap-z-rr' : sol ? 'hap-z-rl' : 'hap-z-rc') : 'hap-z-fc';
             else if (camurl) bId = on ? (sag ? 'hap-z-fr' : sol ? 'hap-z-fl' : null) : (sag ? 'hap-z-rr' : sol ? 'hap-z-rl' : null);
             else if (kapiv || sol || sag) bId = sol ? 'hap-z-dl' : 'hap-z-dr';
             else if (on) bId = sol ? 'hap-z-fl' : sag ? 'hap-z-fr' : 'hap-z-fc';
             else if (arka) bId = sol ? 'hap-z-rl' : sag ? 'hap-z-rr' : 'hap-z-rc';
+            else if (sol) bId = 'hap-z-dl';
+            else if (sag) bId = 'hap-z-dr';
             else if (kabinv) bId = 'hap-z-ch';
             if (bId && res.bSayac[bId] !== undefined) {
                 res.bSayac[bId]++;
                 res.bTutar[bId] += tutar;
+                if (camv) res.bCamSayac[bId]++; // ← cam sayacı
             }
+            if (bId === 'hap-z-fl' || bId === 'hap-z-dl') console.log(`[SOL] "${ad}" → on:${on} arka:${arka} sol:${sol} sag:${sag} camv:${camv} camurl:${camurl} kapiv:${kapiv}`);
         });
-        res.skor = Math.min(
-            Math.round(((res.total * 0.15) + (res.toplamTutar / 25000) + (res.kritik * 1.5)) * 10) / 10,
-            10
-        );
+        res.skor = Math.min(Math.round(((res.total * 0.15) + (res.toplamTutar / 25000) + (res.kritik * 1.5)) * 10) / 10, 10);
         return res;
     }
     /* ══════════════════════════════════════════════════
@@ -434,7 +480,7 @@
                     }
                 });
                 /* Sayaç text */
-                const shortId = zoneId.replace('hap-z-','');
+                const shortId = zoneId.replace('hap-z-', '');
                 const cntEl = document.getElementById('hap-cnt-' + shortId);
                 const tlEl = document.getElementById('hap-tl-' + shortId);
                 if (cntEl) {
@@ -446,11 +492,44 @@
                     tlEl.style.fill = hapScoreColor(n);
                 }
             });
+            // Cam path'leri — sadece camv parçası gelen zone'larda boyan
+            const HAP_CAM_PATHS = {
+                'path-oncam': 'hap-z-fc',
+                'path-soloncam': 'hap-z-fl',
+                'path-sagoncam': 'hap-z-fr',
+                'path-arkacam': 'hap-z-rc',
+                'path-solarkacam': 'hap-z-dl',
+                'path-sagarkacam': 'hap-z-dr',
+            };
+            Object.entries(HAP_CAM_PATHS).forEach(([pid, zoneId]) => {
+                const el = svg.querySelector('#' + pid);
+                if (!el) return;
+                const n = sonuc.bCamSayac[zoneId] || 0;
+                if (n > 0) {
+                    el.style.fill = hapBgColor(n);
+                    el.style.stroke = hapBdColor(n);
+                    el.style.strokeWidth = '1.5';
+                } else {
+                    el.style.fill = '#1e2a38';
+                    el.style.stroke = '#4c678f';
+                    el.style.strokeWidth = '0.6';
+                }
+            });
             /* Path click → tooltip */
             svg.querySelectorAll('path[data-zone]').forEach(p => {
                 p.onclick = () => {
                     const zId = p.getAttribute('data-zone');
                     const lbl = p.getAttribute('data-label');
+                    // Cam path'i mi?
+                    const camPathIds = ['path-oncam', 'path-soloncam', 'path-sagoncam',
+                        'path-arkacam', 'path-solarkacam', 'path-sagarkacam'];
+                    if (camPathIds.includes(p.id)) {
+                        // Cam tooltip: bCamSayac kullan
+                        const n = window._hapLastSonuc?.bCamSayac?.[zId] || 0;
+                        const tl = window._hapLastSonuc?.bTutar?.[zId] || 0;
+                        // n=0 ise tooltip gösterme
+                        if (n === 0) return;
+                    }
                     hapShowTip(zId, lbl, window._hapLastSonuc);
                 };
             });
@@ -481,11 +560,9 @@
             if (nEl) { nEl.textContent = d.n; nEl.style.color = d.n > 0 ? hapScoreColor(d.n) : '#555'; }
             if (tlEl) { tlEl.textContent = d.tl > 0 ? hapFmtTL(d.tl) : ''; tlEl.style.color = hapScoreColor(d.n); }
         });
-        const msg = sonuc.skor >= 7 ? 'Ağır hasar' : sonuc.skor >= 4 ? 'Orta-Yüksek hasar'
-                  : sonuc.skor >= 2 ? 'Orta hasar' : 'Hafif hasar';
+        const msg = sonuc.skor >= 7 ? 'Ağır hasar' : sonuc.skor >= 4 ? 'Orta-Yüksek hasar' : sonuc.skor >= 2 ? 'Orta hasar' : 'Hafif hasar';
         setT('hap-status-info', 'Skor ' + sonuc.skor.toFixed(1) + '/10 — ' + msg);
     }
-
     /* ══════════════════════════════════════════════════
        VERİ ÇEKME
     ══════════════════════════════════════════════════ */
@@ -528,7 +605,6 @@
             });
         });
     }
-
     /* ── Dışa aktar ── */
     window.hapVerileriGetir = hapVerileriGetir;
     window.hapPanelGuncelle = hapPanelGuncelle;
@@ -716,41 +792,37 @@
             #hasar-section { padding:4px 0; }
             #hap-score-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
             #hap-ring-wrap { position:relative; width:50px; height:50px; flex-shrink:0; }
-            #hap-skor-val  { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-                             font-size:13px; font-weight:700; color:#fff; }
+            #hap-skor-val  { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:13px; font-weight:700; color:#fff; }
             #hap-chips { display:flex; flex-direction:column; gap:2px; flex:1; }
-            .hap-chip { font-size:11px; padding:2px 6px; border-radius:8px; font-weight:600;
-                        white-space:nowrap; display:inline-block; }
+            .hap-chip { font-size:11px; padding:2px 6px; border-radius:8px; font-weight:600; white-space:nowrap; display:inline-block; }
             .hap-chip-n { background:#222; color:#aaa; border:1px solid #333; }
             .hap-chip-r { background:#2e0808; color:#E24B4A; border:1px solid #7a1f1f; }
             .hap-chip-y { background:#2e1f08; color:#EF9F27; border:1px solid #7a4f0f; }
             .hap-chip-b { background:#0a1e2e; color:#5aa8e0; border:1px solid #1a3e5e; }
             #hap-tabs { display:flex; border-bottom:1px solid #333; margin:6px 0 4px; }
-            .hap-tab { flex:1; font-size:10px; padding:4px 2px; background:none; border:none;
-                       color:#FFF; cursor:pointer; font-family:monospace; text-transform:uppercase;
-                       letter-spacing:.04em; border-bottom:2px solid transparent; transition:.15s; }
+            .hap-tab { flex:1; font-size:10px; padding:4px 2px; background:none; border:none; color:#FFF; cursor:pointer; font-family:monospace; text-transform:uppercase; letter-spacing:.04em; border-bottom:2px solid transparent; transition:.15s; }
             .hap-tab.active { color:#00d4ff; border-bottom-color:#00d4ff; }
-            .hap-view { display:none; }
-            .hap-view.active { display:block; }
             /* Sedan SVG path hover */
             #hap-car-svg path[data-zone] { transition:fill .2s, stroke .2s; }
             #hap-car-svg path[data-zone]:hover { opacity:.85; }
             /* Mekanik/Elektrik grid */
-            .hap-mek-grid { display:grid; grid-template-columns:1fr; gap:3px; }
-            .hap-mek-cell { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px;
-                            padding:4px 6px; display:flex; align-items:center; gap:4px;
-                            transition:background .25s, border-color .25s; }
-            .hap-mek-label { font-size:10px; color:#FFF; flex:1; white-space:nowrap;
-                             overflow:hidden; text-overflow:ellipsis; }
-            .hap-mek-val   { font-size:13px; font-weight:700; color:#e1e1e1; min-width:16px;
-                             text-align:right; }
-            .hap-mek-tl    { font-size:9px; color:#b0b0b0; min-width:28px; text-align:right; }
-            .hap-mek-badge { font-size:9px; padding:1px 4px; border-radius:6px; flex-shrink:0; }
-            #hap-leg { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 2px; }
-            .hap-leg-item { display:flex; align-items:center; gap:2px; font-size:9px; color:#555; }
+            .hap-mek-grid	{ display:grid; grid-template-columns:1fr; gap:3px; }
+            .hap-mek-cell	{ background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px; padding:4px 6px; display:flex; align-items:center; gap:4px; transition:background .25s, border-color .25s; }
+            .hap-mek-label 	{ font-size:12px; color:#FFF; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .hap-mek-val   	{ font-size:13px; font-weight:700; color:#e1e1e1; min-width:16px; text-align:right; }
+            .hap-mek-tl    	{ font-size:11px; color:#b0b0b0; min-width:32px; text-align:right; }
+            .hap-mek-badge 	{ font-size:10px; padding:1px 4px; border-radius:6px; flex-shrink:0; }
+            #hap-leg 		{ display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 2px; }
+            .hap-leg-item 	{ display:flex; align-items:center; gap:2px; font-size:9px; color:#555; }
             .hap-leg-dot  { width:6px; height:6px; border-radius:50%; }
-            #hap-status-info { font-size:11px; color:#ff9800; border-top:1px solid #222;
-                               padding-top:4px; margin-top:2px; text-align:center; }
+            #hap-status-info { font-size:11px; color:#ff9800; border-top:1px solid #222; padding-top:4px; margin-top:2px; text-align:center; }
+			.main-tabs 		 { display: flex; border-bottom: 1px solid #333; border-radius:3px; margin-bottom: 5px; background: #151515; }
+			.main-tab 		 { flex: 1; padding: 5px; border-radius:3px; background: transparent; color: #666; border: none; cursor: pointer; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid transparent; }
+			.main-tab.active { color: #fff; border-bottom: 2px solid ${config.themeColor}; background: #222; }
+			.tab-panel-content 		  { display: none; padding: 5px; }
+			.tab-panel-content.active { display: block; }
+            .hap-view 		 { display:none; }
+            .hap-view.active { display:block; }
         `;
         document.head.appendChild(style);
     };
@@ -1559,7 +1631,7 @@
                         ];
 
                         if (confirm('Ana kontrol hariç tüm alt özellikler kapatılacak ve hafıza sıfırlanacak. Onaylıyor musunuz?')) {
-							keysToReset.forEach(key => GM_setValue(key, false));
+                            keysToReset.forEach(key => GM_setValue(key, false));
                             GM_setValue('KS_SYS', true); alert('Alt özellikler kapatıldı. Sayfa yenileniyor!'); window.location.reload();
                         }
                     });
@@ -1580,20 +1652,20 @@
        SETTINGS READ
     ══════════════════════════════════════════════════════ */
     const KS_SYSTEM = GM_getValue('KS_SYS', false),
-    ANALIZPANEL = GM_getValue('KS_PANEL', false), ANALIZPANEL_hlt = GM_getValue('KS_PANEL_hlt', false),
-    ANALIZPANEL_pol = GM_getValue('KS_PANEL_pol', false), ANALIZPANEL_sgs = GM_getValue('KS_PANEL_sgs', false),
-    ANALIZPANEL_rc = GM_getValue('KS_PANEL_rc', false), ANALIZPANEL_pert = GM_getValue('KS_PANEL_pert', false),
-    ANALIZPANEL_hsr = GM_getValue('KS_PANEL_hsr', false), ANALIZPANEL_srtp = GM_getValue('KS_PANEL_srtp', false),
-    ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false), ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false),
-    ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false), ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false),
-    ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false), ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false),
-    ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
-    ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false),
-    MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false),
-    DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
-    TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false),
-    SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
-    WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false);
+        ANALIZPANEL = GM_getValue('KS_PANEL', false), ANALIZPANEL_hlt = GM_getValue('KS_PANEL_hlt', false),
+        ANALIZPANEL_pol = GM_getValue('KS_PANEL_pol', false), ANALIZPANEL_sgs = GM_getValue('KS_PANEL_sgs', false),
+        ANALIZPANEL_rc = GM_getValue('KS_PANEL_rc', false), ANALIZPANEL_pert = GM_getValue('KS_PANEL_pert', false),
+        ANALIZPANEL_hsr = GM_getValue('KS_PANEL_hsr', false), ANALIZPANEL_srtp = GM_getValue('KS_PANEL_srtp', false),
+        ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false), ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false),
+        ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false), ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false),
+        ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false), ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false),
+        ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
+        ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false),
+        MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false),
+        DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
+        TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false),
+        SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
+        WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false);
     // Hızlı ve Panel takipli Ön giriş
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php") || location.href.includes("eks_hasar_magdur.php"))) {
         const magdurpanel = location.href.includes("eks_hasar_magdur.php");
@@ -1605,9 +1677,9 @@
         const panel = document.getElementById('ks-master-panel');
         const panelContent = panel ? panel.querySelector('.ks-content') : null;
         if (panel && panelContent) {
-                const headerTitle = panel.querySelector('.ks-header h4');
-                if (headerTitle) headerTitle.innerText = "Giriş Kontrol Paneli";
-                function hapBuildPanelHTML(dosyaId) {
+            const headerTitle = panel.querySelector('.ks-header h4');
+            if (headerTitle) headerTitle.innerText = "Giriş Kontrol Paneli";
+            function hapBuildPanelHTML(dosyaId) {
                 const sedanSVG = typeof hapBuildSedanSVG === 'function' ? hapBuildSedanSVG() : '<div style="color:red">SVG Yüklenemedi</div>';
                 const mekRows = (typeof HAP_MEK !== 'undefined' ? HAP_MEK : []).map(p => `
                     <div class="hap-mek-cell" id="hap-mek-${p.id}">
@@ -1656,15 +1728,6 @@
             }
             // CSS ve HTML Yapısı
             panelContent.innerHTML = `
-                <style>
-                    .main-tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 10px; background: #151515; }
-                    .main-tab { flex: 1; padding: 10px; background: transparent; color: #666; border: none; cursor: pointer; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid transparent; }
-                    .main-tab.active { color: #fff; border-bottom: 2px solid #5aa8e0; background: #222; }
-                    .tab-panel-content { display: none; padding: 5px; }
-                    .tab-panel-content.active { display: block; }
-                    .hap-view { display: none; }
-                    .hap-view.active { display: block; }
-                </style>
                 <div class="main-tabs">
                     <button class="main-tab active" data-target="panel-islem">İşlemler</button>
                     <button class="main-tab" data-target="panel-hasar">Hasar Analizi</button>
@@ -1717,7 +1780,7 @@
             // TIKLAMA OLAYLARINI BAĞLAMA (Event Listeners)
             // 1. Ana Sekmeler (İşlemler / Hasar Analizi)
             panelContent.querySelectorAll('.main-tab').forEach(tabBtn => {
-                tabBtn.addEventListener('click', function() {
+                tabBtn.addEventListener('click', function () {
                     const targetId = this.getAttribute('data-target');
                     panelContent.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
@@ -1727,7 +1790,7 @@
             });
             // 2. Hasar Alt Sekmeleri (Kaporta / Mekanik / Elektrik)
             panelContent.querySelectorAll('.hap-tab').forEach(subBtn => {
-                subBtn.addEventListener('click', function() {
+                subBtn.addEventListener('click', function () {
                     const subTarget = this.getAttribute('data-subtab');
                     panelContent.querySelectorAll('.hap-tab').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
@@ -1754,7 +1817,7 @@
             }
             /* ── YARDIMCI FONKSİYONLAR ── */
             const $ = (id) => document.getElementById(id) || document.querySelector(`[name="${id}"]`);
-            const getValue = (id) => ($( id)?.value || $(id)?.textContent || '').trim();
+            const getValue = (id) => ($(id)?.value || $(id)?.textContent || '').trim();
             const parseNum = (id) => { const val = getValue(id).replace(/,/g, ''); return val === '' ? 0 : Number(val); };
             const getDate = (prefix) => {
                 const [g, a, y] = [getValue(prefix + '_GUN'), getValue(prefix + '_AY'), getValue(prefix + '_YIL')];
@@ -1790,46 +1853,7 @@
             // Butona ekleme yapıyoruz
             const kaydetButonu = document.getElementById('btnKaydetYeni');
             if (kaydetButonu) { kaydetButonu.addEventListener('click', () => { savePageNote(); }); }
-            /* ===== 3. KONTROL VE HIGHLIGHT ===== */
-            function highlightFields() {
-                const getEl = (id) => document.getElementById(id) || document.getElementsByName(id)[0];
-                const getValue = (id) => getEl(id)?.value || '';
-                const parseNum = (id) => {
-                    let val = getValue(id).trim();
-                    if (!val) return 0;
-                    let clean = val.replace(/,/g, '');
-                    return parseFloat(clean) || 0;
-                };
-                const setBg = (id, condition) => {
-                    const el = getEl(id);
-                    const td = el?.closest('td');
-                    if (td) td.style.backgroundColor = condition ? WARNING_COLOR : '';
-                };
-                if (magdurpanel) {
-                    const watchFields = ['SURUCU_ADI', 'MAGDUR_AD', 'MAGDUR_SOYAD', 'PLAKA1', 'PLAKA2', 'PLAKA3', 'SASI_NO', 'MOTOR_NO', 'MERNIS_NO_C', 'SURUCU_KIMLIK_TIPI_DEGER', 'SURUCU_EHLIYET_NO', 'SURUCU_EHLIYET_SINIFI',
-                        'EHLIYET_TARIHI_GUN', 'EHLIYET_TARIHI_AY', 'EHLIYET_TARIHI_YIL'];
-                    const selectFields = ['MODEL_YILI', 'MARKA_ID', 'ARAC_TIPI', 'MAGDUR_KIMLIK_TIPI', 'SURUCU_KIMLIK_TIPI', 'SB_ARAC_KULLANIM_TURU'];
-                    const modelVal = getValue('MODEL_ADI').replace(/[()\s]/g, ''); setBg('MODEL_ADI', modelVal === '');
-                    setBg('KM', parseNum('KM') < 1);
-                    setBg('PIYASA', parseNum('PIYASA') < 1000);
-                    watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
-                    selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
-                }
-                else {
-                    const watchFields = ['EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL',
-                        'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI'];
-                    const selectFields = ['SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI',
-                        'KUSURLU', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'UZAKTAN_EKSPERTIZ'];
-                    const modelVal = getValue('HAS_MODEL_ADI').replace(/[()\s]/g, ''); setBg('HAS_MODEL_ADI', modelVal === '');
-                    setBg('TAHMINI_HASAR', parseNum('TAHMINI_HASAR') < 1000);
-                    setBg('HAS_KM', parseNum('HAS_KM') < 1);
-                    setBg('HAS_PIYASA', parseNum('HAS_PIYASA') < 1000);
-                    //setBg('HASAR_SEKLI', getValue('HASAR_SEKLI') === "-1");
-                    watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
-                    selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
-                }
-            }
-            /* ===== 4. PANEL GÜNCELLEME ===== */
+            /* ===== 3. PANEL GÜNCELLEME ===== */
             function makeBadge(text, color, borderRadius, fontSize = '10px') {
                 return `<span style="
                     background:${color}22;
@@ -2236,18 +2260,21 @@
                                 } catch (_) { shbStr = target.href; }
 
                                 const finalUrl = new URL(shbStr);
-                                finalUrl.searchParams.set('sorting', 'km-nu_asc');
+                                const cleanPath = finalUrl.pathname
+                                    .replace(/\/(en)(\/|$)/gi, '/').replace(/\/(dizel|benzin|lpg|hibrit|elektrik)(\/|$)/gi, '/').replace(/\/(manual|otomatik|yari-otomatik)(\/|$)/gi, '/').replace(/\/+$/, ''); // sondaki slash temizle
+                                finalUrl.pathname = cleanPath || '/';
+                                ['pagingOffset', 'pagingPage'].forEach(p => finalUrl.searchParams.delete(p));
                                 if (data.year) {
                                     finalUrl.searchParams.set('a5_min', data.year);
                                     finalUrl.searchParams.set('a5_max', data.year);
-                                    finalUrl.searchParams.set('a90178_min', data.year);
-                                    finalUrl.searchParams.set('a90178_max', data.year);
+                                    //finalUrl.searchParams.set('a90178_min', data.year);
+                                    //finalUrl.searchParams.set('a90178_max', data.year);
                                 }
                                 if (data.kmMin > 1000) {
                                     finalUrl.searchParams.set('a4_min', data.kmMin);
                                     finalUrl.searchParams.set('a4_max', data.kmMax);
-                                    finalUrl.searchParams.set('a90180_min', data.kmMin);
-                                    finalUrl.searchParams.set('a90180_max', data.kmMax);
+                                    //finalUrl.searchParams.set('a90180_min', data.kmMin);
+                                    //finalUrl.searchParams.set('a90180_max', data.kmMax);
                                 }
                                 if (isAnalyze) fetchPricesFromShb(finalUrl.toString(), resBox);
                                 else unsafeWindow.open(finalUrl.toString(), '_blank');
@@ -2410,7 +2437,7 @@
                     }
                 });
             }
-            /* ===== 5. OTOMATİK SEÇİM BUTONU ===== */
+            /* ===== 4. OTOMATİK SEÇİM BUTONU ===== */
             document.getElementById('autoSelectBtn').addEventListener('click', (e) => {
                 const setVal = (id, val) => {
                     const el = $(id);
@@ -2432,9 +2459,7 @@
                         el.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 };
-                ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'RUCU0', 'SAG1', 'HAS_DEVIR_SATIS0',
-                    'HAS_EKSIK_ASKIN_SIGORTA0', 'ALACAKLI_DOGUM_TARIHI_BILGISI0', 'TASINAN_YUK0', 'MUAFIYET0', 'EKSPERTIZ_YERI_SEHIR_DISI0',
-                    'HASAR_YERI0', 'TESPIT_SEKLI0', 'ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
+                ['SURUCU_BELGE_TIPI1', 'SURUCU_BELGESI0', 'RUHSAT_ASLI1', 'RUCU0', 'SAG2', 'HAS_DEVIR_SATIS0', 'HAS_EKSIK_ASKIN_SIGORTA0', 'ALACAKLI_DOGUM_TARIHI_BILGISI0', 'TASINAN_YUK0', 'MUAFIYET0', 'EKSPERTIZ_YERI_SEHIR_DISI0', 'HASAR_YERI0', 'TESPIT_SEKLI0', 'ONARIM_ONAYI2', 'SURUCU_BELGESI_GORULDU1', 'EHLIYET_YETERLI1', 'ALKOL_DURUMU2'].forEach(clickCb);
                 setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
                 setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
                 setVal('ONARIM_SURESI', '10');
@@ -2443,13 +2468,53 @@
                 setVal('KUSUR_ORANI', '100');
                 setVal('UZAKTAN_EKSPERTIZ', '2');
                 setVal('EHLIYET_SINIFI', 'B');
+                setVal('SAG_NEDEN', 'Olay yeri mevcuttur.');
                 setVal('EKSPERTIZ_TARIHLERI', `${getValue('IHBAR_TARIHI_GUN')}/${getValue('IHBAR_TARIHI_AY')}/${getValue('IHBAR_TARIHI_YIL')}`);
                 setVal('EKSPERTIZ_TALEP_TARIHI_GUN', getValue('IHBAR_TARIHI_GUN')); setVal('EKSPERTIZ_TALEP_TARIHI_AY', getValue('IHBAR_TARIHI_AY')); setVal('EKSPERTIZ_TALEP_TARIHI_YIL', getValue('IHBAR_TARIHI_YIL'));
                 setVal('EKSPERTIZ_TARIHI_GUN', getValue('IHBAR_TARIHI_GUN')); setVal('EKSPERTIZ_TARIHI_AY', getValue('IHBAR_TARIHI_AY')); setVal('EKSPERTIZ_TARIHI_YIL', getValue('IHBAR_TARIHI_YIL'));
                 setSelectText('KAZA_IHBAR_TURU', 'ANLAŞMALI KAZA');
                 setSelectText('KANAAT', 'OLUMLUDUR');
+                if (location.href.includes("ankara")) setVal('COKLU_EKSPER', '125'); setVal('ZABIT_TIPI_TRAMER', 'Anlaşmalı Tutanak'); setVal('TAHMINI_HASAR', '20000');
                 alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
             });
+            /* ===== 5. KONTROL VE HIGHLIGHT ===== */
+            function highlightFields() {
+                const getEl = (id) => document.getElementById(id) || document.getElementsByName(id)[0];
+                const getValue = (id) => getEl(id)?.value || '';
+                const parseNum = (id) => {
+                    let val = getValue(id).trim();
+                    if (!val) return 0;
+                    let clean = val.replace(/,/g, '');
+                    return parseFloat(clean) || 0;
+                };
+                const setBg = (id, condition) => {
+                    const el = getEl(id);
+                    const td = el?.closest('td');
+                    if (td) td.style.backgroundColor = condition ? WARNING_COLOR : '';
+                };
+                if (magdurpanel) {
+                    const watchFields = ['SURUCU_ADI', 'MAGDUR_AD', 'MAGDUR_SOYAD', 'PLAKA1', 'PLAKA2', 'PLAKA3', 'SASI_NO', 'MOTOR_NO', 'MERNIS_NO_C', 'SURUCU_KIMLIK_TIPI_DEGER', 'SURUCU_EHLIYET_NO', 'SURUCU_EHLIYET_SINIFI', 'EHLIYET_TARIHI_GUN', 'EHLIYET_TARIHI_AY', 'EHLIYET_TARIHI_YIL'];
+                    const selectFields = ['MODEL_YILI', 'MARKA_ID', 'ARAC_TIPI', 'MAGDUR_KIMLIK_TIPI', 'SURUCU_KIMLIK_TIPI', 'SB_ARAC_KULLANIM_TURU'];
+                    const modelVal = getValue('MODEL_ADI').replace(/[()\s]/g, ''); setBg('MODEL_ADI', modelVal === '');
+                    setBg('KM', parseNum('KM') < 1);
+                    setBg('PIYASA', parseNum('PIYASA') < 1000);
+                    watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
+                    selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
+                }
+                else {
+                    const watchFields = ['EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI', 'MERNIS_NO', 'SB_SIGORTALI_ADI'];
+                    const selectFields = ['SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'KUSURLU', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'UZAKTAN_EKSPERTIZ'];
+                    const modelVal = getValue('HAS_MODEL_ADI').replace(/[()\s]/g, ''); setBg('HAS_MODEL_ADI', modelVal === '');
+                    const kazaSaat = getValue('KAZA_SAAT'); const kazaDakika = getValue('KAZA_DAKIKA'), kazaZamaniSifirMi = (kazaSaat === '0' && kazaDakika === '0');
+                    setBg('KAZA_SAAT', kazaZamaniSifirMi);
+                    setBg('TAHMINI_HASAR', parseNum('TAHMINI_HASAR') < 1000);
+                    setBg('HAS_KM', parseNum('HAS_KM') < 1);
+                    setBg('HAS_PIYASA', parseNum('HAS_PIYASA') < 1000);
+                    //setBg('HASAR_SEKLI', getValue('HASAR_SEKLI') === "-1");
+                    watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
+                    selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
+                }
+            }
             if (ANALIZPANEL_hlt) setInterval(highlightFields, 500);
             setInterval(updatePanel, 1500);
         }
@@ -2461,14 +2526,8 @@
             /* ===== 1. PANEL OLUŞTURMA ===== */
             const styleSheet = document.createElement("style");
             styleSheet.innerText = `
-              @keyframes slideRight {
-                from { transform: translateX(100%); }
-                to { transform: translateX(0); }
-              }
-              #donanim-panel button:active {
-                transform: translateY(1px) scale(0.96);
-                filter: brightness(1.2);
-              }
+              @keyframes slideRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+              #donanim-panel button:active { transform: translateY(1px) scale(0.96); filter: brightness(1.2); }
             `;
             document.head.appendChild(styleSheet);
             // 2. Ana Panel Oluşturma
@@ -2504,21 +2563,7 @@
             document.body.appendChild(panel);
             /* ===== 2. MASTER DONANIM LİSTESİ (İSİM BAZLI) ===== */
             const donanimSozlugu = {
-                "ALARM": 1,
-                "İMMOBİLİZER": 2,
-                "KLİMA": 3,
-                "RADYO-TEYP": 4,
-                "TELEFON": 5,
-                "RADYO-CD": 23,
-                "CD ÇALAR": 6,
-                "ABS": 7,
-                "AIRBAG": 8,
-                "SUNROOF": 9,
-                "DERI DOSEME": 10,
-                "VİTES": 22,
-                "YAKIT TİPİ": 24,
-                "LPG": 11,
-                "ENGELLİLER": 12
+                "ALARM": 1, "İMMOBİLİZER": 2, "KLİMA": 3, "RADYO-TEYP": 4, "TELEFON": 5, "RADYO-CD": 23, "CD ÇALAR": 6, "ABS": 7, "AIRBAG": 8, "SUNROOF": 9, "DERI DOSEME": 10, "VİTES": 22, "YAKIT TİPİ": 24, "LPG": 11, "ENGELLİLER": 12
             };
             /* ===== 3. DATA HAZIRLIĞI VE EŞLEŞTİRME ===== */
             const getPageCheckboxes = () => {
@@ -2538,15 +2583,7 @@
                         const inputs = row.querySelectorAll('input[type="checkbox"]');
                         inputs.forEach(input => {
                             const match = input.getAttribute('onclick')?.match(/donanim\('(\d+)',(\d+)\)/);
-                            if (match) {
-                                results.push(
-                                    {
-                                        masterId: masterId,
-                                        originalId: match[1],
-                                        val: parseInt(match[2]),
-                                        cb: input
-                                    });
-                            }
+                            if (match) { results.push({ masterId: masterId, originalId: match[1], val: parseInt(match[2]), cb: input }); }
                         });
                     }
                 });
@@ -2559,41 +2596,30 @@
                     const targetVal = ruleFn(item.masterId);
                     if (targetVal !== null) {
                         const shouldBeChecked = (item.val === targetVal);
-                        if (item.cb.checked !== shouldBeChecked) {
-                            item.cb.click();
-                        }
+                        if (item.cb.checked !== shouldBeChecked) { item.cb.click(); }
                     }
                 });
             };
             const createBtn = (text, ruleFn) => {
                 const btn = document.createElement('button');
                 btn.innerText = text;
-                Object.assign(btn.style,
-                    {
-                        background: '#00aa88',
-                        border: '0',
-                        borderRadius: '2px',
-                        color: "white",
-                        cursor: 'pointer',
-                        fontWeight: "bold",
-                        padding: '3px 6px'
-                    });
+                Object.assign(btn.style, { background: '#00aa88', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '3px 6px' });
                 btn.onclick = () => applyRules(ruleFn);
                 panel.appendChild(btn);
             };
             /* ===== 5. BUTON TANIMLARI (KURALLAR) ===== */
             // 2000 Benzin Kuralı
             createBtn('2000~ Benzin', (id) => {
-                if (id <= 10) return id === 4 ? 1 : 0; // Radyo-Teyp Var, diğerleri Yok
+                if (id <= 10) return id === 4 ? 1 : 0;
                 if ([11, 12, 22].includes(id)) return id === 11 ? 1 : 0;
-                if ([23, 24].includes(id)) return 0; // Radyo-CD ve Yakıt: 0 (Benzin)
+                if ([23, 24].includes(id)) return 0;
                 return null;
             });
             // 2000 Dizel Kuralı
             createBtn('2000~ Dizel', (id) => {
                 if (id <= 10) return id === 4 ? 1 : 0;
                 if ([11, 12, 22].includes(id)) return 0;
-                if ([23, 24].includes(id)) return id === 24 ? 1 : 0; // Yakıt: 1 (Dizel), Radyo-CD: 0
+                if ([23, 24].includes(id)) return id === 24 ? 1 : 0;
                 return null;
             });
             // 2010+ Benzin Kuralı
@@ -2605,7 +2631,7 @@
             // 2010+ Dizel Kuralı
             createBtn('2010+ Dizel', (id) => {
                 if ([1, 5, 9, 10, 11, 12, 22, 23].includes(id)) return 0;
-                if ([2, 3, 4, 6, 7, 8, 24].includes(id)) return 1; // Yakıt (24) -> 1 (Dizel)
+                if ([2, 3, 4, 6, 7, 8, 24].includes(id)) return 1;
                 return null;
             });
         }
@@ -2640,21 +2666,11 @@
                     const text = await navigator.clipboard.readText();
                     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
                     let fields = [];
-                    for (let j = 1; j <= 20; j++) {
-                        let f = document.all(`YP_AD_${j}`) || document.all(`YP_AD_DIGER_${j}`);
-                        if (f) fields.push(f);
-                    }
-                    if (lines.length !== fields.length && lines.length > 0) {
-                        if (!confirm(`Sayı Uyuşmazlığı!\nExcel: ${lines.length}\nKutu: ${fields.length}\nDevam?`)) return;
-                    }
-                    lines.forEach((line, i) => {
-                        if (i < fields.length) {
-                            fields[i].value = line;
-                            fields[i].dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    });
+                    for (let j = 1; j <= 20; j++) { let f = document.all(`YP_AD_${j}`) || document.all(`YP_AD_DIGER_${j}`); if (f) fields.push(f); }
+                    if (lines.length !== fields.length && lines.length > 0) { if (!confirm(`Sayı Uyuşmazlığı!\nExcel: ${lines.length}\nKutu: ${fields.length}\nDevam?`)) return; }
+                    lines.forEach((line, i) => { if (i < fields.length) { fields[i].value = line; fields[i].dispatchEvent(new Event('input', { bubbles: true })); } });
                     btnPaste.innerText = "✔️ OK";
-					setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
+                    setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
                 } catch (err) { console.error(err); }
             };
             const btnCopy = document.createElement('button');
@@ -2667,7 +2683,7 @@
                 if (data) {
                     await navigator.clipboard.writeText(data);
                     btnCopy.innerText = "✔️ OK";
-                    setTimeout(() => {btnCopy.innerText = "📤 KOPYALA";}, 2000);
+                    setTimeout(() => { btnCopy.innerText = "📤 KOPYALA"; }, 2000);
                 }
             };
             const btnFill = document.createElement('button');
@@ -2677,15 +2693,13 @@
             btnFill.onclick = async () => {
                 const selects = document.querySelectorAll('select[name^="YP_GRUP_ID_"]');
                 for (let s of selects) {
-                    const idx = s.name.split('_').pop();
-                    s.value = "2";
-                    s.dispatchEvent(new Event('change', { bubbles: true }));
-                    await new Promise(r => setTimeout(r, 200));
+                    const idx = s.name.split('_').pop(); s.value = "2"; s.dispatchEvent(new Event('change', { bubbles: true }));
+                    await new Promise(r => setTimeout(r, 100));
                     const alt = document.querySelector(`select[name="YP_ID_${idx}"]`);
                     if (alt) { alt.value = "0"; alt.dispatchEvent(new Event('change', { bubbles: true })); }
                 }
                 btnFill.innerText = "✔️ BİTTİ";
-                setTimeout(() => {btnFill.innerText = "🚗 GRUPLA";}, 2000);
+                setTimeout(() => { btnFill.innerText = "🚗 GRUPLA"; }, 2000);
             };
             contentArea.append(btnPaste, btnCopy, btnFill);
         }
@@ -2695,30 +2709,16 @@
         initPanel();
         const panel = document.getElementById('ks-master-panel');
         if (!panel) return;
-
         panel.style.setProperty('width', config.width, 'important');
         panel.style.setProperty('min-width', config.width, 'important');
         panel.style.setProperty('display', 'block', 'important');
-
         const hTitle = panel.querySelector('.ks-header h4');
         if (hTitle) hTitle.innerText = "Excell Panel";
-
         panel.querySelector('.ks-toggle')?.style.setProperty('display', 'block', 'important');
-
         const contentArea = panel.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center;padding-bottom:5px;font-size:11px;width:100%;">Veri Girişi</div>`;
-
-            Object.assign(contentArea.style, {
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px",
-                width: "100%",
-                boxSizing: "border-box"
-            });
-
+            Object.assign(contentArea.style, { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "8px", width: "100%", boxSizing: "border-box" });
             const btnPaste = document.createElement('button');
             btnPaste.className = 'ks-btn';
             btnPaste.style.cssText = "width:100%; padding:4px 2px; font-size:11px; min-height:24px;";
@@ -2730,10 +2730,10 @@
                     let av = [];
                     for (let j = 0; j < 50; j++) {
                         const k = document.querySelector(`input[name="kod[${j}]"]`),
-                              a = document.querySelector(`input[name="ad[${j}]"]`),
-                              f = document.querySelector(`input[name="fiyat[${j}]"]`);
+                            a = document.querySelector(`input[name="ad[${j}]"]`),
+                            f = document.querySelector(`input[name="fiyat[${j}]"]`);
                         if (k || a) av.push({ k, a, f });
-                        }
+                    }
                     rows.forEach((row, i) => {
                         if (i < av.length) {
                             const cols = row.split('\t');
@@ -2756,9 +2756,7 @@
         if (!panel) return;
         panel.style.setProperty('width', config.width);
         panel.style.setProperty('min-width', config.width);
-        if (panel) {
-            panel.querySelector('.ks-header h4').innerText = "Excell Panel";
-        }
+        if (panel) { panel.querySelector('.ks-header h4').innerText = "Excell Panel"; }
         const contentArea = document.querySelector('.ks-content');
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center;padding-bottom:5px;font-size:11px;">Liste Kopyala</div>`;
@@ -2770,16 +2768,16 @@
             btnCopy.onclick = async () => {
                 const unique = new Set();
                 document.querySelectorAll('tr').forEach(row => {
-                        const cells = row.querySelectorAll('td.acik, td.koyu');
-                        if (cells.length >= 4) {
+                    const cells = row.querySelectorAll('td.acik, td.koyu');
+                    if (cells.length >= 4) {
                         const kod = cells[1].innerText.trim(), ad = cells[2].innerText.trim(), fiy = cells[3].innerText.trim();
                         if (/^[a-zA-Z0-9-]+$/.test(kod) && !kod.includes('E+') && kod !== "Parça Kodu") unique.add(`${kod}\t${ad}\t${fiy}`);
-                        }
-                    });
+                    }
+                });
                 if (unique.size > 0) {
                     await navigator.clipboard.writeText(Array.from(unique).join('\n'));
                     btnCopy.innerText = "✔️ OK";
-                    setTimeout(() => {btnCopy.innerText = "📂 KOPYALA";}, 2000);
+                    setTimeout(() => { btnCopy.innerText = "📂 KOPYALA"; }, 2000);
                 }
             };
             contentArea.appendChild(btnCopy);
@@ -2949,7 +2947,6 @@
             /* ===== 2. PANEL HTML ===== */
             const isClosed = localStorage.getItem('tm_panel_closed') === 'true';
             if (isClosed) document.body.classList.add("panel-closed");
-
             const panel = document.createElement("div");
             panel.id = "tm-panel";
             if (isClosed) panel.classList.add("closed");
@@ -3045,12 +3042,7 @@
             document.body.appendChild(panel);
             document.body.appendChild(toggleBtn);
             /* ===== 3. PANEL LOGIC (Kapatma/Açma) ===== */
-            toggleBtn.onclick = () => {
-                const closed = panel.classList.toggle("closed");
-                document.body.classList.toggle("panel-closed", closed);
-                toggleBtn.innerHTML = closed ? "◀" : "▶";
-                localStorage.setItem('tm_panel_closed', closed);
-            };
+            toggleBtn.onclick = () => { const closed = panel.classList.toggle("closed"); document.body.classList.toggle("panel-closed", closed); toggleBtn.innerHTML = closed ? "◀" : "▶"; localStorage.setItem('tm_panel_closed', closed); };
             //adet kontrolü
             const adetInput = document.getElementById('tm_adet');
             if (adetInput) {
@@ -3065,9 +3057,8 @@
                 const startTime = Date.now();
                 const interval = setInterval(() => {
                     const el = selectorFn();
-                    if (el) {
-                        clearInterval(interval); resolve(el);
-                    } else if (Date.now() - startTime > timeout) { clearInterval(interval); reject(new Error("Zaman aşımı: Eleman bulunamadı.")); }
+                    if (el) { clearInterval(interval); resolve(el); }
+					else if (Date.now() - startTime > timeout) { clearInterval(interval); reject(new Error("Zaman aşımı: Eleman bulunamadı.")); }
                 }, 100);
             });
             const selectValue = async (id, val) => {
@@ -3094,11 +3085,7 @@
                     if (checkboxDegisim && checkboxDegisim.checked) checkboxDegisim.checked = false;
                 }
             };
-            const zorunluAlanlar = [
-                { ref: refs.kod, label: "Parça Kodu" },
-                { ref: refs.ad, label: "Adı" },
-                { ref: refs.fiyat, label: "Fiyat" }
-            ];
+            const zorunluAlanlar = [ { ref: refs.kod, label: "Parça Kodu" }, { ref: refs.ad, label: "Adı" }, { ref: refs.fiyat, label: "Fiyat" } ];
             /* ===== 4. CORE ACTIONS ===== */
             const MainFields = () => {
                 degisonar();
@@ -3118,11 +3105,7 @@
                 const radio = document.querySelector('input[name="kod_secim"]:checked')?.value;
                 const notlar = $("NOTLAR");
                 const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
-                const forceWrite = (el, val) => {
-                    if (!el) return;
-                    el.value = val;
-                    ["input", "change", "blur"].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true })));
-                };
+                const forceWrite = (el, val) => { if (!el) return; el.value = val; ["input", "change", "blur"].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true }))); };
                 const safeSelect = async (id, val) => {
                     const el = $(id);
                     if (!el) return;
@@ -3130,32 +3113,21 @@
                     const vtb = $("VERITABANINDA");
                     const oldVtb = vtb?.value;
                     try {
-                        win.alert = () => { };
-                        if (vtb) vtb.value = "0";
-                        await selectValue(id, val);
+                        win.alert = () => { }; if (vtb) vtb.value = "0"; await selectValue(id, val);
                     } finally {
-                        setTimeout(() => {
-                            win.alert = oldAlert;
-                            if (vtb && oldVtb) vtb.value = oldVtb;
-                        }, 150);
+                        setTimeout(() => { win.alert = oldAlert; if (vtb && oldVtb) vtb.value = oldVtb; }, 150);
                     }
                 };
                 if (radio === "kodsuz") {
                     const sipSec = $("SIP_SEC_2");
-                    if (sipSec) {
-                        sipSec.checked = true;
-                        sipSec.dispatchEvent(new Event("change", { bubbles: true }));
-                    }
-                    await safeSelect("SISTEM_NOTU_ID", "2");
-                    forceWrite(notlar, "KODSUZ PARÇA");
+                    if (sipSec) { sipSec.checked = true; sipSec.dispatchEvent(new Event("change", { bubbles: true })); }
+                    await safeSelect("SISTEM_NOTU_ID", "2"); forceWrite(notlar, "KODSUZ PARÇA");
                     await selectValue("SIPARIS_VERMEME_SEBEP_ID", "2");
                 } else if (radio === "esdeger") {
-                    await safeSelect("SISTEM_NOTU_ID", "13");
-                    forceWrite(notlar, "");
+                    await safeSelect("SISTEM_NOTU_ID", "13"); forceWrite(notlar, "");
                     await selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
                 } else if (radio === "bos") {
-                    await safeSelect("SISTEM_NOTU_ID", "-1");
-                    forceWrite(notlar, "");
+                    await safeSelect("SISTEM_NOTU_ID", "-1"); forceWrite(notlar, "");
                     await selectValue("SIPARIS_VERMEME_SEBEP_ID", "-1");
                 }
                 const eksikAlan = zorunluAlanlar.find(alan => !alan.ref.value || alan.ref.value.trim() === "");
@@ -3172,10 +3144,7 @@
                         if (win.sbmt_frm()) {
                             let canSubmit = true;
                             if (typeof win.doraSiparisSecenek === "function") { if (!win.doraSiparisSecenek()) canSubmit = false; }
-                            if (canSubmit) {
-                                const form = document.querySelector('form[name="yedparforhasar"]') || document.forms.yedparforhasar;
-                                if (form) { form.submit(); return; }
-                            }
+                            if (canSubmit) { const form = document.querySelector('form[name="yedparforhasar"]') || document.forms.yedparforhasar; if (form) { form.submit(); return; } }
                         }
                     }
                     attempts++; setTimeout(execute, 500);
@@ -3186,18 +3155,12 @@
             function loadSelections() {
                 groups.forEach(groupName => {
                     const savedValue = GM_getValue('saved_' + groupName);
-                    if (savedValue) {
-                        const radioToSelect = document.querySelector(`input[name="${groupName}"][value="${savedValue}"]`);
-                        if (radioToSelect) { radioToSelect.checked = true; }
-                    }
+                    if (savedValue) { const radioToSelect = document.querySelector(`input[name="${groupName}"][value="${savedValue}"]`); if (radioToSelect) { radioToSelect.checked = true; } }
                 });
             }
             loadSelections();
             document.addEventListener('change', function (event) {
-                if (event.target.type === 'radio' && groups.includes(event.target.name)) {
-                    GM_setValue('saved_' + event.target.name, event.target.value);
-                    console.log(`[Hafıza] ${event.target.name} güncellendi: ${event.target.value}`);
-                }
+                if (event.target.type === 'radio' && groups.includes(event.target.name)) { GM_setValue('saved_' + event.target.name, event.target.value); console.log(`[Hafıza] ${event.target.name} güncellendi: ${event.target.value}`); }
             });
             /* ===== 5. EVENT HANDLERS ===== */
             refs.bYeni.onclick = () => {
@@ -3237,19 +3200,11 @@
                 if (document.getElementById("SISTEM_NOTU_ID")?.value == "-1") await selectValue("SISTEM_NOTU_ID", "11");
                 submitForm();
             };
-            setInterval(() => {
-                const realInput = document.getElementById("PARCA_KODU");
-                if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blinlink");
-                else refs.bYeni.classList.remove("blinlink");
-            }, 1000);
-        }
+            setInterval(() => { const realInput = document.getElementById("PARCA_KODU"); if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blinlink"); else refs.bYeni.classList.remove("blinlink"); }, 1000); }
         const init = () => {
             if (typeof initPanel === 'function') initPanel();
-            setTimeout(() => {
-                const checkTarget = document.getElementById("SUREKLI");
-                if (checkTarget && !checkTarget.checked) checkTarget.click();
-            }, 1000);
-        };
+            setTimeout(() => { const checkTarget = document.getElementById("SUREKLI"); if (checkTarget && !checkTarget.checked) checkTarget.click(); }, 1000);
+		};
         const focusTarget = () => {
             const input = document.getElementById('tm_kod');
             if (input) { input.focus(); input.select(); return true; }
@@ -3367,13 +3322,9 @@
                 const finalString = excelRows.join('\n');
                 navigator.clipboard.writeText(finalString).then(() => {
                     alert(`✅ ${excelRows.length} parça kopyalandı.`);
-                }).catch(() => {
-                    alert('❌ Kopyalama hatası!');
-                });
+                }).catch(() => { alert('❌ Kopyalama hatası!'); });
             }
-            else {
-                alert('⚠️ Veri bulunamadı!');
-            }
+            else { alert('⚠️ Veri bulunamadı!'); }
         });
     }
     // Hızlı Resim girişi
@@ -3517,11 +3468,9 @@
                             varsayilan;
         };
         const ayarlar = getSistemAyarlari();
-        // Tooltip Stil Tanımlaması
-        const style = document.createElement('style');
-        style.innerHTML = ``;
+        const style = document.createElement('style'); style.innerHTML = ``;
         document.head.appendChild(style);
-		// ── ÖNIZLEME DÜZELTME: Canvas'ları küçült + tıklayınca büyük aç ──
+        // ── ÖNIZLEME DÜZELTME: Canvas'ları küçült + tıklayınca büyük aç ──
         function fixPreviews() {
             if (!document.getElementById('ks-preview-style')) {
                 const s = document.createElement('style');
@@ -3555,16 +3504,13 @@
                 const canvas = tr.querySelector('span.preview canvas');
                 if (!canvas || canvas.hasAttribute('data-click-fixed')) return;
                 canvas.setAttribute('data-click-fixed', 'true');
-
                 // Dosya adını tr'den al
                 const fileName = tr.getAttribute('fileuploadsatir');
-
                 canvas.addEventListener('click', () => {
                     // jQuery FileUpload plugin'in data'sını bul
                     // Plugin, input[type=file]'a bağlı — global fileupload data'sında File nesneleri var
                     // Alternatif: sayfadaki tüm File nesnelerini tara
                     let fileObj = null;
-
                     // Yöntem 1: jQuery data üzerinden
                     try {
                         const $table = window.jQuery && jQuery('table.table');
@@ -3574,8 +3520,7 @@
                                 // deneme
                             }
                         }
-                    } catch(e) {}
-
+                    } catch (e) { }
                     // Yöntem 2: input[type=file] üzerinden File listesini tara
                     if (!fileObj) {
                         document.querySelectorAll('input[type=file]').forEach(inp => {
@@ -3586,12 +3531,10 @@
                             }
                         });
                     }
-
                     // Yöntem 3: Global _ksFiles cache'inden al (aşağıda doldurulacak)
                     if (!fileObj && window._ksFiles && window._ksFiles[fileName]) {
                         fileObj = window._ksFiles[fileName];
                     }
-
                     if (fileObj) {
                         // Orijinal dosyayı FileReader ile oku — tam boyut
                         const reader = new FileReader();
@@ -3608,7 +3551,6 @@
                         };
                         reader.readAsDataURL(fileObj);
                     } else {
-                        // Fallback: canvas'tan al (küçük ama bir şey)
                         const dataUrl = canvas.toDataURL('image/png');
                         const win = window.open('', '_blank');
                         if (!win) return;
@@ -3620,7 +3562,6 @@
                         win.document.close();
                     }
                 });
-
                 // Büyüt etiketi
                 const span = canvas.closest('span.preview');
                 if (span && !span.querySelector('.preview-hint')) {
@@ -3628,10 +3569,7 @@
                     const hint = document.createElement('div');
                     hint.className = 'preview-hint';
                     hint.innerText = '🔍 Büyüt';
-                    Object.assign(hint.style, {
-                        fontSize: '9px', color: '#888', textAlign: 'center',
-                        marginTop: '2px', userSelect: 'none', pointerEvents: 'none'
-                    });
+                    Object.assign(hint.style, { fontSize: '9px', color: '#888', textAlign: 'center', marginTop: '2px', userSelect: 'none', pointerEvents: 'none' });
                     span.appendChild(hint);
                 }
             });
@@ -3653,10 +3591,7 @@
             const createMiniBtn = (text, color, targetSelector, val, tooltipTitle, tooltipDesc, isScroll = false) => {
                 const container = document.createElement('div');
                 container.className = 'ks-tooltip-container';
-                Object.assign(container.style, {
-                    width: '100%',
-                    display: 'block'
-                });
+                Object.assign(container.style, { width: '100%', display: 'block' });
                 const btn = document.createElement('button');
                 btn.innerText = text;
                 btn.className = 'ks-btn';
@@ -3682,14 +3617,8 @@
                 tip.innerHTML = `<strong>${tooltipTitle}</strong><br>${tooltipDesc}`;
                 btn.onclick = (e) => {
                     e.preventDefault();
-                    if (isScroll) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        document.querySelectorAll(targetSelector).forEach(sel => {
-                            sel.value = val;
-                            sel.dispatchEvent(new Event('change', { bubbles: true }));
-                        });
-                    }
+                    if (isScroll) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+					else { document.querySelectorAll(targetSelector).forEach(sel => { sel.value = val; sel.dispatchEvent(new Event('change', { bubbles: true })); }); }
                 };
                 container.appendChild(btn);
                 container.appendChild(tip);
@@ -3755,9 +3684,7 @@
                     });
                     container.appendChild(nameLabel);
                     const btnGroup = document.createElement('div');
-                    Object.assign(btnGroup.style, {
-                        display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', width: 'auto', boxSizing: 'border-box'
-                    });
+                    Object.assign(btnGroup.style, { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', width: 'auto', boxSizing: 'border-box' });
                     const buttons = [
                         { label: 'EHLİYET', vals: ayarlar.EHLİYET, color: '#ff4757', t: 'Ehliyet - Mağdur/Sigortalı Tekrar tıkla' },
                         { label: 'RUHSAT', vals: ayarlar.RUHSAT, color: '#ffa502', t: 'Ruhsat - Mağdur/Sigortalı Tekrar tıkla' },
@@ -3823,26 +3750,14 @@
                 }
             });
         }
-		// Dosya seçilince File nesnesini global cache'e kaydet
-		if (!window._ksFiles) {
-		    window._ksFiles = {};
-		    document.addEventListener('change', (e) => {
-		        if (e.target && e.target.type === 'file' && e.target.files) {
-		            Array.from(e.target.files).forEach(f => {
-		                window._ksFiles[f.name] = f;
-		            });
-		        }
-		    }, true);
-		    // Sayfa açıldığında zaten seçili dosyaları da yakala
-		    document.querySelectorAll('input[type=file]').forEach(inp => {
-		        if (inp.files) Array.from(inp.files).forEach(f => { window._ksFiles[f.name] = f; });
-		    });
-		}
-        function start() {
-            initGeneralPanel();
-            injectRowPanels();
-            fixPreviews();
+        // Dosya seçilince File nesnesini global cache'e kaydet
+        if (!window._ksFiles) {
+            window._ksFiles = {};
+            document.addEventListener('change', (e) => { if (e.target && e.target.type === 'file' && e.target.files) { Array.from(e.target.files).forEach(f => { window._ksFiles[f.name] = f; }); } }, true);
+            document.querySelectorAll('input[type=file]').forEach(inp => { if (inp.files) Array.from(inp.files).forEach(f => { window._ksFiles[f.name] = f; });
+            });
         }
+        function start() { initGeneralPanel(); injectRowPanels(); fixPreviews(); }
         setTimeout(start, 500);
         setInterval(start, 2500);
     }
@@ -3882,10 +3797,7 @@
                 Beyan: { label: "KAZA ŞEKLİ: BEYAN", keys: ["beyan yazısı", "beyan talep", "müşteri beyanı", "mağdur beyanı", "beyan"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] }
             };
             const rows = Array.from(document.querySelectorAll('table tr'));
-            const uploadedDocs = rows.map(r => {
-                const c = r.querySelectorAll('td')[1];
-                return c ? c.innerText.toLocaleLowerCase('tr-TR').replace(/-/g, '').trim() : "";
-            }).filter(t => t !== "");
+            const uploadedDocs = rows.map(r => { const c = r.querySelectorAll('td')[1]; return c ? c.innerText.toLocaleLowerCase('tr-TR').replace(/-/g, '').trim() : ""; }).filter(t => t !== "");
             let active = null;
             for (const k in scenarios) {
                 if (scenarios[k].keys.some(key => uploadedDocs.some(u => u.includes(key)))) { active = scenarios[k]; break; }
@@ -3896,11 +3808,7 @@
                 let borderColor = ok ? '#28a745' : '#dc3545';
                 let bgColor = ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)';
                 let textColor = ok ? '#85ff9e' : '#ff8585';
-                if (isOptional && ok) {
-                    borderColor = '#ffc107';
-                    bgColor = 'rgba(255,193,7,0.15)';
-                    textColor = '#ffe082';
-                }
+                if (isOptional && ok) { borderColor = '#ffc107'; bgColor = 'rgba(255,193,7,0.15)'; textColor = '#ffe082'; }
                 div.style.cssText = `padding:4px 5px; border-radius:4px; font-size:11px; font-weight:600; text-align:center;
 				transition: all 0.3s; border-right: 4px solid ${borderColor}; background:${bgColor}; color:${textColor}; margin-bottom:2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);`;
                 div.innerText = (ok ? "" : "⚠ ") + text.toUpperCase();//ok ? "✓ " : "⚠ "
@@ -3946,53 +3854,38 @@
         }
         const runner = setInterval(() => { if (document.querySelector('table')) updatePanel(); }, 2000);
 
-            // Buton eventi
-            document.addEventListener('click', (e) => {
-                if (e.target.id !== 'btn-toplu-sil') return;
-
-                const silLinks = Array.from(
-                    document.querySelectorAll('a[href*="photo_sil.php"]')
-                );
-
-                if (!silLinks.length) {
-                    alert('Silinecek kayıt bulunamadı!');
-                    return;
-                }
-
-                if (!confirm(`Toplam ${silLinks.length} kayıt silinecek. Emin misiniz?`)) return;
-
-                let tamamlanan = 0;
-                const toplam = silLinks.length;
-
-               silLinks.forEach(link => {
-                   const href = link.getAttribute('href');
-                   const match = href.match(/photo_sil\.php\?ID=(\d+)/);
-                   if (!match) { tamamlanan++; return; }
-
-                   const id = match[1];
-                   const xhttp = new XMLHttpRequest();
-                   xhttp.open('POST', '/pic_db/photo_sil.php', true);
-                   xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                   xhttp.onload = () => {
-                       tamamlanan++;
-                       const row = link.closest('tr');
-                       if (row) row.remove();
-                       if (tamamlanan === toplam) {
-                           alert(`${toplam} kayıt silindi.`);
-                           location.reload();
-                       }
-                   };
-                   xhttp.onerror = () => { tamamlanan++; };
-                   xhttp.send(`id=${id}&btnEVET=EVET`);
-               });
+        // Buton eventi
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'btn-toplu-sil') return;
+            const silLinks = Array.from( document.querySelectorAll('a[href*="photo_sil.php"]') );
+            if (!silLinks.length) { alert('Silinecek kayıt bulunamadı!'); return; }
+            if (!confirm(`Toplam ${silLinks.length} kayıt silinecek. Emin misiniz?`)) return;
+            let tamamlanan = 0;
+            const toplam = silLinks.length;
+            silLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                const match = href.match(/photo_sil\.php\?ID=(\d+)/);
+                if (!match) { tamamlanan++; return; }
+                const id = match[1];
+                const xhttp = new XMLHttpRequest();
+                xhttp.open('POST', '/pic_db/photo_sil.php', true);
+                xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhttp.onload = () => {
+                    tamamlanan++;
+                    const row = link.closest('tr');
+                    if (row) row.remove();
+                    if (tamamlanan === toplam) {
+                        alert(`${toplam} kayıt silindi.`);
+                        location.reload();
+                    }
+                };
+                xhttp.onerror = () => { tamamlanan++; };
+                xhttp.send(`id=${id}&btnEVET=EVET`);
             });
+        });
 
-            document.addEventListener('input', e => {
-            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
-                const s = e.target.selectionStart, n = e.target.selectionEnd;
-                e.target.value = e.target.value.toLocaleUpperCase('tr-TR');
-                e.target.setSelectionRange(s, n);
-            }
+        document.addEventListener('input', e => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) { const s = e.target.selectionStart, n = e.target.selectionEnd; e.target.value = e.target.value.toLocaleUpperCase('tr-TR'); e.target.setSelectionRange(s, n); }
         }, true);
     }
     // Sayfa bildirim öldürücü
@@ -4018,9 +3911,7 @@
             notifyDiv.innerText = `[${count}. Tekrar] OTOMATİK GEÇİLDİ: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`;
             notifyDiv.style.opacity = '1';
             if (w.tmNotifyTimeout) clearTimeout(w.tmNotifyTimeout);
-            w.tmNotifyTimeout = setTimeout(() => {
-                if (document.getElementById('tm-notify-bar')) { document.getElementById('tm-notify-bar').style.opacity = '0'; }
-            }, 3000);
+            w.tmNotifyTimeout = setTimeout(() => { if (document.getElementById('tm-notify-bar')) { document.getElementById('tm-notify-bar').style.opacity = '0'; } }, 3000);
         };
         const rawAlert = w.alert.bind(w);
         const rawConfirm = w.confirm.bind(w);
@@ -4210,9 +4101,7 @@
                 const labels = Array.from(document.querySelectorAll('.field-label'));
                 const targetLabel = labels.find(el => el.textContent.includes('İlk İşlem Tarihi:'));
                 displayDate = targetLabel?.nextElementSibling?.innerText.trim() || new Date().toLocaleDateString('tr-TR');
-            } else {
-                displayDate = new Date().toLocaleDateString('tr-TR');
-            }
+            } else { displayDate = new Date().toLocaleDateString('tr-TR'); }
             panel.innerHTML = `
             	<span class="tramer-copy" style="font-weight: bold; color: black;" title="Kopyalamak için tıkla">${num}</span>
                 <span style="margin: 0 15px; color: #666;">|</span>
@@ -4222,20 +4111,14 @@
         };
         const formatSbmNumber = (text) => {
             let found = false;
-            const formatted = text.replace(/\b\d{17,}\b/g, (match) => {
-                found = true;
-                lastFormattedNumber = match.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-                return match;
-            });
+            const formatted = text.replace(/\b\d{17,}\b/g, (match) => { found = true; lastFormattedNumber = match.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); return match; });
             if (found) updatePanelContent(lastFormattedNumber);
             return formatted;
         };
         const processNodes = (rootElement) => {
             const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT, null, false);
             let node;
-            while ((node = walker.nextNode())) {
-                if (/\d{17,}/.test(node.nodeValue)) formatSbmNumber(node.nodeValue);
-            }
+            while ((node = walker.nextNode())) { if (/\d{17,}/.test(node.nodeValue)) formatSbmNumber(node.nodeValue); }
         };
         const analyzePolicies = () => {
             const kazaInp = document.getElementById('ihbarPoliceSorguBilgileriForm.kazaTarihi');
@@ -4257,20 +4140,12 @@
         const mainObserver = new MutationObserver((mutations) => {
             mainObserver.disconnect();
             for (const mutation of mutations) {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === 1) processNodes(node);
-                    else if (node.nodeType === 3 && /\d{17,}/.test(node.nodeValue)) formatSbmNumber(node.nodeValue);
-                });
+                mutation.addedNodes.forEach(node => { if (node.nodeType === 1) processNodes(node); else if (node.nodeType === 3 && /\d{17,}/.test(node.nodeValue)) formatSbmNumber(node.nodeValue); });
             }
             analyzePolicies();
             mainObserver.observe(document.body, { childList: true, subtree: true });
         });
-        const init = () => {
-            createNumberPanel();
-            processNodes(document.body);
-            analyzePolicies();
-            mainObserver.observe(document.body, { childList: true, subtree: true });
-        };
+        const init = () => { createNumberPanel(); processNodes(document.body); analyzePolicies(); mainObserver.observe(document.body, { childList: true, subtree: true }); };
         if (document.readyState === 'complete') init();
         else unsafeWindow.addEventListener('load', init);
     }
@@ -4281,20 +4156,10 @@
             if (document.getElementById('sbm-download-mini-panel')) return;
             const panel = document.createElement('div');
             panel.id = 'sbm-download-mini-panel';
-            Object.assign(panel.style, {
-                position: 'fixed', top: '5px', right: '5px',
-                background: 'rgba(0,0,0,0.9)', borderRadius: '4px',
-                padding: '5px', zIndex: '2147483647',
-                display: 'flex', flexDirection: 'column',
-                gap: '4px', width: '110px', border: '1px solid #555'
-            });
+            Object.assign(panel.style, { position: 'fixed', top: '5px', right: '5px', background: 'rgba(0,0,0,0.9)', borderRadius: '4px', padding: '5px', zIndex: '2147483647', display: 'flex', flexDirection: 'column', gap: '4px', width: '110px', border: '1px solid #555' });
             const mainBtn = document.createElement('button');
             mainBtn.innerText = 'RESİMLERİ İNDİR';
-            Object.assign(mainBtn.style, {
-                background: '#27ae60', border: '0', borderRadius: '2px',
-                color: "white", cursor: 'pointer', fontWeight: "bold",
-                padding: '6px 2px', fontSize: '10px', width: '100%'
-            });
+            Object.assign(mainBtn.style, { background: '#27ae60', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '6px 2px', fontSize: '10px', width: '100%' });
             mainBtn.onclick = async () => {
                 const images = document.querySelectorAll('img');
                 let count = 0;
@@ -4330,92 +4195,85 @@
                 link.click();
                 document.body.removeChild(link);
                 unsafeWindow.URL.revokeObjectURL(link.href);
-            } catch (error) {
-                console.error("Resim indirilemedi:", url, error);
-            }
+            } catch (error) { console.error("Resim indirilemedi:", url, error); }
         }
         unsafeWindow.addEventListener('load', initSbmDownloadPanel);
         setTimeout(initSbmDownloadPanel, 2000);
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (KS_SYSTEM && SAHIBINDEN && location.href.includes("sahibinden.com") && !location.pathname.includes("/ilan/") && !location.pathname.includes("/kategori/")) {
-		if (!location.search.includes("pagingSize=50")) { const url = new URL(location.href); url.searchParams.set("pagingSize", "50"); location.replace(url.href); }
-		config.width = '150px';
-		initPanel();
-		const panel = document.getElementById('ks-master-panel');
-		if (!panel) return;
-		panel.style.setProperty('width', config.width);
-		const contentArea = document.querySelector('.ks-content');
-		let lastState = "";
-		const getPanelTip = () => {
-			let tip = document.getElementById('ks-dynamic-tooltip');
-			if (!tip) {
-				tip = document.createElement('div');
-				tip.id = 'ks-dynamic-tooltip';
-				Object.assign(tip.style, { zIndex: '99999999', opacity: '0', position: 'fixed', pointerEvents: 'none' });
-				tip.innerHTML = '<div class="ks-tip-head"><strong>BİLGİ ANALİZİ</strong></div><div class="ks-tip-body"></div>';
-				document.body.appendChild(tip);
-			} return tip;
-		};
-		const bindTooltips = (container) => {
-			const panelTip = getPanelTip();
-			container.querySelectorAll('[data-tip-head]').forEach(el => {
-				el.addEventListener('mouseenter', () => {
-					panelTip.querySelector('strong').innerText = el.getAttribute('data-tip-head');
-					panelTip.querySelector('.ks-tip-body').innerText = el.getAttribute('data-tip-body');
-					panelTip.classList.add('visible');
-					panelTip.style.opacity = '1';
-					panelTip.style.visibility = 'visible';
-				});
-				el.addEventListener('mousemove', (e) => { panelTip.style.left = (e.clientX + 12) + 'px'; panelTip.style.top = (e.clientY - 34) + 'px'; });
-				el.addEventListener('mouseleave', () => { panelTip.classList.remove('visible'); panelTip.style.opacity = '0'; panelTip.style.visibility = 'hidden'; });
-			});
-		};
-		function hesapla() {
-			const getIdx = (n) => {
-				const h = document.querySelectorAll('table thead td, table thead th');
-				return Array.from(h).findIndex(x => n.some(s => x.innerText.trim().toLowerCase() === s.toLowerCase()));
-			};
-			const fIdx = getIdx(['Fiyat', 'Price']), kIdx = getIdx(['KM', 'Mileage']), yIdx = getIdx(['Yıl', 'Year']);
-			const rows = Array.from(document.querySelectorAll('table tbody tr:not(.nativeAd)'))
-				.map(r => ({
-					f: parseFloat(r.cells[fIdx]?.innerText.replace(/[^\d]/g, '') || 0),
-					k: parseInt(r.cells[kIdx]?.innerText.replace(/[^\d]/g, '') || 0, 10),
-					y: parseInt(r.cells[yIdx]?.innerText.trim() || 0, 10)
-				})).filter(x => x.f > 1000).sort((a, b) => a.f - b.f);
-			if (!rows.length) return;
-			const cState = `${rows.length}-${rows[0].f}`;
-			if (lastState === cState) return; lastState = cState;
-			const fmt = (v) => v.toLocaleString('tr-TR');
-			const avg = (arr, k) => Math.round(arr.reduce((a, b) => a + (b[k] || 0), 0) / arr.length);
-			const low3 = rows.slice(0, 3), high3 = rows.slice(-3).reverse();
-			const midIdx = Math.max(0, Math.floor(rows.length / 2) - 1);
-			const mid3 = rows.slice(midIdx, midIdx + 3);
-			const rowTpl = (x, head) => `
+        if (!location.search.includes("pagingSize=50")) { const url = new URL(location.href); url.searchParams.set("pagingSize", "50"); location.replace(url.href); }
+        config.width = '150px';
+        initPanel();
+        const panel = document.getElementById('ks-master-panel');
+        if (!panel) return;
+        panel.style.setProperty('width', config.width);
+        const contentArea = document.querySelector('.ks-content');
+        let lastState = "";
+        const getPanelTip = () => {
+            let tip = document.getElementById('ks-dynamic-tooltip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.id = 'ks-dynamic-tooltip';
+                Object.assign(tip.style, { zIndex: '99999999', opacity: '0', position: 'fixed', pointerEvents: 'none' });
+                tip.innerHTML = '<div class="ks-tip-head"><strong>BİLGİ ANALİZİ</strong></div><div class="ks-tip-body"></div>';
+                document.body.appendChild(tip);
+            } return tip;
+        };
+        const bindTooltips = (container) => {
+            const panelTip = getPanelTip();
+            container.querySelectorAll('[data-tip-head]').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    panelTip.querySelector('strong').innerText = el.getAttribute('data-tip-head');
+                    panelTip.querySelector('.ks-tip-body').innerText = el.getAttribute('data-tip-body');
+                    panelTip.classList.add('visible');
+                    panelTip.style.opacity = '1';
+                    panelTip.style.visibility = 'visible';
+                });
+                el.addEventListener('mousemove', (e) => { panelTip.style.left = (e.clientX + 12) + 'px'; panelTip.style.top = (e.clientY - 34) + 'px'; });
+                el.addEventListener('mouseleave', () => { panelTip.classList.remove('visible'); panelTip.style.opacity = '0'; panelTip.style.visibility = 'hidden'; });
+            });
+        };
+        function hesapla() {
+            const getIdx = (n) => {
+                const h = document.querySelectorAll('table thead td, table thead th');
+                return Array.from(h).findIndex(x => n.some(s => x.innerText.trim().toLowerCase() === s.toLowerCase()));
+            };
+            const fIdx = getIdx(['Fiyat', 'Price']), kIdx = getIdx(['KM', 'Mileage']), yIdx = getIdx(['Yıl', 'Year']);
+            const rows = Array.from(document.querySelectorAll('table tbody tr:not(.nativeAd)'))
+                .map(r => ({
+                    f: parseFloat(r.cells[fIdx]?.innerText.replace(/[^\d]/g, '') || 0),
+                    k: parseInt(r.cells[kIdx]?.innerText.replace(/[^\d]/g, '') || 0, 10),
+                    y: parseInt(r.cells[yIdx]?.innerText.trim() || 0, 10)
+                })).filter(x => x.f > 1000).sort((a, b) => a.f - b.f);
+            if (!rows.length) return;
+            const cState = `${rows.length}-${rows[0].f}`;
+            if (lastState === cState) return; lastState = cState;
+            const fmt = (v) => v.toLocaleString('tr-TR');
+            const avg = (arr, k) => Math.round(arr.reduce((a, b) => a + (b[k] || 0), 0) / arr.length);
+            const low3 = rows.slice(0, 3), high3 = rows.slice(-3).reverse();
+            const midIdx = Math.max(0, Math.floor(rows.length / 2) - 1);
+            const mid3 = rows.slice(midIdx, midIdx + 3);
+            const rowTpl = (x, head) => `
 		    	<div data-tip-head="${head}" data-tip-body="${x.y} Model | ${fmt(x.k)} KM" style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:2px; cursor:help; border-left:2px solid currentColor; padding-left:4px;">
 		    	    <span style="color:#ddd">${fmt(x.f)}</span>
 		    	    <span style="color:#aaa">${x.y}</span>
 		    	</div>`;
-			contentArea.innerHTML = `
+            contentArea.innerHTML = `
 		    	<div style="text-align:center; background:#444; margin-bottom:5px; font-weight:800; font-size:10px;">SAHİBİNDEN ANALİZ (#${rows.length})</div>
 		    	<div style="margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid #333;">
 		    	    <div data-tip-head="GENEL ORTALAMA" data-tip-body="Fiyat: ${fmt(avg(rows, 'f'))} TL | KM: ${fmt(avg(rows, 'k'))}">
-		    	        <div>💰 <b>Fiyat:</b> ${fmt(avg(rows, 'f'))}</div>
-		    	        <div>🛣️ <b>KM:</b> ${fmt(avg(rows, 'k'))}</div>
+		    	        <div>💰 <b>Fiyat:</b> ${fmt(avg(rows, 'f'))}</div> <div>🛣️ <b>KM:</b> ${fmt(avg(rows, 'k'))}</div>
 		    	    </div>
 		    	</div>
-		    	<div style="color:#f87171; font-size:9px; font-weight:bold; margin-top:4px;">▲ EN YÜKSEK</div>
-		    	${high3.map(x => rowTpl(x, 'EN PAHALI İLANLAR')).join('')}
-		    	<div style="color:#fbbf24; font-size:9px; font-weight:bold; margin-top:4px;">⚝ PİYASA</div>
-		    	${mid3.map(x => rowTpl(x, 'ORTALAMA PİYASA')).join('')}
-		    	<div style="color:#4ade80; font-size:9px; font-weight:bold;">▼ EN DÜŞÜK</div>
-		    	${low3.map(x => rowTpl(x, 'EN UCUZ İLANLAR')).join('')}
+		    	<div style="color:#f87171; font-size:9px; font-weight:bold; margin-top:4px;">▲ EN YÜKSEK</div> ${high3.map(x => rowTpl(x, 'EN PAHALI İLANLAR')).join('')}
+		    	<div style="color:#fbbf24; font-size:9px; font-weight:bold; margin-top:4px;">⚝ PİYASA</div> ${mid3.map(x => rowTpl(x, 'ORTALAMA PİYASA')).join('')}
+		    	<div style="color:#4ade80; font-size:9px; font-weight:bold;">▼ EN DÜŞÜK</div> ${low3.map(x => rowTpl(x, 'EN UCUZ İLANLAR')).join('')}
 		        `;
-			bindTooltips(contentArea);
-		}
-		const init = () => { if (document.querySelector('table')) { hesapla(); setInterval(hesapla, 3000); } else { setTimeout(init, 500); } };
-		init();
-	}
+            bindTooltips(contentArea);
+        }
+        const init = () => { if (document.querySelector('table')) { hesapla(); setInterval(hesapla, 3000); } else { setTimeout(init, 500); } }; init();
+    }
     // Whatsapp Resim indirme
     if (KS_SYSTEM && WHATSAPP && location.href.includes("web.whatsapp.com")) {
         const getFileName = () => {
@@ -4533,9 +4391,7 @@
             if (!input) return;
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(unsafeWindow.HTMLInputElement.prototype, "value").set;
             nativeInputValueSetter.call(input, value);
-            ['input', 'change', 'blur'].forEach(name => {
-                input.dispatchEvent(new Event(name, { bubbles: true }));
-            });
+            ['input', 'change', 'blur'].forEach(name => { input.dispatchEvent(new Event(name, { bubbles: true })); });
         }
         function handleMagicFill(input) {
             if (!input || input.tagName !== 'INPUT') return;
@@ -4629,16 +4485,9 @@
                 if (widgetEl) {
                     try {
                         const instance = window.jQuery ? window.jQuery(widgetEl).dxSelectBox("instance") : null;
-                        if (instance) {
-                            instance.option("value", targetValue);
-                            console.log(`Başarılı: ${nameAttr} -> ${targetValue}`);
-                        } else {
-                            hiddenInput.value = targetValue;
-                            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    } catch (e) {
-                        console.error("Seçim yapılamadı: ", e);
-                    }
+                        if (instance) { instance.option("value", targetValue); console.log(`Başarılı: ${nameAttr} -> ${targetValue}`);}
+						else { hiddenInput.value = targetValue; hiddenInput.dispatchEvent(new Event('change', { bubbles: true })); }
+                    } catch (e) { console.error("Seçim yapılamadı: ", e); }
                 }
             }
         }
@@ -4661,9 +4510,7 @@
                 inputEl.value = targetId;
                 const events = ['change', 'input', 'blur', 'focusout'];
                 events.forEach(e => inputEl.dispatchEvent(new Event(e, { bubbles: true })));
-            } catch (err) {
-                console.error("DevEx Hatası:", err);
-            }
+            } catch (err) { console.error("DevEx Hatası:", err); }
         }
         function formDoldur(tipID) {
             // Formdaki 4 ana kutuyu da ID'leri ile mühürle
@@ -4700,8 +4547,7 @@
             if (content) target.insertBefore(container, content);
         }
         setTimeout(() => { setInterval(init, 2000); }, 1500);
-        const widthfornavbar = "200px";
-        const panel_colorite = "rgba(230, 230, 230, 0.95)";
+        const widthfornavbar = "200px", panel_colorite = "rgba(230, 230, 230, 0.95)";
         // 1. CSS Ayarları
         const css = `
             #custom-nav-panel {
@@ -4791,12 +4637,8 @@
 			    font-size: 20px !important;
 			}
 			/* Yukarı Aşağı*/
-			#scroll-to-bottom-btn {
-			    bottom: 5px !important;
-			}
-			#scroll-to-top-btn {
-			    top: 64px !important;
-			}
+			#scroll-to-bottom-btn { bottom: 5px !important; }
+			#scroll-to-top-btn { top: 64px !important; }
 			#scroll-to-bottom-btn:hover, #scroll-to-top-btn:hover {
 			    background: #f0f9ff !important;
 			    color: ${config.themeColor} !important;
@@ -4859,9 +4701,7 @@
             btn.id = 'scroll-to-top-btn';
             btn.innerHTML = '↑';
             btn.title = 'Sayfa Üstüne Çık';
-            btn.onclick = () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
+            btn.onclick = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
             document.body.appendChild(btn);
         }
         // 2. Menü Oluşturma ve Güncelleme Mantığı
@@ -4906,20 +4746,12 @@
         setInterval(cleanupToasts, 3000);
         const startObserver = setInterval(() => {
             const target = document.querySelector('.dx-toast-stack');
-            if (target) {
-                cleanupToasts();
-                obssserver.observe(target, { childList: true });
-                clearInterval(startObserver);
-                console.log("Toast Observer aktif edildi.");
-            }
+            if (target) { cleanupToasts(); obssserver.observe(target, { childList: true }); clearInterval(startObserver); console.log("Toast Observer aktif edildi."); }
         }, 2000);
     }
     // Quick - Corpus - Anadolu Sigorta
     if (KS_SYSTEM && QCASIGORTA && /quicksigorta\.com|anadolusigorta\.com|corpussigorta\.com/.test(location.href)) {
-        const format = v => {
-            v = v.replace(/\D/g, '').substring(0, 8);
-            return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v);
-        };
+        const format = v => { v = v.replace(/\D/g, '').substring(0, 8); return v.length > 4 ? v.slice(0, 2) + '.' + v.slice(2, 4) + '.' + v.slice(4) : (v.length > 2 ? v.slice(0, 2) + '.' + v.slice(2) : v); };
         const lockValue = (input, val) => {
             let _v = val;
             const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
@@ -4968,20 +4800,10 @@
                 const rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
                 const dataMap = new Map();
                 rows.forEach(row => {
-            const cleanRow = row.map(item => item.trim());
-            // Eğer ilk sütun 3 hane veya daha kısa bir sayıysa (ID/Sıra No), onu atla
-            const offset = (cleanRow[0].length <= 3 && !isNaN(cleanRow[0])) ? 1 : 0;
-
-            // Dinamik eşleştirme:
-            // Parça No her zaman ID'den sonraki (veya ilk) sütun varsayılıyor
-            const oem = cleanRow[offset];
-            if (oem) {
-                dataMap.set(oem, {
-                    ad: cleanRow[offset + 1],
-                    miktar: cleanRow[offset + 2],
-                    fiyat: cleanRow[offset + 3]
-                });
-                    }
+                    const cleanRow = row.map(item => item.trim());
+                    const offset = (cleanRow[0].length <= 3 && !isNaN(cleanRow[0])) ? 1 : 0;
+                    const oem = cleanRow[offset];
+                    if (oem) { dataMap.set(oem, { ad: cleanRow[offset + 1], miktar: cleanRow[offset + 2], fiyat: cleanRow[offset + 3] }); }
                 });
                 document.querySelectorAll('tr').forEach(tr => {
                     const oemInp = tr.querySelector('input[name^="oemCode"]');
@@ -4994,7 +4816,7 @@
                             if (el && val) { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
                         };
                         setVal('partName', data.ad);
-                setVal('partQty', data.miktar);
+                        setVal('partQty', data.miktar);
                         setVal('partPrice', data.fiyat);
                         fillCategoriesRandomly(tr);
                     }
