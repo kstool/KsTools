@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.10
+// @version      1.11
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
 // @grant        GM_addStyle
-// @exclude      *://otohasar.mapfre.com.tr/print*
+// @exclude      *print*
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/Ks_Tools_Ocean.user.js
 // ==/UserScript==
@@ -408,7 +408,8 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
 		/* 5. BUTONLAR: MODERN & ANİMASYONLU */
         .buton01, .BUTON01, .BUTON02, .BUTON03, .BUTON06,  .buton02, .buton03, #SASI_MDL,
         input[type="submit"], input[type="button"],
-        input[value="KAYDET"], input[value="Ok"], input[value=" Ok "], input[name="btnALL"] {
+        input[value="KAYDET"], input[value="Ok"], input[value=" Ok "], input[name="btnALL"],
+		a[href*="sbm_on_rapor=1"], a[href*="index_yangin.php"] {
             background: var(--accent) !important;
             height: 22px !important;
             font-size: 10px !important;
@@ -432,6 +433,9 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
         a.buton01, div > a.buton01, .BTNKIRMIZI, .BUTON02, .BUTON03, .buton03, #btnKaydet1, #btnKaydet2, #SASI_MDL, #siparisVerButton ,input[name="btnALL"], input[value="KAYDET"], input[value="Ok"], input[value=" Ok "]
 		{ background: linear-gradient(180deg, var(--reddo-light) 0%, var(--reddo) 100%) !important; }
         .BUTON06, .BUTON_YESIL, input[value="İHBAR YAZDIR"] { background: #27ae60 !important; }
+        /* oto dışı */
+		a[href*="index_yangin.php"] img { display: none !important;}
+		a[href*="index_yangin.php"]::after { content: "OTO DIŞI YANGIN" !important; display: block !important; white-space: nowrap !important; }
 
         /* 5.2 ÖZEL AÇIK RENKLİ BUTONLAR (YENİ KAYIT, MOBİL ONARIM, TEDARİK) */
         input[value="YENİ KAYIT"],
@@ -449,7 +453,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
         input[value="TOPLU EVRAK EKLE HTML5 (YENİ)"],
         input[value="TOPLU FOTOĞRAF EKLE HTML5 (YENİ)"],
         input[value=" ARAÇ DONANIM&TEKNİK BİLGİSİ "],
-        input[value="TED. PARÇA LİSTESİ"] {
+        input[value="TED. PARÇA LİSTESİ"]{
             background: var(--reddo-light) !important;
             color: var(--maim) !important;
             border: 1px solid var(--reddo-dark) !important;
@@ -461,7 +465,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
         }
         a.buton01, div > a.buton01, .buton01:hover, .BUTON01:hover, .BUTON02:hover, .BUTON03:hover, .buton03:hover, .BUTON06:hover,
         .BTNKIRMIZI:hover, .BUTON_YESIL:hover, #SASI_MDL:hover, input[name="btnALL"]:hover,
-        input[type="submit"]:hover, input[type="button"]:hover {
+        input[type="submit"]:hover, input[type="button"]:hover, a[href*="sbm_on_rapor=1"]{
             transform: translateY(-1px) scale(1.02) !important;
             filter: brightness(1.05) !important;
         }
