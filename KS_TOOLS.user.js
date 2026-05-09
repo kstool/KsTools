@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.60
+// @version      1.61
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -40,7 +40,7 @@
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart", "loginfrm", "login", "signin", "sign"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
-    let config = { bottom: '0px', right: '0px', width: '250px', borderRadius: '4px', blur: '15px', themeColor: '#1cb2cd', backColor: '#3d3e41', Color: 'white', isCollapsed: false, wasDragging: false, zIndex: 3169999 };
+    let config = { bottom: '0px', right: '0px', width: '250px', borderRadius: '4px', blur: '15px', themeColor: '#1cb2cd', backColor: '#3d3e41', Color: 'white', isCollapsed: false, wasDragging: false, zIndex: 3169999, isUnlocked: false };
     const getSetting = (key) => GM_getValue(key, true);
     const setSetting = (key, val) => GM_setValue(key, val);
     const themes = { 'online.sbm.org': 'white', 'quicksigorta': '#d1a401', 'anadolusigorta': '#005ba4', 'corpussigorta': '#8b5e34', 'turkiyesigorta': '#1cb2cd', 'otohasar.hepiyi': '#55ac05', 'otohasar.atlas': '#005596', 'otohasar.mapfre': '#e00d26',
@@ -1373,7 +1373,7 @@
                     kstatus.innerHTML = `
                     <span id="ks-settings-btn" data-tip="Ayarları Aç" style="cursor:pointer; font-size:14px;">⚙️</span>
 			            <span style="opacity:0.3; margin:0 8px;">|</span>
-			            <span id="ks-unlock-btn" data-tip="${isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${isUnlocked ? '🔓' : '🔒'}</span>
+			            <span id="ks-unlock-btn" data-tip="${config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${config.isUnlocked ? '🔓' : '🔒'}</span>
 			            <span style="opacity:0.3; margin:0 2px;">|</span>
 			            <span style="color:${ipcolor}; font-size:15px; margin-right:5px;">●</span>
 			            <span data-tip="Geçerli IP Adresi" style="color:inherit;">${currentIP}</span>
@@ -1386,10 +1386,10 @@
                     const unlockBtn = document.getElementById('ks-unlock-btn');
                     unlockBtn.onclick = (e) => {
                         e.stopPropagation();
-                        isUnlocked = !isUnlocked;
-                        e.target.textContent = isUnlocked ? '🔓' : '🔒';
-                        e.target.setAttribute('data-tip', isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç');
-                        unlockAllElements(isUnlocked);
+                        config.isUnlocked = !config.isUnlocked;
+                        e.target.textContent = config.isUnlocked ? '🔓' : '🔒';
+                        e.target.setAttribute('data-tip', config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç');
+                        unlockAllElements(config.isUnlocked);
                     };
                     document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
                     document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
@@ -1818,24 +1818,11 @@
             const textarea = document.getElementById('page-note-input');
             const status = document.getElementById('note-status');
             function savePageNote() {
-                if (textarea) {
-                    localStorage.setItem(storageKey, textarea.value);
-                    if (status) {
-                        status.innerText = "Not Kaydedildi ✔";
-                        setTimeout(() => { status.innerText = "Otomatik Kaydediliyor..."; }, 2000);
-                    }
-                }
+                if (textarea) { localStorage.setItem(storageKey, textarea.value); if (status) { status.innerText = "Not Kaydedildi ✔"; setTimeout(() => { status.innerText = "Otomatik Kaydediliyor..."; }, 2000); } }
             }
             if (textarea) {
-                const savedNote = localStorage.getItem(storageKey);
-                if (savedNote) { textarea.value = savedNote; }
-                // Otomatik Kayıt (Yazarken)
-                let saveTimeout;
-                textarea.addEventListener('input', () => {
-                    if (status) status.innerText = "Yazılıyor...";
-                    clearTimeout(saveTimeout);
-                    saveTimeout = setTimeout(savePageNote, 1000);
-                });
+                const savedNote = localStorage.getItem(storageKey); if (savedNote) { textarea.value = savedNote; } let saveTimeout;
+                textarea.addEventListener('input', () => { if (status) status.innerText = "Yazılıyor..."; clearTimeout(saveTimeout); saveTimeout = setTimeout(savePageNote, 1000); });
             }
             const kaydetButonu = document.getElementById('btnKaydetYeni');
             if (kaydetButonu) { kaydetButonu.addEventListener('click', () => { savePageNote(); }); }
@@ -1958,61 +1945,72 @@
                 }
                 // ── 3. RÜCU ─────────────────────────────────────────────
                 if (ANALIZPANEL_rc && !magdurpanel) {
-                    const rucuVar = dom.rucu1?.checked;
-                    const rucuYok = dom.rucu0?.checked;
-                    const rucuStatus = rucuVar ? makeBadge('VAR 🔴', '#ff4d4d', br)
-                        : rucuYok ? makeBadge('YOK 🟢', '#2ecc71', br)
-                            : makeBadge('BELİRSİZ 🔘', '#ff9500', br);
-                    html += `<tr style="border-bottom:1px solid #333;">
-                        <td style="white-space:nowrap;width:100px;">Rücu:</td>
-                        <td style="text-align:right;padding:4px 0;">${rucuStatus}</td>
-                    </tr>`;
+                    try {
+                        const rucuVar = dom.rucu1?.checked;
+                        const rucuYok = dom.rucu0?.checked;
+                        const rucuStatus = rucuVar ? makeBadge('VAR 🔴', '#ff4d4d', br)
+                            : rucuYok ? makeBadge('YOK 🟢', '#2ecc71', br)
+                                : makeBadge('BELİRSİZ 🔘', '#ff9500', br);
+                        html += `<tr style="border-bottom:1px solid #333;">
+                            <td style="white-space:nowrap;width:100px;">Rücu:</td>
+                            <td style="text-align:right;padding:4px 0;">${rucuStatus}</td>
+                        </tr>`;
+                    } catch (err) { console.warn('[updatePanel] Rücu hatası:', err); }
                 }
+
                 // ── 4. PERT ──────────────────────────────────────────────
                 if (ANALIZPANEL_pert && !magdurpanel) {
-                    const pertVar = dom.pert?.checked || false;
-                    const pertStatus = pertVar ? makeBadge('VAR 🔴', '#ff4d4d', br)
-                        : makeBadge('YOK 🟢', '#2ecc71', br);
-                    html += `<tr style="border-bottom:1px solid #333;">
-                        <td style="white-space:nowrap;width:100px;">Pert:</td>
-                        <td style="text-align:right;padding:4px 0;">${pertStatus}</td>
-                    </tr>`;
+                    try {
+                        const pertVar = dom.pert?.checked || false;
+                        const pertStatus = pertVar ? makeBadge('VAR 🔴', '#ff4d4d', br)
+                            : makeBadge('YOK 🟢', '#2ecc71', br);
+                        html += `<tr style="border-bottom:1px solid #333;">
+                            <td style="white-space:nowrap;width:100px;">Pert:</td>
+                            <td style="text-align:right;padding:4px 0;">${pertStatus}</td>
+                        </tr>`;
+                    } catch (err) { console.warn('[updatePanel] Pert hatası:', err); }
                 }
-                // ── *. Şirket/Şahıs Durumu ──────────────────────────────
+                // ── Şirket/Şahıs Durumu ──────────────────────────────────
                 if (ANALIZPANEL_mulk && !magdurpanel) {
-                    const sahisInput = document.getElementById('SIGORTALI_SAHIS_CHECK');
-                    const sirketSelect = document.querySelector('select[name="SIRKETMI"]');
-                    let durumText = "BELİRSİZ";
-                    let durumColor = "#95a5a6";
-                    let takto = "BELİRSİZ";
-                    if (sirketSelect && sirketSelect.value !== "") {
-                        durumText = sirketSelect.options[sirketSelect.selectedIndex].text;
-                        if (durumText === "Tüzel") { durumColor = "#f1c40f"; } else if (durumText === "Özel") { durumColor = "#3498db"; }
-                    }
-                    if (sahisInput && sahisInput.checked) { takto = "ŞAHIS";
-                        if (durumText === "BELİRSİZ") durumColor = "#3498db";
-                    } else { takto = (durumText === "Tüzel") ? "ŞİRKET" : "BELİRSİZ"; }
-                    const sirketStatus = makeBadge(durumText, durumColor, br);
-                    const fakto = makeBadge(takto, durumColor, br);
-                    html += `<tr style="border-bottom:1px solid #333;">
-                                <td style="white-space:nowrap;width:100px;">Mülkiyet:</td>
-                                <td style="text-align:right;padding:4px 0;">${sirketStatus} ${fakto}</td>
-                            </tr>`;
+                    try {
+                        const sahisInput = document.getElementById('SIGORTALI_SAHIS_CHECK');
+                        const sirketSelect = document.querySelector('select[name="SIRKETMI"]');
+                        let durumText = "BELİRSİZ";
+                        let durumColor = "#95a5a6";
+                        let takto = "BELİRSİZ";
+                        if (sirketSelect && sirketSelect.value !== "") {
+                            durumText = sirketSelect.options[sirketSelect.selectedIndex].text;
+                            if (durumText === "Tüzel") { durumColor = "#f1c40f"; } else if (durumText === "Özel") { durumColor = "#3498db"; }
+                        }
+                        if (sahisInput && sahisInput.checked) {
+                            takto = "ŞAHIS";
+                            if (durumText === "BELİRSİZ") durumColor = "#3498db";
+                        } else { takto = (durumText === "Tüzel") ? "ŞİRKET" : "BELİRSİZ"; }
+                        const sirketStatus = makeBadge(durumText, durumColor, br);
+                        const fakto = makeBadge(takto, durumColor, br);
+                        html += `<tr style="border-bottom:1px solid #333;">
+                            <td style="white-space:nowrap;width:100px;">Mülkiyet:</td>
+                            <td style="text-align:right;padding:4px 0;">${sirketStatus} ${fakto}</td>
+                        </tr>`;
+                    } catch (err) { console.warn('[updatePanel] Mülkiyet hatası:', err); }
                 }
-				if (ANALIZPANEL_uzak && !magdurpanel) {
-				    const ekspertizSelect = document.getElementById('UZAKTAN_EKSPERTIZ');
-				    let durumText = "BELİRSİZ";
-				    let durumColor = "#95a5a6";
-				    if (ekspertizSelect && ekspertizSelect.value !== "0") {
-				        durumText = ekspertizSelect.options[ekspertizSelect.selectedIndex].text;
-				        durumColor = (durumText === "Uzaktan") ? "#3498db" : "#e67e22";
-				    }
-				    const ekspertizBadge = makeBadge(durumText, durumColor, br);
-				    html += `<tr style="border-bottom:1px solid #333;">
-				                <td style="white-space:nowrap;width:100px;">Ekspertiz Şekli:</td>
-				                <td style="text-align:right;padding:4px 0;">${ekspertizBadge}</td>
-				            </tr>`;
-				}
+                // ── Ekspertiz Şekli ──────────────────────────────────────
+                if (ANALIZPANEL_uzak && !magdurpanel) {
+                    try {
+                        const ekspertizSelect = document.getElementById('UZAKTAN_EKSPERTIZ');
+                        let durumText = "BELİRSİZ";
+                        let durumColor = "#95a5a6";
+                        if (ekspertizSelect && ekspertizSelect.value !== "0") {
+                            durumText = ekspertizSelect.options[ekspertizSelect.selectedIndex].text;
+                            durumColor = (durumText === "Uzaktan") ? "#3498db" : "#e67e22";
+                        }
+                        const ekspertizBadge = makeBadge(durumText, durumColor, br);
+                        html += `<tr style="border-bottom:1px solid #333;">
+                            <td style="white-space:nowrap;width:100px;">Ekspertiz Şekli:</td>
+                            <td style="text-align:right;padding:4px 0;">${ekspertizBadge}</td>
+                        </tr>`;
+                    } catch (err) { console.warn('[updatePanel] Ekspertiz şekli hatası:', err); }
+                }
                 // ── 5. İHBAR TÜRÜ & HASAR ŞEKLİ ────────────────────────
                 if (ANALIZPANEL_hsr && !magdurpanel) {
                     const IHBAR_COLORS = { '1': '#2ecc71', '2': '#f1c40f', '3': '#3498db', '4': '#ff4d4d', '5': '#9b59b6', '6': '#e67e22' };
@@ -2133,9 +2131,7 @@
                     }
                 });
                 // ── 8. MUALLAK / PİYASA / EKSPER ORAN TABLOSU ───────────
-                if ((ANALIZPANEL_mull || ANALIZPANEL_ryc || ANALIZPANEL_rycorn) && !magdurpanel) {
-                    html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`;
-                }
+                if ((ANALIZPANEL_mull || ANALIZPANEL_ryc || ANALIZPANEL_rycorn) && !magdurpanel) { html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`; }
                 const oran = hasPiyasa > 0 ? (tahminiHasar / hasPiyasa) * 100 : 0;
                 let durumMetni = 'BELİRSİZ', durumColor = '#aaa';
                 if (hasPiyasa >= 1000) {
@@ -2143,12 +2139,8 @@
                     else if (oran <= 60) { durumMetni = '🟠 %30 ÜZERİ'; durumColor = '#ffa500'; }
                     else { durumMetni = '🔴 %60 ÜZERİ'; durumColor = '#ff4d4d'; }
                 }
-                const pertUyari = (oran >= 60 && !dom.pert?.checked)
-                    ? `<div style="color:#ff4d4d;font-weight:bold;font-size:10px;animation:ksBlink 1s infinite;margin-top:2px;text-align:right;">⚠️ DİKKAT: PERT SEÇİLMELİ!</div>`
-                    : '';
-
-                html += `<style>@keyframes ksBlink{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}</style>
-                    <table style="width:100%;border-collapse:collapse;font-size:12px;color:white;line-height:1.2;">`;
+                const pertUyari = (oran >= 60 && !dom.pert?.checked) ? `<div style="color:#ff4d4d;font-weight:bold;font-size:10px;animation:ksBlink 1s infinite;margin-top:2px;text-align:right;">⚠️ DİKKAT: PERT SEÇİLMELİ!</div>` : '';
+                html += `<style>@keyframes ksBlink{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}</style> <table style="width:100%;border-collapse:collapse;font-size:12px;color:white;line-height:1.2;">`;
                 if (ANALIZPANEL_mull && !magdurpanel) {
                     html += `<tr>
                         <td style="width:100px;padding:4px 0;">Sigorta Muallak:</td>
@@ -2195,11 +2187,7 @@
             function buildTargetUrl() {
                 try {
                     const extractYear = str => (String(str).match(/\b(19|20)\d{2}\b/) || [])[0] || '';
-                    const cleanModel = str => str
-                        .replace(/\d{2}\/\d{2}\/\d{4}.*/g, '')
-                        .replace(/\(\s*\d+\s*\)/g, '')
-                        .replace(/\s+/g, ' ')
-                        .trim();
+                    const cleanModel = str => str.replace(/\d{2}\/\d{2}\/\d{4}.*/g, '').replace(/\(\s*\d+\s*\)/g, '').replace(/\s+/g, ' ').trim();
                     let m = '', yRaw = '', kStr = '0';
                     const isTrafik = document.getElementById('SIGORTA_SEKLI')?.value === '1';
                     if (magdurpanel) {
@@ -2225,10 +2213,7 @@
                     const k = parseInt(kStr.replace(/\D/g, ''), 10) || 0;
                     if (!m) return null;
                     return {
-                        model: m,
-                        year: y,
-                        kmMin: k >= 100 ? Math.floor(k * 0.85) : null,
-                        kmMax: k >= 100 ? Math.ceil(k * 1.15) : null,
+                        model: m, year: y, kmMin: k >= 100 ? Math.floor(k * 0.85) : null, kmMax: k >= 100 ? Math.ceil(k * 1.15) : null,
                     };
                 } catch (err) {
                     console.warn('[buildTargetUrl] Hata:', err);
@@ -2240,14 +2225,8 @@
                 const resBox = dom?.resBox || document.getElementById('shb-res-box');
                 try {
                     const data = buildTargetUrl();
-                    if (!data) {
-                        if (isAnalyze && resBox) resBox.innerHTML = '❌ Araç verisi okunamadı!';
-                        return;
-                    }
-                    if (isAnalyze && resBox) {
-                        resBox.style.marginBottom = '10px';
-                        resBox.innerHTML = `<span style="color:#fff;font-size:13px;opacity:0.8;">🔍 Filtreleniyor…</span>`;
-                    }
+                    if (!data) { if (isAnalyze && resBox) resBox.innerHTML = '❌ Araç verisi okunamadı!'; return; }
+                    if (isAnalyze && resBox) { resBox.style.marginBottom = '10px'; resBox.innerHTML = `<span style="color:#fff;font-size:13px;opacity:0.8;">🔍 Filtreleniyor…</span>`; }
                     const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
                     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
                     GM_xmlhttpRequest({
@@ -2257,26 +2236,12 @@
                         onload(gRes) {
                             try {
                                 const gDoc = new DOMParser().parseFromString(gRes.responseText, 'text/html');
-                                const target = [...gDoc.querySelectorAll('a')].find(
-                                    a => a.href.includes('sahibinden.com/')
-                                        && !a.href.includes('/ilan listelendi/')
-                                        && !a.href.includes('/detay')
-                                );
-                                if (!target) {
-                                    if (isAnalyze && resBox) resBox.innerHTML = '⚠️ Kategori bulunamadı.';
-                                    return;
-                                }
+                                const target = [...gDoc.querySelectorAll('a')].find( a => a.href.includes('sahibinden.com/') && !a.href.includes('/ilan listelendi/') && !a.href.includes('/detay') );
+                                if (!target) { if (isAnalyze && resBox) resBox.innerHTML = '⚠️ Kategori bulunamadı.'; return; }
                                 let shbStr = '';
-                                try {
-                                    const urlObj = new URL(target.href);
-                                    shbStr = urlObj.pathname === '/url'
-                                        ? urlObj.searchParams.get('q').split('&')[0]
-                                        : target.href.split('&')[0];
-                                } catch (_) { shbStr = target.href; }
-
+                                try { const urlObj = new URL(target.href); shbStr = urlObj.pathname === '/url' ? urlObj.searchParams.get('q').split('&')[0] : target.href.split('&')[0]; } catch (_) { shbStr = target.href; }
                                 const finalUrl = new URL(shbStr);
-                                const cleanPath = finalUrl.pathname
-                                    .replace(/\/(en)(\/|$)/gi, '/').replace(/\/(dizel|benzin|lpg|hibrit|elektrik)(\/|$)/gi, '/').replace(/\/(manual|otomatik|yari-otomatik)(\/|$)/gi, '/').replace(/\/+$/, ''); // sondaki slash temizle
+                                const cleanPath = finalUrl.pathname.replace(/\/(en)(\/|$)/gi, '/').replace(/\/(dizel|benzin|lpg|hibrit|elektrik)(\/|$)/gi, '/').replace(/\/(manual|otomatik|yari-otomatik)(\/|$)/gi, '/').replace(/\/+$/, '');
                                 finalUrl.pathname = cleanPath || '/';
                                 ['pagingOffset', 'pagingPage'].forEach(p => finalUrl.searchParams.delete(p));
                                 if (data.year) {
@@ -2363,10 +2328,7 @@
                             const displaySet = new Set();
                             const displayList = [];
                             const addItem = (item, color) => {
-                                if (item && !displaySet.has(item.id) && displayList.length < 5) {
-                                    displayList.push({ ...item, color });
-                                    displaySet.add(item.id);
-                                }
+                                if (item && !displaySet.has(item.id) && displayList.length < 5) { displayList.push({ ...item, color }); displaySet.add(item.id); }
                             };
                             addItem(sortedHigh[0], '#27fdf9'); // En pahalı
                             addItem(sortedHigh[1], '#26f885'); // 2. pahalı
@@ -2463,8 +2425,6 @@
                     el.dispatchEvent(new Event('input', { bubbles: true }));
                     el.dispatchEvent(new Event('change', { bubbles: true }));
                 };
-
-                // ✅ Hidden input'u atlayıp SELECT'i bulur
                 const setValSelect = (name, val) => {
                     const el = [...document.querySelectorAll(`[name="${name}"]`)]
                         .find(el => el.tagName === 'SELECT');
@@ -2472,7 +2432,6 @@
                     el.value = val;
                     el.dispatchEvent(new Event('change', { bubbles: true }));
                 };
-
                 const clickCb = (idOrName) => {
                     const el = document.getElementById(idOrName) ??
                                document.querySelector(`[name="${idOrName}"]`);
@@ -2481,7 +2440,6 @@
                     el.click();
                     el.dispatchEvent(new Event('change', { bubbles: true }));
                 };
-
                 const setSelectText = (idOrName, txt) => {
                     const el = getEl(idOrName);
                     if (!el) { console.warn('setSelectText: bulunamadı ->', idOrName); return; }
@@ -2490,57 +2448,44 @@
                     el.value = opt.value;
                     el.dispatchEvent(new Event('change', { bubbles: true }));
                 };
-
                 const sigortaSekli = document.getElementById('SIGORTA_SEKLI')?.value;
-
-                ['RUHSAT_ASLI1','RUCU0','HAS_DEVIR_SATIS0',
-                 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0',
-                 'MUAFIYET0','EKSPERTIZ_YERI_SEHIR_DISI0','HASAR_YERI0',
-                 'ONARIM_ONAYI2','SURUCU_BELGESI_GORULDU1','EHLIYET_YETERLI1',
+                ['RUHSAT_ASLI1','RUCU0','HAS_DEVIR_SATIS0', 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0',
+                 'MUAFIYET0','EKSPERTIZ_YERI_SEHIR_DISI0','HASAR_YERI0', 'ONARIM_ONAYI2','SURUCU_BELGESI_GORULDU1','EHLIYET_YETERLI1',
                  'ALKOL_DURUMU2','SIGORTALI_SAHIS_CHECK'
                 ].forEach(clickCb);
-
-                if (sigortaSekli === "2") {//kasko
+                if (sigortaSekli === "2") { //kasko
                     clickCb('SAG1');
                     clickCb('SURUCU_BELGESI1');
 					clickCb('TESPIT_SEKLI1');
                     setVal('ONARIM_SURESI', location.href.includes("hepiyi") ? '15' : '10');
-                } else {//trafik
+                } else { //trafik
                     clickCb('SAG2');
                     clickCb('SURUCU_BELGESI0');
 					clickCb('TESPIT_SEKLI0');
                     setVal('SAG_NEDEN', 'Olay yeri fotoğrafları mevcuttur.');
                     setVal('ONARIM_SURESI', '10');
                 }
-
                 setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
-			    setVal('SB_ARACI_KULLANAN', "");setVal('SURUCU_KIMLIK_TIPI_DEGER', "");setVal('SURUCU_KIMLIK_TIPI', '-1');//temizlik
+			    setVal('SB_ARACI_KULLANAN', "");setVal('SURUCU_KIMLIK_TIPI_DEGER', "");setVal('SURUCU_KIMLIK_TIPI', '-1'); //temizlik
                 setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
                 setVal('EKSPERTIZ_SURESI', '1');
                 setValSelect('KUSURLU', '0');
                 setVal('KUSUR_ORANI', '100');
                 setVal('UZAKTAN_EKSPERTIZ','2');
                 //setVal('EHLIYET_SINIFI', 'B');
-
                 const gun = getValue('IHBAR_TARIHI_GUN'); const ay = getValue('IHBAR_TARIHI_AY'); const yil = getValue('IHBAR_TARIHI_YIL');
                 setVal('EKSPERTIZ_TARIHLERI', `${gun}/${ay}/${yil}`);
                 ['EKSPERTIZ_TALEP_TARIHI','EKSPERTIZ_TARIHI','EKSPERTIZ_KESINLESTIRME_TARIHI'].forEach(prefix => { setVal(`${prefix}_GUN`, gun); setVal(`${prefix}_AY`, ay); setVal(`${prefix}_YIL`, yil); });
-
-                // ✅ KAZA_IHBAR_TURU sayfada yok — kaldırıldı
                 setSelectText('KANAAT', 'OLUMLUDUR');
                 setVal('DOSYA_SONUCLANDIRMA_DURUMU', '3');
-
                 if (location.href.includes("ankara")) {
                     setVal('COKLU_EKSPER', '125');
                     setVal('ZABIT_TIPI_TRAMER', 'Anlaşmalı Tutanak');
                     setVal('TAHMINI_HASAR', '20000');
                 } else {
                     const th = document.getElementById('TAHMINI_HASAR');
-                    if (!th?.value || parseFloat(th.value) === 0) {
-                        setVal('TAHMINI_HASAR', '20000');
-                    }
+                    if (!th?.value || parseFloat(th.value) === 0) { setVal('TAHMINI_HASAR', '20000'); }
                 }
-
                 alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
             });
             /* ===== 5. KONTROL VE HIGHLIGHT ===== */
@@ -3507,29 +3452,29 @@
                 MASAK: ['162']
             };
             const hepiyi = {
-                EHLİYET: ['195','239', '1'],
-                RUHSAT: ['92', '238', '7'],
-                KTT: ['174', '11', '96', '237', '224'],
-                BEYAN: ['179', '155', '246', '226', '6'],
-                ZABIT: ['5', '118', '22', '169'],
-                POLICE: ['3'],
-                IMZA: ['131', '8'],
-                SICIL: ['202'],
-                SKAYIT: ['219'],
+                EHLİYET: ['195', '239', '1', '196'], // Mağdur araç sürücü belgesi, Sigortalı Araç Ehliyet, Ehliyet, Sigortalı araç sürücü belgesi
+                RUHSAT: ['92', '238', '7'], // Mağdur araç ruhsatı, Sigortalı Araç Ruhsat, Ruhsat
+                KTT: ['174', '237', '96', '224', '11', '22', '122', '169'], // Anlaşmalı Tut., KTT Okunakli, Tutanak, Karakol, Görgü Tespit, Onaylı Görgü, Onaylı Olay Yeri
+                BEYAN: ['179', '226', '246', '155', '6'], // Mağdur Beyanı(2 adet), Beyan, Beyan Talep, Müşteri Beyanı
+                ZABIT: ['5', '118', '22', '169', '188', '194', '209'], // Zabıt, Resmi Zabıt Tercüme, Görgü, Onaylı Olay Yeri, İtfaiye, İfade Tutanakları, Onaylı Karşı Araç Sürücüsü
+                POLICE: ['3', '240', '241'], // Poliçe, Poliçe Basım, Poliçe Dökümanı
+                IMZA: ['131', '8'], // İmza sirküleri, İmza Sirküsü
+                SICIL: ['202'], // Ticaret Sicil Gazetesi
+                SKAYIT: ['219'], // SSK kaydı
                 GAZETE: ['202'],
-                FAAL: ['190'],
-                IRSALIYE: ['26', '220', '41', '134'],
-                NUFUS: ['2', '213', '201'],
-                DIGER: ['12', '243'],
-                ONARIM_SONRASI: ['6'],
-                MUTABAKAT: ['211', '247', '28'],
-                MUVAFAKAT: ['111', '56', '57', '130'],
-                IBRA: ['33', '132', '212'],
-                ALKOL: ['4'],
-                RAYIC: ['231', '184', '225', '234'],
-                TRAMER: ['230', '229', '228', '233'],
-                VERGI: ['9', '221', '136'],
-                MASAK: ['248']
+                FAAL: ['190'], // Faaliyet Belgesi
+                IRSALIYE: ['26', '220', '41', '134'], // İrsaliye, Sevk, Yük, Nakliye
+                NUFUS: ['2', '213', '201', '94'], // Nüfus, Sigortalının Nüfus, Şirket Ortakları Kimlik, Pasaport
+                DIGER: ['12', '243'], // Diğer 1, Diğer Belgeler
+                ONARIM_SONRASI: ['32'],
+                MUTABAKAT: ['211', '247', '28'], // Mutabakatname, Mütabakatname, Mutabakat Yazısı
+                MUVAFAKAT: ['111', '56', '57', '101', '130'], // Muvaffakatname, Sigortalı/Sigorta Ettiren Muvafakat
+                IBRA: ['33', '132', '212'], // Teslim İbra ve Temlik, İbraname, Teslim İbra Temlik (Lehtar)
+                ALKOL: ['4'], // Alkol Raporu
+                RAYIC: ['231', '184', '225', '234'], // Piyasa Rayiç, Aktüer, Değer Kaybı Eksper, Maddi Ekspertiz
+                TRAMER: ['230', '229', '228', '233'], // Tramer Sorgulama, Geçmiş Hasar, Ağır Hasar, Kusur Sonuç
+                VERGI: ['9', '221', '136'], // Vergi Levhası (Şirket), Vergi Levhası, Araç Vergi Dosyası
+                MASAK: ['248'], // Masak Evrakları
             };
             const ankara = {
                 EHLİYET: ['1'], // Ehliyet
@@ -3620,7 +3565,6 @@
                 `;
                 document.head.appendChild(s);
             }
-
             document.querySelectorAll('tr.template-upload').forEach(tr => {
                 const canvas = tr.querySelector('span.preview canvas');
                 if (!canvas || canvas.hasAttribute('data-click-fixed')) return;
@@ -3792,8 +3736,8 @@
                     const btnGroup = document.createElement('div');
                     Object.assign(btnGroup.style, { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0px', width: 'auto', boxSizing: 'border-box' });
                     const buttons = [
-                        { label: 'EHLİYET', vals: ayarlar.EHLİYET, color: '#ff4757', t: 'Ehliyet - Mağdur/Sigortalı Tekrar tıkla' },
-                        { label: 'RUHSAT', vals: ayarlar.RUHSAT, color: '#ffa502', t: 'Ruhsat - Mağdur/Sigortalı Tekrar tıkla' },
+                        { label: 'EHLİYET', vals: ayarlar.EHLİYET, color: '#ff4757', t: 'Ehliyet - Mağdur/Sigortalı' },
+                        { label: 'RUHSAT', vals: ayarlar.RUHSAT, color: '#ffa502', t: 'Ruhsat - Mağdur/Sigortalı' },
                         { label: 'KİMLİK', vals: ayarlar.NUFUS, color: '#1e90ff', t: 'Kimlik/Nüfus' },
                         { label: 'POLİÇE', vals: ayarlar.POLICE, color: '#3742fa', t: 'Poliçe' },
                         { label: 'TUTANAK', vals: ayarlar.KTT, color: '#2ed573', t: 'Kaza Tespit/Karakol/Görgü/İtfaiye Tutanağı' },
@@ -3812,9 +3756,9 @@
                         { label: 'PİYASA', vals: ayarlar.RAYIC, color: '#f1c40f', t: 'Piyasa - Rayiç Çalışması/Aktüer Raporu' },
                         { label: 'TRAMER', vals: ayarlar.TRAMER, color: '#5f27cd', t: 'Tramer Sorgulama/Ağır Hasar/Geçmiş Hasar' },
                         { label: 'MASAK', vals: ayarlar.MASAK, color: '#00d2d3', t: 'MASAK Evrakları' },
-                        { label: 'VERLVHA', vals: ayarlar.VERGI, color: '#546e7a', t: 'VERGİ LEVHASI / V.L. ŞİRKETLER İÇİN Tekrar tıkla' },
+                        { label: 'VERLVHA', vals: ayarlar.VERGI, color: '#546e7a', t: 'VERGİ LEVHASI / V.L. ŞİRKETLER İÇİN' },
                         { label: 'DİĞER', vals: ayarlar.DIGER, color: '#bdc3c7', t: 'Diğer Evraklar' },
-						{ label: 'SBM', vals: ayarlar.DIGER, color: '#34495e', note: 'SBM' }
+						{ label: 'SBM', vals: ['12'], color: '#34495e', t: 'SBM / Tramer Sorgu', note: 'SBM' },
                     ];
 
                     buttons.forEach(btnData => {
@@ -3834,35 +3778,32 @@
                         const tip = document.createElement('div');
                         tip.className = 'ks-tooltip-box';
                         tip.style.borderColor = btnData.color;
-                        tip.innerHTML = `<b style:"font-weight: bold;">${btnData.t}</b>`;
+                        tip.innerHTML = `<b style:"font-weight: bold;">${btnData.t}</b><br>Çoklu özelliğe sahiptir, tekrar tıklayın!`;
                         btn.onclick = (e) => {
+						    e.preventDefault();
+						    const currentIdx = btnData.vals.indexOf(selectEl.value);
+						    const nextIdx = (currentIdx + 1) % btnData.vals.length;
+						    const nextVal = btnData.vals[nextIdx];
+						    selectEl.value = nextVal;
+						    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+						    const selectedText = selectEl.options[selectEl.selectedIndex]?.text || nextVal;
+						    tip.innerHTML = `<b>${btnData.t}</b><br><span style="color:#ffe082;">${selectedText}</span>`;
+						    if (btnData.note && noteArea) {
+						        noteArea.value = btnData.note;
+						        noteArea.dispatchEvent(new Event('input', { bubbles: true }));
+						        noteArea.dispatchEvent(new Event('change', { bubbles: true }));
+						    }
+
+						};
+						/*btn.onclick = (e) => {
         					e.preventDefault();
-
-        					// 1. Evrak Tipini Seç (Mevcut mantık)
-        					let nextVal = btnData.vals[0];
-        					if (btnData.vals.length > 1 && selectEl.value === btnData.vals[0]) {
-        					    nextVal = btnData.vals[1];
+         					 //-- Evrak türünüde seçer
+        					const tipiSelect = parentTd.querySelector('select[name^="EVRAK_TIPI_"]');
+        					if (tipiSelect) {
+        					tipiSelect.value = "1";
+        					tipiSelect.dispatchEvent(new Event('change', { bubbles: true }));
         					}
-        					selectEl.value = nextVal;
-        					selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-
-        					// 2. Sadece 'note' tanımlı olan butonlar için açıklama yaz
-        					if (btnData.note && noteArea) {
-        					    noteArea.value = btnData.note;
-        					    // Değişikliği sisteme bildir
-        					    noteArea.dispatchEvent(new Event('input', { bubbles: true }));
-        					    noteArea.dispatchEvent(new Event('change', { bubbles: true }));
-        					} else if (noteArea) {
-        					    // İstersen diğer butonlara basınca açıklama silinsin dersen burayı kullanabilirsin
-        					    // noteArea.value = "";
-        					}
-                            /* //-- Evrak türünüde seçer
-                            const tipiSelect = parentTd.querySelector('select[name^="EVRAK_TIPI_"]');
-                            if (tipiSelect) {
-                                tipiSelect.value = "1";
-                                tipiSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                            }*/
-                        };
+                        };*/
                         btnWrapper.appendChild(btn);
                         btnWrapper.appendChild(tip);
                         btnGroup.appendChild(btnWrapper);
@@ -3911,66 +3852,94 @@
             const container = document.querySelector('.ks-grid-container');
             const statusHeader = document.getElementById('panelContent');
             if (!container) return;
-            const scenarios = {
-                KTT: { label: "KAZA ŞEKLİ: KTT", keys: ["kaza tesbit tutanağı", "kaza tespit tutanağı", "( ktt-anlaşmalı tutanak )", "(ktt)", "anlasmali kaza"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
-                Zabit: { label: "KAZA ŞEKLİ: ZABIT", keys: ["zapt", "zabit", "zabıt", "karakol", "ifade", "görgü tespit", "polis", "jandarma"], req: [{ id: "a", k: ["alkol"], l: "Alkol Raporu" }, { id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] },
-                Beyan: { label: "KAZA ŞEKLİ: BEYAN", keys: ["beyan yazısı", "beyan talep", "müşteri beyanı", "mağdur beyanı", "beyan"], req: [{ id: "e", k: ["ehliyet"], l: "Ehliyet" }, { id: "r", k: ["ruhsat"], l: "Ruhsat" }] }
-            };
             const rows = Array.from(document.querySelectorAll('table tr'));
-            const uploadedDocs = rows.map(r => { const c = r.querySelectorAll('td')[1]; return c ? c.innerText.toLocaleLowerCase('tr-TR').replace(/-/g, '').trim() : ""; }).filter(t => t !== "");
-            let active = null;
-            for (const k in scenarios) {
-                if (scenarios[k].keys.some(key => uploadedDocs.some(u => u.includes(key)))) { active = scenarios[k]; break; }
-            }
+            // td[1] = evrak adı (link text), tire sonrasını temizle
+            const docs = rows.map(r => {
+                const td = r.querySelectorAll('td')[1];
+                if (!td) return { raw: '', sig: false, mag: false };
+                const raw = td.innerText.toLocaleLowerCase('tr-TR').replace(/-\s*$/, '').trim();
+                return {
+                    raw,
+                    sig: raw.includes('sigortalı') || raw.includes('sigortali'),
+                    mag: raw.includes('mağdur') || raw.includes('magdur'),
+                };
+            }).filter(d => d.raw !== '');
+            const has = (keys, onlySig = false, onlyMag = false) =>
+                docs.some(d => {
+                    if (onlySig && !d.sig) return false;
+                    if (onlyMag && !d.mag) return false;
+                    return keys.some(k => d.raw.includes(k));
+                });
+            // Kaza evrakı türünü tespit et
+            const isKTT = has(["kaza tesbit", "kaza tespit", "ktt", "anlasmali kaza", "anlaşmalı kaza"]);
+            const isZabit = has(["zabt", "zabit", "zabıt", "karakol", "ifade", "görgü", "polis", "jandarma"]);
+            const isBeyan = has(["beyan"]);
             container.innerHTML = '';
-            const createBox = (text, ok, isMain = false, isOptional = false) => {
+            const createBox = (text, ok, isOptional = false) => {
                 const div = document.createElement('div');
-                let borderColor = ok ? '#28a745' : '#dc3545';
-                let bgColor = ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)';
-                let textColor = ok ? '#85ff9e' : '#ff8585';
+                let borderColor, bgColor, textColor;
                 if (isOptional && ok) { borderColor = '#ffc107'; bgColor = 'rgba(255,193,7,0.15)'; textColor = '#ffe082'; }
+				else { borderColor = ok ? '#28a745' : '#dc3545'; bgColor = ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)'; textColor = ok ? '#85ff9e' : '#ff8585'; }
                 div.style.cssText = `padding:4px 5px; border-radius:4px; font-size:11px; font-weight:600; text-align:center;
-				transition: all 0.3s; border-right: 4px solid ${borderColor}; background:${bgColor}; color:${textColor}; margin-bottom:2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);`;
-                div.innerText = (ok ? "" : "⚠ ") + text.toUpperCase();//ok ? "✓ " : "⚠ "
-                if (isMain && ok) { statusHeader.innerText = text.toUpperCase(); statusHeader.style.color = "#28a745"; }
+                    transition:all 0.3s; border-right:4px solid ${borderColor}; background:${bgColor};
+                    color:${textColor}; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.2);`;
+                div.innerText = (ok ? '' : '⚠ ') + text.toUpperCase();
                 return div;
             };
-            const optionalReqs = [
-                { k: ["poliçe"], l: "Poliçe" },
-                { k: ["teslim ibra", "ibraname"], l: "İbraname" },
-                { k: ["faaliyet belgesi"], l: "Faaliyet Belgesi" },
-                { k: ["hasar bildirim", "taahhüt"], l: "Hasar Bildirim Formu" },
-                { k: ["fatura"], l: "Fatura" },
-                { k: ["ibraname", "ibra", "temlik"], l: "İbraname/İbra" },
-                { k: ["tramer", "kusur"], l: "Tramer/Kusur" },
-                { k: ["eksper", "raporu"], l: "Eksper Raporu" },
-                { k: ["vergi levhası"], l: "Vergi Levhası" },
-                { k: ["imza sirküsü"], l: "İmza Sirküsü" },
-                { k: ["ticaret sicil"], l: "Ticaret Sicil" },
-                { k: ["ihbar föyü"], l: "Hasar İhbar Föyü" },
-                { k: ["ssk", "kurumu"], l: "SSK Bildirimi" }
+            const createSep = (label) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'color:#fff; font-size:9px; text-align:center; padding:3px 0 1px; letter-spacing:.05em; border-top:1px solid #333; margin-top:2px;';
+                div.innerText = '─── ' + label + ' ───';
+                return div;
+            };
+            // ── KAZA TÜRÜ ────────────────────────────────────────
+            let kazaTuru = '', kazaOk = false;
+            if (isKTT) { kazaTuru = 'KTT'; kazaOk = true; }
+            else if (isZabit) { kazaTuru = 'ZABİT'; kazaOk = true; }
+            else if (isBeyan) { kazaTuru = 'BEYAN'; kazaOk = true; }
+            else { kazaTuru = 'KAZA EVRAĞI YOK'; kazaOk = false; }
+            container.appendChild(createBox('KAZA ŞEKLİ: ' + kazaTuru, kazaOk));
+            // ── SİGORTALI EVRAK ──────────────────────────────────
+            container.appendChild(createSep('SİGORTALI'));
+            const sigEhliyet = has(['ehliyet', 'sürücü belgesi'], true, false);
+            const sigRuhsat = has(['ruhsat'], true, false);
+            const sigKimlik = has(['kimlik', 'nüfus', 'pasaport'], true, false);
+            container.appendChild(createBox('Ehliyet', sigEhliyet));
+            container.appendChild(createBox('Ruhsat', sigRuhsat));
+            if (sigKimlik) container.appendChild(createBox('Kimlik', true));
+            // ── MAĞDUR EVRAK ─────────────────────────────────────
+            container.appendChild(createSep('MAĞDUR'));
+            const magEhliyet = has(['ehliyet', 'sürücü belgesi'], false, true);
+            const magRuhsat = has(['ruhsat'], false, true);
+            const magKimlik = has(['kimlik', 'nüfus', 'pasaport'], false, true);
+            container.appendChild(createBox('Ehliyet', magEhliyet));
+            container.appendChild(createBox('Ruhsat', magRuhsat));
+            if (magKimlik) container.appendChild(createBox('Kimlik', true));
+            // Zabit ise alkol zorunlu
+            if (isZabit) { const alkol = has(['alkol']); container.appendChild(createBox('Alkol Raporu', alkol)); }
+            // ── OPSİYONEL ────────────────────────────────────────
+            const optionals = [
+                { keys: ['poliçe', 'police'], l: 'Poliçe' },
+                { keys: ['ibraname', 'ibra', 'temlik'], l: 'İbraname/İbra' },
+                { keys: ['teslim ibra'], l: 'Teslim İbra' },
+                { keys: ['faaliyet belgesi'], l: 'Faaliyet Belgesi' },
+                { keys: ['hasar bildirim', 'taahhüt'], l: 'Hasar Bildirim' },
+                { keys: ['fatura'], l: 'Fatura' },
+                { keys: ['tramer', 'kusur', 'sbm'], l: 'Tramer/Kusur' },
+                { keys: ['eksper', 'ön rapor', 'on rapor'], l: 'Eksper Raporu' },
+                { keys: ['vergi levhası'], l: 'Vergi Levhası' },
+                { keys: ['imza sirküsü'], l: 'İmza Sirküsü' },
+                { keys: ['ticaret sicil'], l: 'Ticaret Sicil' },
+                { keys: ['ihbar föyü'], l: 'İhbar Föyü' },
+                { keys: ['ssk', 'kurumu'], l: 'SSK Bildirimi' },
+                { keys: ['vekaletname', 'vekalet'], l: 'Vekaletname' },
             ];
-            if (active) {
-                container.appendChild(createBox(active.label, true, true));
-                active.req.forEach(req => {
-                    const found = uploadedDocs.some(d => req.k.some(k => d.includes(k)));
-                    let label = req.l;
-                    const sig = uploadedDocs.some(u => u.includes("sigortalı"));
-                    const mag = uploadedDocs.some(u => u.includes("mağdur"));
-                    if (sig && mag) label += " (SİG/MAĞ)";
-                    else if (sig) label += " (SİG)";
-                    else if (mag) label += " (MAĞ)";
-                    container.appendChild(createBox(label, found));
-                });
-            } else {
-                statusHeader.innerText = "EVRAK EKSİK";
-                statusHeader.style.color = "#dc3545";
-                container.appendChild(createBox("KAZA EVRAĞI BULUNAMADI", false));
-            }
-            optionalReqs.forEach(or => {
-                const found = uploadedDocs.some(d => or.k.some(k => d.includes(k)));
-                if (found) container.appendChild(createBox(or.l, true, false, true));
-            });
+            const foundOptionals = optionals.filter(o => has(o.keys));
+            if (foundOptionals.length) { container.appendChild(createSep('DİĞER')); foundOptionals.forEach(o => container.appendChild(createBox(o.l, true, true))); }
+            // ── HEADER DURUM ─────────────────────────────────────
+            const zorunluTamam = kazaOk && sigEhliyet && sigRuhsat && magEhliyet && magRuhsat && (!isZabit || has(['alkol']));
+            statusHeader.innerText = zorunluTamam ? 'EVRAK TAMAM ✓' : 'EKSİK EVRAK VAR';
+            statusHeader.style.color = zorunluTamam ? '#28a745' : '#dc3545';
         }
         const runner = setInterval(() => { if (document.querySelector('table')) updatePanel(); }, 2000);
         document.addEventListener('click', (e) => {
