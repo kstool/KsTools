@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.62
+// @version      1.63
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -56,7 +56,8 @@
     function hapBdColor(n) { if (n === 0) return '#333333'; if (n <= 2) return '#00ff88'; if (n <= 5) return '#ffcc00'; if (n <= 9) return '#ff7700'; return '#ff3333'; }
     function hapFmtTL(v) { if (!v) return ''; return v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'K' : Math.round(v) + ''; }
     /* ── Normalize ── */
-    function hapNorm(t) { return t ? t.toUpperCase().replace(/i/g, 'I').replace(/İ/g, 'I').replace(/ı/g, 'I').replace(/Ğ/g, 'G').replace(/ğ/g, 'G').replace(/Ü/g, 'U').replace(/ü/g, 'U').replace(/Ş/g, 'S').replace(/ş/g, 'S').replace(/Ö/g, 'O').replace(/ö/g, 'O').replace(/Ç/g, 'C').replace(/ç/g, 'C') : ''; }
+    function hapNorm(t) { return t ? t.toUpperCase().replace(/i/g, 'I').replace(/İ/g, 'I').replace(/ı/g, 'I').replace(/Ğ/g, 'G').replace(/ğ/g, 'G')
+		.replace(/Ü/g, 'U').replace(/ü/g, 'U').replace(/Ş/g, 'S').replace(/ş/g, 'S').replace(/Ö/g, 'O').replace(/ö/g, 'O').replace(/Ç/g, 'C').replace(/ç/g, 'C') : ''; }
     function hapKwMatch(norm, kws) { return kws.some(k => norm.includes(hapNorm(k))); }
     /* ── Mekanik / Elektrik tanımları ── */
 	const HAP_MEK = [
@@ -64,27 +65,28 @@
         { id: 'fren', label: 'Fren / Balata', kw: ['FREN', 'BRAKE', 'BALATA', 'DISK', 'KAPLIN', 'KALIPER', 'MERKEZ'] },
         { id: 'aks', label: 'Aks / Şaft', kw: ['AKS', 'AXLE', 'SAFT', 'MAFSAL', 'LALE', 'KORUK'] },
         { id: 'tabla', label: 'Tabla / Salıncak', kw: ['TABLA', 'SALINCAK', 'ARM', 'BURC', 'ROTIL', 'PODYE', 'FISEK'] },
-        { id: 'radyator', label: 'Radyatör', kw: ['RADYATOR', 'RADIATOR', 'PETEK', 'ANTIFRIZ'] },
-        { id: 'motor', label: 'Motor / Sil.', kw: ['MOTOR', 'SILINDIR', 'ENGINE', 'BLOK', 'KULAK', 'CONTA', 'KRANK', 'PISTON'] },
-        { id: 'intercool', label: 'İntercooler', kw: ['INTERCOOLER', 'ARA SOGUTUCU'] },
-        { id: 'sase', label: 'Şase / Kros', kw: ['SASE', 'KROS', 'CHASSIS', 'TRAVERS', 'KULE', 'NYLON'] },
+        { id: 'motor', label: 'Motor / Silindir', kw: ['MOTOR', 'SILINDIR', 'ENGINE', 'BLOK', 'KULAK', 'CONTA', 'KRANK', 'PISTON'] },
+        { id: 'turbo', label: 'Turboşarj', kw: ['TURBO', 'SALYANGOZ', 'TURBINE', 'WESTGATE'] },
+        { id: 'sase', label: 'Şase', kw: ['SASE', 'KROS', 'KASIS', 'CHASSIS', 'TRAVERS','TRAVER', 'KULE', 'NYLON'] },
         { id: 'fan', label: 'Fan', kw: ['FAN', 'PERVANE', 'DAVULBAZ', 'TERMİK'] },
-        { id: 'hortum', label: 'Hortum / Tes.', kw: ['HORTUM', 'BORU', 'RAKOR', 'KELEPCE'] },
+        { id: 'hortum', label: 'Hortum / Tesisat', kw: ['HORTUM', 'BORU', 'RAKOR', 'KELEPCE'] },
         { id: 'egzoz', label: 'Egzoz', kw: ['EGZOZ', 'EGSOZ', 'EXHAUST', 'KATALIZOR', 'PARTIKUL', 'SUSTURUCU', 'MANIFOLD'] },
         { id: 'sanziman', label: 'Şanzıman / Vites', kw: ['SANZIMAN', 'VITES', 'GEARBOX', 'DIFERANSIYEL', 'BASKI', 'BALATA', 'VOLANT', 'KAVRAMA'] },
-        { id: 'direksiyon', label: 'Direksiyon Sis.', kw: ['DIREKSIYON', 'POMPA', 'KUTU', 'ROT', 'MIL', 'TIKIRTI', 'Z-ROT'] },
+        { id: 'direksiyon', label: 'Direksiyon ve Yönetim', kw: ['DIREKSIYON', 'POMPA', 'ROT', 'MIL', 'TIKIRTI', 'Z-ROT'] },
         { id: 'yakit', label: 'Yakıt Sistemi', kw: ['POMPA', 'ENJEKTOR', 'DEPO', 'TANK', 'FILTRE', 'MUSUR'] },
-        { id: 'turbo', label: 'Turboşarj', kw: ['TURBO', 'SALYANGOZ', 'TURBINE', 'WESTGATE'] },
+        { id: 'radyator', label: 'Radyatör', kw: ['RADYATOR', 'RADIATOR', 'PETEK', 'ANTIFRIZ'] },
+
+        { id: 'intercool', label: 'İntercooler', kw: ['INTERCOOLER', 'ARA SOGUTUCU'] },
     ];
 	const HAP_ELK = [
         { id: 'radar', label: 'Radar / ACC', kw: ['RADAR', 'AEBS', 'ACC', 'KOR NOKTA', 'KAMERA'] },
         { id: 'webasto', label: 'Webasto', kw: ['WEBASTO', 'ISITICI', 'KALORIFER'] },
         { id: 'aku', label: 'Akü / Elekt.', kw: ['AKU', 'BATTERY', 'ALTERNATOR', 'SARZ', 'SARJ', 'KONJEKTOR'] },
         { id: 'far', label: 'Far / Sinyal', kw: ['FAR', 'SINYAL', 'LED', 'LAMBA', 'AYDINLATMA', 'XENON'] },
-        { id: 'stop', label: 'Stop Lambası', kw: ['STOP', 'REFLOKTOR', 'DUY'] },
+        { id: 'stop', label: 'Stop Lambası', kw: ['STOP', 'REFLEKTOR', 'REFLOKTOR', 'DUY'] },
         { id: 'sis', label: 'Sis Lambası', kw: ['SIS', 'PANEK'] },
         { id: 'ecu', label: 'Beyin / Modül', kw: ['ECU', 'BEYIN', 'MODUL', 'BEYNI','KONTROL UNITESI', 'SIGORTA'] },
-        { id: 'sensor', label: 'Sensörler', kw: ['SENSOR', 'SENSOR', 'PARK', 'YAGMUR', 'OKSIJEN', 'ABS', 'HIZ', 'BASINC'] },
+        { id: 'sensor', label: 'Sensörler', kw: ['SENSOR', 'PARK', 'YAGMUR', 'OKSIJEN', 'ABS', 'HIZ', 'BASINC'] },
         { id: 'mars', label: 'Marş Sistemi', kw: ['MARŞ', 'DINAMO', 'STARTER', 'OTOMATIK'] },
         { id: 'klima', label: 'Klima Sistemi', kw: ['KLIMA', 'KOMPRESOR', 'EVAPORATOR', 'POLEN'] },
         { id: 'kilit', label: 'Merkezi Kilit', kw: ['KILIT', 'KAPATMA', 'ALARM', 'KUMANDA'] },
@@ -102,12 +104,16 @@
         'hap-z-rl': ['path-camurl-arkaSol', 'path-stop-sol'],
         'hap-z-rc': ['path-bagaj', 'path-tampon-arka'],
         'hap-z-rr': ['path-camurl-arkaSag', 'path-stop-sag'],
-        'hap-z-wfl': ['tire-fl', 'rim-fl'],
-        'hap-z-wfr': ['tire-fr', 'rim-fr'],
-        'hap-z-wrl': ['tire-rl', 'rim-rl'],
-        'hap-z-wrr': ['tire-rr', 'rim-rr']
+        'hap-z-wfl': ['tire-fl'],
+        'hap-z-wfr': ['tire-fr'],
+        'hap-z-wrl': ['tire-rl'],
+        'hap-z-wrr': ['tire-rr'],
+        'hap-z-rfl': ['rim-fl'],
+        'hap-z-rfr': ['rim-fr'],
+        'hap-z-rrl': ['rim-rl'],
+        'hap-z-rrr': ['rim-rr'],
     };
-    const HAP_BOLGELER = ['hap-z-fl', 'hap-z-fc', 'hap-z-fr', 'hap-z-ml', 'hap-z-dl', 'hap-z-ch', 'hap-z-dr', 'hap-z-mr', 'hap-z-rl', 'hap-z-rc', 'hap-z-rr'];
+    const HAP_BOLGELER = ['hap-z-fl', 'hap-z-fc', 'hap-z-fr', 'hap-z-ml', 'hap-z-dl', 'hap-z-ch', 'hap-z-dr', 'hap-z-mr', 'hap-z-rl', 'hap-z-rc', 'hap-z-rr', 'hap-z-wfl', 'hap-z-wfr', 'hap-z-wrl', 'hap-z-wrr', 'hap-z-rfl', 'hap-z-rfr', 'hap-z-rrl', 'hap-z-rrr'];
     /* ══════════════════════════════════════════════════
        SEDAN SVG — üstten görünüm, gerçek path eğrileri
        viewBox: 0 0 200 460  (dar panel için)
@@ -122,8 +128,8 @@
           .p-body { fill: #272727; }
           .p-far  { fill: #c2d37d; }
           .p-stop { fill: #811818; }
-          .p-glass { fill: #1e2a38; stroke: #5979a8; pointer-events: none; }
-          .p-tire { fill: #000000; stroke: #8e8e8e; stroke-width: 1; pointer-events: none; }
+          .p-glass { fill: #1e2a38; stroke: #5979a8; }
+          .p-tire { fill: #000000; stroke: #8e8e8e; stroke-width: 1; }
           .p-rim  { fill: #717171; stroke: #000000; stroke-width: 0.8; }
           .hap-txt { text-anchor: middle; font-weight: bold; fill: #FFF; font-family: monospace; }
           .f11 { font-size: 11px; } .f10 { font-size: 10px; } .f9 { font-size: 9px; }
@@ -136,13 +142,13 @@
         <!-- ────────────── TEKERLEKLER ────────────── -->
         <g class="p-tire">
             <ellipse id="tire-fl" cx="26"  cy="105" rx="10" ry="16" class="p-tire" data-zone="hap-z-wfl" data-label="Sol Ön Lastik"/>
-            <ellipse id="rim-fl"  cx="26"  cy="105" rx="5"  ry="8"  class="p-rim" data-zone="hap-z-wfl" data-label="Sol Ön Jant"/>
+            <ellipse id="rim-fl"  cx="26"  cy="105" rx="5"  ry="8"  class="p-rim"  data-zone="hap-z-wfl" data-label="Sol Ön Jant"/>
             <ellipse id="tire-fr" cx="174" cy="105" rx="10" ry="16" class="p-tire" data-zone="hap-z-wfr" data-label="Sağ Ön Lastik"/>
-            <ellipse id="rim-fr"  cx="174" cy="105" rx="5"  ry="8"  class="p-rim" data-zone="hap-z-wfr" data-label="Sağ Ön Jant"/>
+            <ellipse id="rim-fr"  cx="174" cy="105" rx="5"  ry="8"  class="p-rim"  data-zone="hap-z-wfr" data-label="Sağ Ön Jant"/>
             <ellipse id="tire-rl" cx="26"  cy="348" rx="10" ry="16" class="p-tire" data-zone="hap-z-wrl" data-label="Sol Arka Lastik"/>
-            <ellipse id="rim-rl"  cx="26"  cy="348" rx="5"  ry="8"  class="p-rim" data-zone="hap-z-wrl" data-label="Sol Arka Jant"/>
+            <ellipse id="rim-rl"  cx="26"  cy="348" rx="5"  ry="8"  class="p-rim"  data-zone="hap-z-wrl" data-label="Sol Arka Jant"/>
             <ellipse id="tire-rr" cx="174" cy="348" rx="10" ry="16" class="p-tire" data-zone="hap-z-wrr" data-label="Sağ Arka Lastik"/>
-            <ellipse id="rim-rr"  cx="174" cy="348" rx="5"  ry="8"  class="p-rim" data-zone="hap-z-wrr" data-label="Sağ Arka Jant"/>
+            <ellipse id="rim-rr"  cx="174" cy="348" rx="5"  ry="8"  class="p-rim"  data-zone="hap-z-wrr" data-label="Sağ Arka Jant"/>
         </g>
         <!-- ────────────── ÖN TAMPON ────────────── -->
         <path id="path-tampon-on"
@@ -285,46 +291,26 @@
     </svg>`; }
     /* ── Tooltip ── */
     function hapShowTip(zoneId, label, sonuc) {
-        const n = sonuc?.bSayac?.[zoneId] || 0;
-        const tl = sonuc?.bTutar?.[zoneId] || 0;
-        const tipColor = hapBdColor(n);
-        const tooltip = document.getElementById('ks-dynamic-tooltip');
+        const n = sonuc?.bSayac?.[zoneId] || 0, tl = sonuc?.bTutar?.[zoneId] || 0, tipColor = hapBdColor(n), tooltip = document.getElementById('ks-dynamic-tooltip');
         if (!tooltip) return;
-        tooltip.innerHTML = `
-            <div class="ks-tip-head"><strong style="color:${tipColor}">${label}</strong></div>
-            <div class="ks-tip-body">${n} parça${tl > 0 ? ' · ' + hapFmtTL(tl) : ''}</div>`;
-        tooltip.style.borderColor = tipColor + '44';
-        tooltip.style.borderLeftColor = tipColor;
-        tooltip.classList.add('visible');
-        // Mouse pozisyonu için son konumu kullan
-        const gap = 16, tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
-        const mx = window._hapMouseX || window.innerWidth / 2;
-        const my = window._hapMouseY || window.innerHeight / 2;
-        tooltip.style.left = Math.max(8, Math.min(mx - tw / 2, window.innerWidth - tw - 8)) + 'px';
-        tooltip.style.top = (my - th - gap < 8 ? my + gap : my - th - gap) + 'px';
-        clearTimeout(window._hapTipHide);
-        window._hapTipHide = setTimeout(() => tooltip.classList.remove('visible'), 2500);
+        tooltip.innerHTML = `<div class="ks-tip-head"><strong style="color:${tipColor}">${label}</strong></div><div class="ks-tip-body">${n} parça${tl > 0 ? ' · ' + hapFmtTL(tl) : ''}</div>`;
+        tooltip.style.borderColor = tipColor + '44'; tooltip.style.borderLeftColor = tipColor; tooltip.classList.add('visible');
+        const gap = 16, tw = tooltip.offsetWidth, th = tooltip.offsetHeight, mx = window._hapMouseX || window.innerWidth / 2, my = window._hapMouseY || window.innerHeight / 2;
+        tooltip.style.left = Math.max(8, Math.min(mx - tw / 2, window.innerWidth - tw - 8)) + 'px'; tooltip.style.top = (my - th - gap < 8 ? my + gap : my - th - gap) + 'px';
+        clearTimeout(window._hapTipHide); window._hapTipHide = setTimeout(() => tooltip.classList.remove('visible'), 2500);
     }
     document.addEventListener('mousemove', e => { window._hapMouseX = e.clientX; window._hapMouseY = e.clientY; });
     /* ══════════════════════════════════════════════════
        TAB SWITCH
     ══════════════════════════════════════════════════ */
     window.hapSwTab = function (t) {
-        ['kaporta', 'mekanik', 'elektrik'].forEach((id, i) => {
-            document.querySelectorAll('.hap-tab')[i].classList.toggle('active', id === t);
-            const v = document.getElementById('hap-view-' + id);
-            if (v) v.classList.toggle('active', id === t);
-        });
+        ['kaporta', 'mekanik', 'elektrik'].forEach((id, i) => { document.querySelectorAll('.hap-tab')[i].classList.toggle('active', id === t); const v = document.getElementById('hap-view-' + id); if (v) v.classList.toggle('active', id === t); });
     };
     /* ══════════════════════════════════════════════════
        ANALİZ
     ══════════════════════════════════════════════════ */
     function hapAnalizEt(rows) {
-        const res = {
-            bSayac: {}, bTutar: {}, bCamSayac: {}, // ← bCamSayac eklendi
-            total: 0, kritik: 0, yuksek: 0, toplamTutar: 0, skor: 0,
-            mekParcalar: {}, elkParcalar: {}
-        };
+        const res = { bSayac: {}, bTutar: {}, bCamSayac: {}, total: 0, kritik: 0, yuksek: 0, kritikTutar: 0, yuksekTutar: 0,toplamTutar: 0, skor: 0, mekParcalar: {}, elkParcalar: {} };
         HAP_BOLGELER.forEach(id => { res.bSayac[id] = 0; res.bTutar[id] = 0; res.bCamSayac[id] = 0; });
         HAP_MEK.forEach(p => { res.mekParcalar[p.id] = { n: 0, tl: 0 }; });
         HAP_ELK.forEach(p => { res.elkParcalar[p.id] = { n: 0, tl: 0 }; });
@@ -340,7 +326,6 @@
             });
         }
         if (adIdx === -1) return res;
-
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             if (cells.length <= Math.max(adIdx, fiyatIdx) || row.querySelector('th') || cells[adIdx].classList.contains('koyubaslik')) return;
@@ -348,37 +333,28 @@
             if (!ad || ad.length < 2) return;
             const fRaw = cells[fiyatIdx].textContent.replace(/[^\d]/g, '');
             if (!fRaw) return;
-            const fiyat = parseFloat(fRaw) / 100;
-            const aRaw = adetIdx !== -1 ? cells[adetIdx].textContent.replace(/[^\d]/g, '') : '1';
-            const adet = parseInt(aRaw) || 1;
-            const tutar = fiyat * adet;
+            const fiyat = parseFloat(fRaw) / 100, aRaw = adetIdx !== -1 ? cells[adetIdx].textContent.replace(/[^\d]/g, '') : '1', adet = parseInt(aRaw) || 1, tutar = fiyat * adet;
             if (tutar <= 0) return;
-            res.total++;
-            res.toplamTutar += tutar;
-            const norm = hapNorm(ad);
-            const KRIT = ['AMORTISÖR', 'SASE',  'INTERCOOLER', 'RADYATOR', 'SILINDIR', 'MOTOR', 'PISTON', 'RADAR', 'TURBO', 'WEBASTO', 'ABS','FAN', 'TESISAT', 'FREN', 'BRAKE', 'BALATA', 'DISK'];
-            if (KRIT.some(k => norm.includes(hapNorm(k)))) res.kritik++;
-            if (tutar >= 15000) res.yuksek++;
+            res.total++; res.toplamTutar += tutar;
+            const norm = hapNorm(ad), KRIT = ['AMORTISÖR', 'SASE', 'INTERCOOLER', 'RADYATOR', 'SILINDIR', 'MOTOR', 'PISTON', 'RADAR', 'TURBO', 'WEBASTO', 'ABS','FAN', 'TESISAT', 'FREN', 'BRAKE', 'BALATA', 'DISK'];
+            if (KRIT.some(k => norm.includes(hapNorm(k)))) { res.kritik++; res.kritikTutar += tutar; }
+            if (tutar >= 15000) { res.yuksek++; res.yuksekTutar += tutar; }
             HAP_MEK.forEach(p => { if (hapKwMatch(norm, p.kw)) { res.mekParcalar[p.id].n++; res.mekParcalar[p.id].tl += tutar; } });
             HAP_ELK.forEach(p => { if (hapKwMatch(norm, p.kw)) { res.elkParcalar[p.id].n++; res.elkParcalar[p.id].tl += tutar; } });
-            const on = /\bON\b/.test(norm) || norm.includes('FRONT');
-            const arka = /\bARKA\b/.test(norm) || norm.includes('REAR');
-            const sol = /\bSOL\b/.test(norm) || norm.includes('LEFT');
-            const sag = /\bSAG\b/.test(norm) || norm.includes('RIGHT');
-            const farv = hapKwMatch(norm, ['FAR', 'SINYAL', 'AYDINLATMA', 'SIS LAMBASI', 'LAMBA', 'LED']);
-            const stopv = norm.includes('STOP');
-            const tampon = hapKwMatch(norm, ['TAMPON', 'BUMPER']);
-            const camurl = hapKwMatch(norm, ['CAMURLUK', 'DAVLUMBAZ', 'MUDGUARD', 'FENDER']);
+            const on = /\bON\b/.test(norm) || norm.includes('FRONT'), arka = /\bARKA\b/.test(norm) || norm.includes('REAR');
+            const sol = /\bSOL\b/.test(norm) || norm.includes('LEFT'), sag = /\bSAG\b/.test(norm) || norm.includes('RIGHT');
+            const farv = hapKwMatch(norm, ['FAR', 'SINYAL', 'AYDINLATMA', 'SIS LAMBASI', 'LAMBA', 'LED']), stopv = norm.includes('STOP');
+            const tampon = hapKwMatch(norm, ['TAMPON', 'BUMPER']), camurl = hapKwMatch(norm, ['CAMURLUK', 'DAVLUMBAZ', 'MUDGUARD', 'FENDER']);
             const kapiv = hapKwMatch(norm, ['KAPI', 'DOOR']);
             const kabinv = hapKwMatch(norm, ['KABIN', 'SASE', 'TORPIDO', 'TORPEDO', 'MOTOR', 'RADYATOR', 'INTERCOOLER', 'SILINDIR', 'FAN', 'WEBASTO', 'ABS', 'RADAR', 'AEBS', 'ACC', 'TESISAT', 'PERVANE', 'HORTUM', 'AKU', 'EXHAUST', 'EGZOZ', 'EGZOS']);
-            const tekerlek = hapKwMatch(norm, ['LASTIK', 'TIRE', 'JANT', 'WHEEL', 'RIM']);
-            const camv = !camurl && ( /(^|\s)CAM(\s|$)/.test(norm) || norm.includes('GLASS') || norm.includes('WINDSHIELD') || norm.includes('PENCERE') );
-            const aynav = hapKwMatch(norm, ['AYNA', 'MIRROR', 'DIKIZ']);
+            const lastik = hapKwMatch(norm, ['LASTIK', 'TIRE']), jant = hapKwMatch(norm, ['JANT', 'WHEEL', 'RIM']);
+            const camv = !camurl && ( /(^|\s)CAM(\s|$)/.test(norm) || norm.includes('GLASS') || norm.includes('WINDSHIELD') || norm.includes('PENCERE')), aynav = hapKwMatch(norm, ['AYNA', 'MIRROR', 'DIKIZ']);
             let bId = null;
-            if (tekerlek) {
-            	if (on) bId = sag ? 'hap-z-wfr' : 'hap-z-wfl';
-            	else if (arka) bId = sag ? 'hap-z-wrr' : 'hap-z-wrl';
-            	else bId = sol ? 'hap-z-wfl' : (sag ? 'hap-z-wfr' : 'hap-z-wfl');
+            if (lastik || jant) {
+                let yon = "", taraf = "";
+                if (on) yon = "f"; else if (arka) yon = "r"; else yon = "f";
+                if (sag) taraf = "r"; else taraf = "l";
+                bId = lastik ? `hap-z-w${yon}${taraf}` : `hap-z-r${yon}${taraf}`;
             }
             else if (camv) {
                 if (on && !sol && !sag) bId = 'hap-z-fc';
@@ -402,11 +378,7 @@
             else if (sol) bId = 'hap-z-dl';
             else if (sag) bId = 'hap-z-dr';
             else if (kabinv) bId = 'hap-z-ch';
-            if (bId && res.bSayac[bId] !== undefined) {
-                res.bSayac[bId]++;
-                res.bTutar[bId] += tutar;
-                if (camv) res.bCamSayac[bId]++;
-            }
+            if (bId && res.bSayac[bId] !== undefined) { res.bSayac[bId]++; res.bTutar[bId] += tutar; if (camv) res.bCamSayac[bId]++; }
         });
         res.skor = Math.min(Math.round(((res.total * 0.15) + (res.toplamTutar / 25000) + (res.kritik * 1.5)) * 10) / 10, 10);
         return res;
@@ -420,44 +392,26 @@
         const circ = 125.7;
         const arc = document.getElementById('hap-arc');
         const sv = document.getElementById('hap-skor-val');
-        if (arc) {
-            arc.setAttribute('stroke-dashoffset', (circ - circ * sonuc.skor / 10).toFixed(1));
-            arc.setAttribute('stroke', hapBdColor(Math.ceil(sonuc.skor)));
-        }
-        if (sv) {
-            sv.textContent = sonuc.skor.toFixed(1);
-            sv.style.color = hapScoreColor(Math.ceil(sonuc.skor));
-        }
+        if (arc) { arc.setAttribute('stroke-dashoffset', (circ - circ * sonuc.skor / 10).toFixed(1)); arc.setAttribute('stroke', hapBdColor(Math.ceil(sonuc.skor))); }
+        if (sv) { sv.textContent = sonuc.skor.toFixed(1); sv.style.color = hapScoreColor(Math.ceil(sonuc.skor)); }
         /* Chip sayaçlar */
         const setT = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-        setT('hap-chip-total', sonuc.total + ' Parça');
-        setT('hap-chip-crit', sonuc.kritik + ' Kritik');
-        setT('hap-chip-high', sonuc.yuksek + ' Yüksek değer');
-        setT('hap-chip-tutar', sonuc.toplamTutar > 0 ? sonuc.toplamTutar.toLocaleString('tr-TR') + ' ₺' : '-- ₺');
+		setT('hap-chip-crit', sonuc.kritikTutar > 0 ? sonuc.kritikTutar.toLocaleString('tr-TR') + ' ₺ - ' + sonuc.kritik + ' adet Kritik' : sonuc.kritik + ' adet Kritik');
+		setT('hap-chip-high', sonuc.yuksekTutar > 0 ? sonuc.yuksekTutar.toLocaleString('tr-TR') + ' ₺ - ' + sonuc.yuksek + ' adet Yüksek' : sonuc.yuksek + ' adet Yüksek');
+        setT('hap-chip-tutar', sonuc.toplamTutar > 0 ? sonuc.toplamTutar.toLocaleString('tr-TR') + ' ₺ - ' + sonuc.total + ' adet Total' : '-- ₺');
         /* Sedan SVG path boyama */
         const svg = document.getElementById('hap-car-svg');
         if (svg) {
             HAP_BOLGELER.forEach(zoneId => {
-                const n = sonuc.bSayac[zoneId] || 0;
-                const tl = sonuc.bTutar[zoneId] || 0;
-                const pathIds = HAP_ZONE_PATHS[zoneId] || [];
+                const n = sonuc.bSayac[zoneId] || 0, tl = sonuc.bTutar[zoneId] || 0, pathIds = HAP_ZONE_PATHS[zoneId] || [];
                 pathIds.forEach(pid => {
                     const el = svg.querySelector('#' + pid);
                     if (!el) return;
-                    if (n > 0) {
-                        el.style.fill = hapBgColor(n);
-                        el.style.stroke = hapBdColor(n);
-                        el.style.strokeWidth = '1.5';
-                    } else {
-                        el.style.fill = '';
-                        el.style.stroke = '';
-                        el.style.strokeWidth = '';
-                    }
+                    if (n > 0) { el.style.fill = hapBgColor(n); el.style.stroke = hapBdColor(n); el.style.strokeWidth = '1.5';
+                    } else { el.style.fill = ''; el.style.stroke = ''; el.style.strokeWidth = ''; }
                 });
                 /* Sayaç text */
-                const shortId = zoneId.replace('hap-z-', '');
-                const cntEl = document.getElementById('hap-cnt-' + shortId);
-                const tlEl = document.getElementById('hap-tl-' + shortId);
+                const shortId = zoneId.replace('hap-z-', ''), cntEl = document.getElementById('hap-cnt-' + shortId), tlEl = document.getElementById('hap-tl-' + shortId);
                 if (cntEl) { cntEl.textContent = n > 0 ? n : '0'; cntEl.style.fill = n > 0 ? hapScoreColor(n) : '#333'; }
                 if (tlEl) { tlEl.textContent = n > 0 ? hapFmtTL(tl) : ''; tlEl.style.fill = hapScoreColor(n); }
             });
@@ -471,34 +425,22 @@
             /* Path click → tooltip */
             svg.querySelectorAll('path[data-zone]').forEach(p => {
                 p.onclick = () => {
-                    const zId = p.getAttribute('data-zone');
-                    const lbl = p.getAttribute('data-label');
-                    const camPathIds = ['path-oncam', 'path-soloncam', 'path-sagoncam', 'path-arkacam', 'path-solarkacam', 'path-sagarkacam'];
-                    if (camPathIds.includes(p.id)) {
-                        const n = window._hapLastSonuc?.bCamSayac?.[zId] || 0;
-                        const tl = window._hapLastSonuc?.bTutar?.[zId] || 0;
-                        if (n === 0) return;
-                    }
+                    const zId = p.getAttribute('data-zone'), lbl = p.getAttribute('data-label'), camPathIds = ['path-oncam', 'path-soloncam', 'path-sagoncam', 'path-arkacam', 'path-solarkacam', 'path-sagarkacam'];
+                    if (camPathIds.includes(p.id)) { const n = window._hapLastSonuc?.bCamSayac?.[zId] || 0; const tl = window._hapLastSonuc?.bTutar?.[zId] || 0; if (n === 0) return; }
                     hapShowTip(zId, lbl, window._hapLastSonuc);
                 };
             });
         }
         /* Mekanik grid */
         HAP_MEK.forEach(p => {
-            const d = sonuc.mekParcalar[p.id] || { n: 0, tl: 0 };
-            const cell = document.getElementById('hap-mek-' + p.id);
-            const nEl = document.getElementById('hap-mek-n-' + p.id);
-            const tlEl = document.getElementById('hap-mek-tl-' + p.id);
+            const d = sonuc.mekParcalar[p.id] || { n: 0, tl: 0 }, cell = document.getElementById('hap-mek-' + p.id), nEl = document.getElementById('hap-mek-n-' + p.id), tlEl = document.getElementById('hap-mek-tl-' + p.id);
             if (cell) { cell.style.background = d.n > 0 ? hapBgColor(d.n) : '#1a1a1a'; cell.style.borderColor = d.n > 0 ? hapBdColor(d.n) : '#2a2a2a'; }
             if (nEl) { nEl.textContent = d.n; nEl.style.color = d.n > 0 ? hapScoreColor(d.n) : '#555'; }
             if (tlEl) { tlEl.textContent = d.tl > 0 ? hapFmtTL(d.tl) : ''; tlEl.style.color = hapScoreColor(d.n); }
         });
         /* Elektrik grid */
         HAP_ELK.forEach(p => {
-            const d = sonuc.elkParcalar[p.id] || { n: 0, tl: 0 };
-            const cell = document.getElementById('hap-elk-' + p.id);
-            const nEl = document.getElementById('hap-elk-n-' + p.id);
-            const tlEl = document.getElementById('hap-elk-tl-' + p.id);
+            const d = sonuc.elkParcalar[p.id] || { n: 0, tl: 0 }, cell = document.getElementById('hap-elk-' + p.id), nEl = document.getElementById('hap-elk-n-' + p.id), tlEl = document.getElementById('hap-elk-tl-' + p.id);
             if (cell) { cell.style.background = d.n > 0 ? hapBgColor(d.n) : '#1a1a1a'; cell.style.borderColor = d.n > 0 ? hapBdColor(d.n) : '#2a2a2a'; }
             if (nEl) { nEl.textContent = d.n; nEl.style.color = d.n > 0 ? hapScoreColor(d.n) : '#555'; }
             if (tlEl) { tlEl.textContent = d.tl > 0 ? hapFmtTL(d.tl) : ''; tlEl.style.color = hapScoreColor(d.n); }
@@ -545,17 +487,8 @@
             @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
             :root { --fontier: 'Exo 2', sans-serif !important; }
             /*body { transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-            body.ks-panel-open {
-                margin-right: ${config.width} !important;
-                width: calc(100% - ${config.width}) !important;
-                overflow-x: hidden !important;
-            }*/
-			body:not(.ks-panel-open) {
-			    margin-right: 0 !important;
-			    width: 100% !important;
-			    overflow-x: auto !important;
-			    transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-			}
+            body.ks-panel-open { margin-right: ${config.width} !important; width: calc(100% - ${config.width}) !important; overflow-x: hidden !important; }*/
+			body:not(.ks-panel-open) { margin-right: 0 !important; width: 100% !important; overflow-x: auto !important; transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
             /* ── Panel ── */
             .ks-draggable-panel {
                 position: fixed !important;
@@ -564,7 +497,7 @@
                 height: 100% !important;
                 background: ${config.backColor};
                 border-left: 1px solid ${config.themeColor}33;
-                box-shadow: 0px 0px 10px 2px ${config.themeColor}66 !important;
+                box-shadow: 0px 0px 10px 2px ${config.themeColor}66;
                 display: flex; flex-direction: column;
                 overflow: hidden;
                 z-index: ${config.zIndex};
@@ -574,21 +507,8 @@
                 user-select: none;
             }
             .ks-draggable-panel:hover,.ks-draggable-panel:active { background: color-mix(in srgb, ${config.backColor}, white 2%) !important; }
-            .ks-draggable-panel::before {
-                content: '';
-                position: absolute; top: 0; left: 0; right: 0; height: 2px;
-                background: ${config.backColor}33;
-                z-index: 5; pointer-events: none;
-                animation: ks-pulse 2.5s ease-in-out infinite;
-            }
-            .ks-draggable-panel::after {
-                content: '';
-                position: absolute; top: 3px; left: 0;
-                width: 12px; height: 12px;
-                border-top: 1px solid ${config.themeColor};
-                border-left: 1px solid ${config.themeColor};
-                z-index: 5; pointer-events: none;
-            }
+            .ks-draggable-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: ${config.backColor}33; z-index: 5; pointer-events: none; animation: ks-pulse 2.5s ease-in-out infinite; }
+            .ks-draggable-panel::after { content: ''; position: absolute; top: 3px; left: 0; width: 12px; height: 12px; border-top: 1px solid ${config.themeColor}; border-left: 1px solid ${config.themeColor}; z-index: 5; pointer-events: none; }
             .ks-draggable-panel.collapsed { transform: translateX(${config.width}); }
             @keyframes ks-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
             @keyframes ks-scan  { to{transform:translateY(50%)} }
@@ -855,9 +775,7 @@
 	    el.dataset.wOrigStyle = el.getAttribute('style') || '';
 	    el.classList.add('ks-unlocked');
 	    Object.entries(STYLE_PROPS).forEach(([p, v]) => el.style.setProperty(p, v, 'important'));
-	  } catch (err) {
-	    console.warn('[unlockElement] hata:', err, el);
-	  }
+	  } catch (err) { console.warn('[unlockElement] hata:', err, el); }
 	}
 	function lockElement(el) {
 	  try {
@@ -871,31 +789,16 @@
 	    el.classList.remove('ks-unlocked');
 	  } catch (err) { console.warn('[lockElement] hata:', err, el); }
 	}
-	function collectElements(root = document) {
-	  const els = [...root.querySelectorAll(SELECTOR)];
-	  root.querySelectorAll('*').forEach(node => {
-	    if (node.shadowRoot) els.push(...collectElements(node.shadowRoot));
-	  });
-	  return els;
-	}
+	function collectElements(root = document) { const els = [...root.querySelectorAll(SELECTOR)]; root.querySelectorAll('*').forEach(node => { if (node.shadowRoot) els.push(...collectElements(node.shadowRoot)); }); return els; }
 	let _observer = null;
 	function startObserver() {
 	  if (_observer) return;
 	  _observer = new MutationObserver((mutations) => {
-	    mutations.forEach((m) => {
-	      m.addedNodes.forEach((node) => {
-	        if (node.nodeType !== Node.ELEMENT_NODE) return;
-	        const targets = node.matches(SELECTOR) ? [node] : [...node.querySelectorAll(SELECTOR)];
-	        targets.forEach(unlockElement);
-	      });
-	    });
-	  });
+	    mutations.forEach((m) => { m.addedNodes.forEach((node) => { if (node.nodeType !== Node.ELEMENT_NODE) return; const targets = node.matches(SELECTOR) ? [node] : [...node.querySelectorAll(SELECTOR)]; targets.forEach(unlockElement); }); }); });
 	  _observer.observe(document.body, { childList: true, subtree: true });
 	}
 	function stopObserver() { _observer?.disconnect(); _observer = null; }
-	const unlockAllElements = (s) => { const els = collectElements(); els.forEach(s ? unlockElement : lockElement); s ? startObserver() : stopObserver(); window._ksUnlocked = s;
-	  console.info(`[unlockAllElements] ${s ? 'Unlocked' : 'Locked'} — ${els.length} eleman`);
-	};
+	const unlockAllElements = (s) => { const els = collectElements(); els.forEach(s ? unlockElement : lockElement); s ? startObserver() : stopObserver(); window._ksUnlocked = s; console.info(`[unlockAllElements] ${s ? 'Unlocked' : 'Locked'} — ${els.length} eleman`); };
 	Object.defineProperty(window, 'isUnlocked', { get: () => window._ksUnlocked ?? false, set: (v) => unlockAllElements(!!v), configurable: true, });
     /* ══════════════════════════════════════════════════════
        STATUS BAR & SETTINGS MODAL
@@ -1662,7 +1565,6 @@
                                 <span id="hap-skor-val">--</span>
                             </div>
                             <div id="hap-chips">
-                                <div class="hap-chip hap-chip-n" id="hap-chip-total">-- Parça</div>
                                 <div class="hap-chip hap-chip-r" id="hap-chip-crit">-- Kritik</div>
                                 <div class="hap-chip hap-chip-y" id="hap-chip-high">-- Yüksek değer</div>
                                 <div class="hap-chip hap-chip-b" id="hap-chip-tutar">-- TL</div>
@@ -1701,20 +1603,24 @@
 						 	</div>
 					 	 </div>
 					</div>
-						<hr class="custom-line" id="action-divider">
-						<div id="action-section" class="ks-grid-container" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;">
-							<div class="ks-tooltip-container">
-								<button id="autoSelectBtn" class="ks-btn" style="width:100%;height:100%;">⚡ Ön Giriş</button>
-								<div class="ks-tooltip-box">
-									<strong>⚡ Otomatik Giriş (F4)</strong><br>
-									Kaza ihbar türü, Eksperiz şekli, Alkol durumu, Devir-Satış, Eksik/Aşkın Sigorta, Muafiyet, Taşınan yük, Ehliyet sınıfı ve Ekspertiz tarihi gibi seçimleri doğrulamayı unutmayın.
-								</div>
-							</div>
-						<div class="ks-tooltip-container">
-								<button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%;height:100%;" onclick="c('kaydet();')">💾 KAYDET</button>
-								<div class="ks-tooltip-box"><strong>💾 Kaydet (F2)</strong><br>Sitedeki kaydet butonları ile aynı işlevi görür.</div>
-							</div>
-						</div>
+					<hr class="custom-line" id="action-divider">
+					<div id="action-section" class="ks-grid-container" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:100%;">
+					    <div class="ks-tooltip-container">
+					        <button id="autoSelectBtn" class="ks-btn" style="width:100%;height:100%;">⚡ Ön Giriş</button>
+					        <div class="ks-tooltip-box">
+					            <strong>⚡ Otomatik Giriş (F4)</strong><br>
+					            Kaza ihbar türü, Eksperiz şekli, Alkol durumu, Devir-Satış, Eksik/Aşkın Sigorta, Muafiyet, Taşınan yük, Ehliyet sınıfı ve Ekspertiz tarihi gibi seçimleri doğrulamayı unutmayın.
+					        </div>
+					    </div>
+					    <div class="ks-tooltip-container">
+					        <button id="btnKaydetYeni" class="ks-btn-danger" style="width:100%;height:100%;" onclick="c('kaydet();')">💾 KAYDET</button>
+					        <div class="ks-tooltip-box"><strong>💾 Kaydet (F2)</strong><br>Sitedeki kaydet butonları ile aynı işlevi görür.</div>
+					    </div>
+					    <div class="ks-tooltip-container">
+					        <button id="btnKaydetvovo" class="ks-btn-danger" style="width:100%;height:100%;">💾 ZORLA KAYDET</button>
+					        <div class="ks-tooltip-box"><strong>💾 Zorla Kaydet</strong><br>Kaydetmeyi zorlar.</div>
+					    </div>
+					</div>
 					<div id="not-section">
 							<div id="custom-page-notes-container" style="width: 100%; dashed #444;">
 						<hr class="custom-line">
@@ -1751,6 +1657,61 @@
                     document.getElementById('hap-view-' + subTarget).classList.add('active');
                 });
             });
+			var vovoBtn = panelContent.querySelector('#btnKaydetvovo');
+            if (vovoBtn) {
+                vovoBtn.onclick = function(e) {
+                    e.preventDefault(); e.stopPropagation(); var w = unsafeWindow;
+                    // Orijinalleri sakla
+                    var orig_check_form2 = w.check_form2, orig_check_form = w.check_form, orig_kaydet_ok = w.kaydet_ok;
+					function geriAl() { w.check_form2 = orig_check_form2; w.check_form = orig_check_form; w.kaydet_ok = orig_kaydet_ok; }
+                    w.check_form2 = function() { w.$('#btnKaydet1').hide(); w.$('#btnKaydet2').hide(); return true; };
+                    w.check_form = function() { return true; };
+                    w.kaydet_ok = function() {
+                        var response = w.ajax1.response;
+                        console.log('ZORLA KAYDET RESPONSE:', response);
+                        // Şasi hatası
+                        if (response.indexOf('HAS_SASI_NO') !== -1) {
+                            var sasiEl = w.document.getElementById('HAS_SASI_NO');
+                            var origSasi = sasiEl.value;
+                            sasiEl.value = origSasi + '0'.repeat(17 - origSasi.length);
+                            for(var i=0; i<w.document.hasar.elements.length; i++){ var el = w.document.hasar.elements[i]; w.ajax1.setVar(el.name, el.type=='checkbox' ? (el.checked ? el.value : '') : el.value); }
+                            w.ajax1.runAJAX();
+                            setTimeout(function(){ sasiEl.value = origSasi; }, 2000);
+                            return;
+                        }
+                        // Marka hatası
+                        if (response.indexOf('HAS_MARKA_ID') !== -1) {
+                            w.alert('Marka seçilmeden kayıt yapılamaz!');
+                            w.$('#indicator_1').hide(); w.$('#indicator_2').hide(); w.$('#btnKaydet1').show(); w.$('#btnKaydet2').show(); geriAl(); return;
+                        }
+                        // Model yılı uyuşmazlığı
+                        if (response.indexOf('HAS_MODEL_ADI') !== -1) {
+                            var yilMatch = response.match(/seçiniz:\s*\\n\\n(\d{4})/);
+                            if (yilMatch) {
+                                var dogruYil = yilMatch[1];
+                                console.log('Doğru model yılı:', dogruYil);
+                                w.$('[name="HAS_MODEL_YILI"]').val(dogruYil);
+                                w.$('[name="HAS_MODEL_YILI_AB"]').val(dogruYil);
+                                if (w.document.getElementById('HAS_MODEL_YILI')) w.document.getElementById('HAS_MODEL_YILI').value = dogruYil;
+                                for(var ii=0; ii<w.document.hasar.elements.length; ii++){ var ell = w.document.hasar.elements[ii]; w.ajax1.setVar(ell.name, ell.type=='checkbox' ? (ell.checked ? ell.value : '') : ell.value); }
+                                w.ajax1.runAJAX();
+                                return;
+                            }
+                        }
+                        // Başarılı veya diğer hatalar
+                        var cleanResponse = response.replace(/<!--[\s\S]*?-->/g, '');
+                        var orig_alert = w.alert;
+                        w.alert = function(msg) { if (msg.indexOf('Kaydedilmiştir') !== -1) orig_alert(msg); else console.log('SUSTURULDU:', msg); };
+                        var lines = cleanResponse.split('\n');
+                        lines.forEach(function(line) { line = line.trim(); if (!line) return; try { eval(line); } catch(ex) { console.log('satır atlandı:', line); } });
+                        w.alert = orig_alert;
+                        w.$('#indicator_1').hide(); w.$('#indicator_2').hide(); w.$('#btnKaydet1').show(); w.$('#btnKaydet2').show();
+                        geriAl();
+                    };
+                    w.Uyarilari_Temizle();
+                    w.kaydet();
+                };
+            }
             /* F2 / F4 kısayolları */
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'F2') { e.preventDefault(); const btn = document.getElementById('btnKaydetYeni') || document.getElementsByName('btnKaydetYeni')[0]; if (btn && btn.offsetParent !== null) btn.click(); }
@@ -2137,8 +2098,7 @@
             // ─── HEDEF URL OLUŞTURUCU ────────────────────────────────────
             function buildTargetUrl() {
                 try {
-                    const extractYear = str => (String(str).match(/\b(19|20)\d{2}\b/) || [])[0] || '';
-                    const cleanModel = str => str.replace(/\d{2}\/\d{2}\/\d{4}.*/g, '').replace(/\(\s*\d+\s*\)/g, '').replace(/\s+/g, ' ').trim();
+                    const extractYear = str => (String(str).match(/\b(19|20)\d{2}\b/) || [])[0] || '', cleanModel = str => str.replace(/\d{2}\/\d{2}\/\d{4}.*/g, '').replace(/\(\s*\d+\s*\)/g, '').replace(/\s+/g, ' ').trim();
                     let m = '', yRaw = '', kStr = '0';
                     const isTrafik = document.getElementById('SIGORTA_SEKLI')?.value === '1';
                     if (magdurpanel) {
@@ -2149,27 +2109,17 @@
                         const hiddenInput = document.querySelector('input[name="MAGDUR_MARKA_ID"]');
                         const row = hiddenInput?.parentElement?.closest('tr')
                             || document.querySelector('td.acik')?.closest('tr');
-                        if (row) {
-                            const cells = row.querySelectorAll('td.acik');
-                            m = cells[2]?.innerText || '';
-                            yRaw = cells[3]?.innerText || '';
-                        }
+                        if (row) { const cells = row.querySelectorAll('td.acik'); m = cells[2]?.innerText || ''; yRaw = cells[3]?.innerText || ''; }
                     } else {
                         m = safeVal(document.getElementById('HAS_MODEL_ADI') || document.getElementById('MODEL_ADI'));
                         yRaw = safeVal(document.getElementById('HAS_MODEL_YILI') || document.getElementById('MODEL_YILI'));
                         kStr = safeVal(document.getElementById('HAS_KM')) || '0';
                     }
                     m = cleanModel(m);
-                    const y = extractYear(yRaw);
-                    const k = parseInt(kStr.replace(/\D/g, ''), 10) || 0;
+                    const y = extractYear(yRaw), k = parseInt(kStr.replace(/\D/g, ''), 10) || 0;
                     if (!m) return null;
-                    return {
-                        model: m, year: y, kmMin: k >= 100 ? Math.floor(k * 0.85) : null, kmMax: k >= 100 ? Math.ceil(k * 1.15) : null,
-                    };
-                } catch (err) {
-                    console.warn('[buildTargetUrl] Hata:', err);
-                    return null;
-                }
+                    return { model: m, year: y, kmMin: k >= 100 ? Math.floor(k * 0.85) : null, kmMax: k >= 100 ? Math.ceil(k * 1.15) : null, };
+                } catch (err) { console.warn('[buildTargetUrl] Hata:', err); return null; }
             }
             // ─── OTOMATİK ARAMA ─────────────────────────────────────────
             function startAutomatedSearch(isAnalyze, dom) {
@@ -2181,9 +2131,7 @@
                     const googleQuery = `site:sahibinden.com "${data.model}" ${data.year}`;
                     const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(googleQuery)}`;
                     GM_xmlhttpRequest({
-                        method: 'GET',
-                        url: googleUrl,
-                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0' },
+                        method: 'GET', url: googleUrl, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0' },
                         onload(gRes) {
                             try {
                                 const gDoc = new DOMParser().parseFromString(gRes.responseText, 'text/html');
@@ -2195,34 +2143,17 @@
                                 const cleanPath = finalUrl.pathname.replace(/\/(en)(\/|$)/gi, '/').replace(/\/(dizel|benzin|lpg|hibrit|elektrik)(\/|$)/gi, '/').replace(/\/(manual|otomatik|yari-otomatik)(\/|$)/gi, '/').replace(/\/+$/, '');
                                 finalUrl.pathname = cleanPath || '/';
                                 ['pagingOffset', 'pagingPage'].forEach(p => finalUrl.searchParams.delete(p));
-                                if (data.year) {
-                                    finalUrl.searchParams.set('a5_min', data.year);
-                                    finalUrl.searchParams.set('a5_max', data.year);
-                                    //finalUrl.searchParams.set('a90178_min', data.year);
-                                    //finalUrl.searchParams.set('a90178_max', data.year);
-                                }
-                                if (data.kmMin > 1000) {
-                                    finalUrl.searchParams.set('a4_min', data.kmMin);
-                                    finalUrl.searchParams.set('a4_max', data.kmMax);
-                                    //finalUrl.searchParams.set('a90180_min', data.kmMin);
-                                    //finalUrl.searchParams.set('a90180_max', data.kmMax);
-                                }
-                                if (isAnalyze) fetchPricesFromShb(finalUrl.toString(), resBox);
-                                else unsafeWindow.open(finalUrl.toString(), '_blank');
-                            } catch (err) {
-                                console.warn('[startAutomatedSearch] Google parse hatası:', err);
-                                if (isAnalyze && resBox) resBox.innerHTML = '❌ Google yanıtı işlenemedi.';
-                            }
+								//https://www.sahibinden.com/toyota-corolla-1.6-advance?pagingSize=50&a5_max=2015&a4_max=150000&a4_min=100000&a5_min=2015
+                                if (data.year) { finalUrl.searchParams.set('a5_max', data.year); }
+                                if (data.kmMin > 1000) { finalUrl.searchParams.set('a4_max', data.kmMax); }
+								if (data.year) { finalUrl.searchParams.set('a5_min', data.year); }
+                                if (data.kmMin > 1000) { finalUrl.searchParams.set('a4_min', data.kmMin); }
+                                if (isAnalyze) fetchPricesFromShb(finalUrl.toString(), resBox); else unsafeWindow.open(finalUrl.toString(), '_blank');
+                            } catch (err) { console.warn('[startAutomatedSearch] Google parse hatası:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Google yanıtı işlenemedi.'; }
                         },
-                        onerror(err) {
-                            console.warn('[startAutomatedSearch] İstek hatası:', err);
-                            if (isAnalyze && resBox) resBox.innerHTML = '❌ Ağ hatası oluştu.';
-                        }
+                        onerror(err) { console.warn('[startAutomatedSearch] İstek hatası:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Ağ hatası oluştu.'; }
                     });
-                } catch (err) {
-                    console.warn('[startAutomatedSearch] Genel hata:', err);
-                    if (isAnalyze && resBox) resBox.innerHTML = '❌ Beklenmeyen hata.';
-                }
+                } catch (err) { console.warn('[startAutomatedSearch] Genel hata:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Beklenmeyen hata.'; }
             }
             // ─── FİYAT VERİSİ ÇEKME & GELİŞMİŞ İSTATİSTİK ─────────────
             function fetchPricesFromShb(url, resBox) {
@@ -2391,17 +2322,19 @@
                 if (sigortaSekli === "2") { //kasko
                     clickCb('SAG1'); clickCb('SURUCU_BELGESI1'); clickCb('TESPIT_SEKLI1');
                     setVal('ONARIM_SURESI', location.href.includes("hepiyi") ? '15' : '10');
+                    setValSelect('KUSURLU', '-1');
+                    setVal('KUSUR_ORANI', '-1');
                 } else { //trafik
                     clickCb('SAG2'); clickCb('SURUCU_BELGESI0'); clickCb('TESPIT_SEKLI0');
                     setVal('SAG_NEDEN', 'Olay yeri fotoğrafları mevcuttur.');
                     setVal('ONARIM_SURESI', '10');
+                    setValSelect('KUSURLU', '0');
+                    setVal('KUSUR_ORANI', '100');
                 }
                 setVal('HAS_ARAC_SAHIBI', getValue('SB_SIGORTALI_ADI_C'));
-			    setVal('SB_ARACI_KULLANAN', "");setVal('SURUCU_KIMLIK_TIPI_DEGER', "");setVal('SURUCU_KIMLIK_TIPI', '-1'); //temizlik
+			    setVal('SB_ARACI_KULLANAN', ""); setVal('SURUCU_KIMLIK_TIPI_DEGER', ""); setVal('SURUCU_KIMLIK_TIPI', '-1'); //temizlik
                 setVal('MILLI_R_NO', getValue('IHBAR_TARIHI_YIL'));
                 setVal('EKSPERTIZ_SURESI', '1');
-                setValSelect('KUSURLU', '0');
-                setVal('KUSUR_ORANI', '100');
                 setVal('UZAKTAN_EKSPERTIZ','2');
                 //setVal('EHLIYET_SINIFI', 'B');
                 const gun = getValue('IHBAR_TARIHI_GUN'); const ay = getValue('IHBAR_TARIHI_AY'); const yil = getValue('IHBAR_TARIHI_YIL');
@@ -2412,11 +2345,8 @@
                 if (location.href.includes("ankara")) {
                     setVal('COKLU_EKSPER', '125');
                     setVal('ZABIT_TIPI_TRAMER', 'Anlaşmalı Tutanak');
-                    setVal('TAHMINI_HASAR', '20000');
-                } else {
-                    const th = document.getElementById('TAHMINI_HASAR');
-                    if (!th?.value || parseFloat(th.value) === 0) { setVal('TAHMINI_HASAR', '20000'); }
-                }
+                    setVal('TAHMINI_HASAR', '20000'); }
+			    else { const th = document.getElementById('TAHMINI_HASAR'); if (!th?.value || parseFloat(th.value) === 0) { setVal('TAHMINI_HASAR', '20000'); } }
                 alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
             });
             /* ===== 5. KONTROL VE HIGHLIGHT ===== */
@@ -2438,31 +2368,32 @@
                     watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
                     selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
                 } else {
-                    const watchFields = [ 'EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO',
-                        'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI',
-                        'MERNIS_NO', 'ZABIT_TIPI', 'KAZA_YERI', 'SB_ARACI_KULLANAN', 'SURUCU_KIMLIK_TIPI_DEGER', 'EKSPERTIZ_TARIHLERI',
-						'EKSPERTIZ_KESINLESTIRME_TARIHI_GUN','EKSPERTIZ_KESINLESTIRME_TARIHI_AY','EKSPERTIZ_KESINLESTIRME_TARIHI_YIL' ];
-                    const selectFields = [ 'SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI',
-                        'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI','HAS_MARKA_ID' ];
-					const tdGroups = [ { anchor: 'SB_SIGORTALI_ADI_C', fields:  ['SB_SIGORTALI_ADI_C', 'SB_SIGORTALI_ADI'], selects: ['SIRKETMI'] }, { anchor: 'SURUCU_KIMLIK_TIPI_DEGER', fields:  ['SURUCU_KIMLIK_TIPI_DEGER'], selects: ['SURUCU_KIMLIK_TIPI'] }, ];
-					tdGroups.forEach(({ anchor, fields, selects }) => {
-						const fieldBosMu = fields.some(id => getValue(id).trim() === ''), selectBosMu = selects.some(id => ['', '-1'].includes(getValue(id)));
-						setBgGroup(anchor, fieldBosMu || selectBosMu); });
-					setBg('UZAKTAN_EKSPERTIZ', getValue('UZAKTAN_EKSPERTIZ') === '0');
-					setBg('HAS_MODEL_ADI', getValue('HAS_MODEL_ADI').replace(/[()\s]/g, '') === '');
-                    setBg('TAHMINI_HASAR', parseNum('TAHMINI_HASAR') < 1000);
-                    setBg('HAS_KM', parseNum('HAS_KM') < 1);
-                    setBg('HAS_PIYASA', parseNum('HAS_PIYASA') < 1000);
-					setBg('DOSYA_SONUCLANDIRMA_DURUMU', getValue('DOSYA_SONUCLANDIRMA_DURUMU') === '0');
-                    const kazaZamaniSifirMi = getValue('KAZA_SAAT') === '0' && getValue('KAZA_DAKIKA') === '0';
-					const kusurluVal = getElByName('KUSURLU')?.value || '';
-					const kusurOraniVal = getValue('KUSUR_ORANI');
-					const kusurBosMu = kusurluVal === '-1' || kusurluVal === '' || (kusurluVal === '0' && kusurOraniVal === '-1');
-					setBgGroup('KUSUR_ORANI', kusurBosMu);
-                    setBg('KAZA_SAAT', kazaZamaniSifirMi);
-                    watchFields.forEach(id => setBg(id, getValue(id).trim() === '')); selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
-					const kusurluEl = document.getElementsByName('KUSURLU')[0];
-                }
+           		    const watchFields = [ 'EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO',
+										 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI', 'MERNIS_NO', 'ZABIT_TIPI', 'KAZA_YERI', 'SB_ARACI_KULLANAN',
+										 'SURUCU_KIMLIK_TIPI_DEGER', 'EKSPERTIZ_TARIHLERI', 'EKSPERTIZ_KESINLESTIRME_TARIHI_GUN','EKSPERTIZ_KESINLESTIRME_TARIHI_AY','EKSPERTIZ_KESINLESTIRME_TARIHI_YIL' ];
+           		   const selectFields = [ 'SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI',
+										 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI', 'HAS_MARKA_ID', 'KUSUR_ORANI', 'KUSURLU','BOLGE'];
+					const tdGroups = [
+           		        { anchor: 'SB_SIGORTALI_ADI_C', fields: ['SB_SIGORTALI_ADI_C', 'SB_SIGORTALI_ADI'], selects: ['SIRKETMI'] },
+           		        { anchor: 'SURUCU_KIMLIK_TIPI_DEGER', fields: ['SURUCU_KIMLIK_TIPI_DEGER'], selects: ['SURUCU_KIMLIK_TIPI'] },
+           		    ];
+           		    tdGroups.forEach(({ anchor, fields, selects }) => {
+           		        const fieldBosMu = fields.some(id => getValue(id).trim() === '');
+           		        const selectBosMu = selects.some(id => ['', '-1'].includes(getValue(id)));
+           		        setBgGroup(anchor, fieldBosMu || selectBosMu);
+           		    });
+           		    setBg('UZAKTAN_EKSPERTIZ', getValue('UZAKTAN_EKSPERTIZ') === '0');
+           		    setBg('HAS_MODEL_ADI', getValue('HAS_MODEL_ADI').replace(/[()\s]/g, '') === '');
+           		    setBg('TAHMINI_HASAR', parseNum('TAHMINI_HASAR') < 1000);
+           		    setBg('HAS_KM', parseNum('HAS_KM') < 1);
+           		    setBg('HAS_PIYASA', parseNum('HAS_PIYASA') < 1000);
+           		    setBg('DOSYA_SONUCLANDIRMA_DURUMU', getValue('DOSYA_SONUCLANDIRMA_DURUMU') === '0');
+           		    const kazaZamaniSifirMi = getValue('KAZA_SAAT') === '0' && getValue('KAZA_DAKIKA') === '0';
+           		    setBg('KAZA_SAAT', kazaZamaniSifirMi);
+           		    watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
+					if (location.href.includes("hepiyi")) {;}
+           		    selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
+           		}
             }
             if (ANALIZPANEL_hlt) { setInterval(highlightFields, 500); setInterval(updatePanel, 1500); }
         }
@@ -2471,7 +2402,7 @@
             c ? el.checked = v : el.value = v;
             ['input','change'].map(e => el.dispatchEvent(new Event(e, {bubbles:1})));
             const a = el.getAttribute(c ? 'onclick' : 'onchange');
-            if (a) try { new unsafeWindow.Function(a)() } catch(e){}
+            if (a) try { new unsafeWindow.Function(a)() } catch(e){;}
             if (window.jQuery) unsafeWindow.jQuery(el).trigger('change');
         };
     	const f = () => { const s = $s('SIRKETMI'), k = $s('KAZA_YERI');
@@ -2861,8 +2792,8 @@
 			<div class="ks-tooltip-container">
             	<button id="bYeni" class="btn-new btn-full">YENİ KAYIT</button>
             	<div class="ks-tooltip-box">
-            	    <strong>Bilgilendirme</strong><br>
-            	    Onarım bölümü geçici olarak kapalıdır.
+            	    <strong>Kayıt</strong><br>
+            	    Yeni manuel parça girişi için tıklanması zorunludur.
             	</div>
             </div>
             <div class="tm-section-title">PARÇA BİLGİLERİ</div>
@@ -2880,10 +2811,7 @@
             	    <label><input type="radio" name="islemTipi" value="degisim" checked> DEĞİŞİM</label>
             	    <label><input type="radio" name="islemTipi" value="onarim" disabled> ONARIM</label>
             	</div>
-                <div class="ks-tooltip-box">
-                    <strong>Bilgilendirme</strong><br>
-                    Onarım bölümü geçici olarak kapalıdır.
-                </div>
+                <div class="ks-tooltip-box"><strong>Bilgilendirme</strong><br>Onarım bölümü geçici olarak kapalıdır.</div>
             </div>
 			<div class="ks-tooltip-container">
             	<div class="radio-container">
@@ -2891,20 +2819,14 @@
                     <label> <input type="radio" name="kod_secim" value="esdeger"> EŞDEĞER </label>
                     <label> <input type="radio" name="kod_secim" value="bos"> BOŞ </label>
                 </div>
-                <div class="ks-tooltip-box">
-                    <strong>Parça Türü</strong><br>
-                    Seçim türüne göre otomatik doldurur.
-                </div>
+                <div class="ks-tooltip-box"><strong>Parça Türü</strong><br>Seçim türüne göre otomatik doldurur.</div>
             </div>
 			<div class="ks-tooltip-container">
                 <div class="radio-container red-alrt-bg">
                     <label class="white-text"> <input type="radio" name="kayit_secim" value="kayit" checked> OTOM. KAYDET </label>
                     <label class="white-text"> <input type="radio" name="kayit_secim" value="nonkayit"> KAYDETME </label>
                 </div>
-                <div class="ks-tooltip-box">
-                    <strong>Otomatik Kayıt</strong><br>
-                    Parçayı kaydetmeye çalışır, <b>10</b> defa dener. Sorunsuz kayıt işlerken "<b>UYARI Bu Kodlu Parça Bu Dosyaya Zaten Eklenmiş..</b>" şeklinde uyarı alacaksınız <b>Enter</b>'tuşuna basarak devam edin.
-                </div>
+                <div class="ks-tooltip-box"><strong>Otomatik Kayıt</strong><br>Parçayı kaydetmeye çalışır, <b>10</b> defa dener. Sorunsuz kayıt işlerken "<b>UYARI Bu Kodlu Parça Bu Dosyaya Zaten Eklenmiş..</b>" şeklinde uyarı alacaksınız <b>Enter</b>'tuşuna basarak devam edin.</div>
             </div>
             <div class="tm-section-title">GİRİŞ TÜRÜ</div>
 			<div class="ks-tooltip-container">
@@ -2943,11 +2865,7 @@
                 <button id="b_donyan" class="btn-brown">EŞDEĞERE ÇEVİR</button>
             </div>
             `;
-            const toggleBtn = document.createElement("div");
-            toggleBtn.id = "tm-toggle";
-            toggleBtn.innerHTML = isClosed ? "◀" : "▶";
-            document.body.appendChild(panel);
-            document.body.appendChild(toggleBtn);
+            const toggleBtn = document.createElement("div"); toggleBtn.id = "tm-toggle"; toggleBtn.innerHTML = isClosed ? "◀" : "▶"; document.body.appendChild(panel); document.body.appendChild(toggleBtn);
             /* ===== 3. PANEL LOGIC (Kapatma/Açma) ===== */
             toggleBtn.onclick = () => { const closed = panel.classList.toggle("closed"); document.body.classList.toggle("panel-closed", closed); toggleBtn.innerHTML = closed ? "◀" : "▶"; localStorage.setItem('tm_panel_closed', closed); };
             //adet kontrolü
@@ -3581,9 +3499,9 @@
 						    const selectedText = selectEl.options[selectEl.selectedIndex]?.text || nextVal;
 						    tip.innerHTML = `<b>${btnData.t}</b><br><span style="color:#ffe082;">${selectedText}</span>`;
 						    if (btnData.note && noteArea) { noteArea.value = btnData.note; noteArea.dispatchEvent(new Event('input', { bubbles: true })); noteArea.dispatchEvent(new Event('change', { bubbles: true })); }
-         					 //-- Evrak türünüde seçer
+         					//-- Evrak türünüde seçer
 							const tipiSelect = parentTd.querySelector('select[name^="EVRAK_TIPI_"]');
-        					if (tipiSelect) { tipiSelect.value = "1"; tipiSelect.dispatchEvent(new Event('change', { bubbles: true })); };
+        					if (tipiSelect) { tipiSelect.value = "0"; tipiSelect.dispatchEvent(new Event('change', { bubbles: true })); };
 						};
                         btnWrapper.appendChild(btn); btnWrapper.appendChild(tip); btnGroup.appendChild(btnWrapper);
                     });
@@ -3942,13 +3860,26 @@
     // Sbm Hızlı Seçim
     if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr/trm-police/genelSorguEksper")) {
         GM_addStyle(`
-        #hizli-secim-paneli { display: inline-block !important; vertical-align: middle !important; margin-left: 8px !important; white-space: nowrap !important; }
-        .hizli-btn {
-            border: none !important; color: white !important; padding: 4px 8px !important; margin: 0 2px !important;
-            cursor: pointer !important; border-radius: 3px !important; font-weight: bold !important; font-size: 11px !important;
-            display: inline-block !important; transition: opacity 0.2s;
-        }
-    	`);
+            #hizli-secim-paneli {
+                display: block !important;
+                width: 100% !important;
+                margin-bottom: 4px !important;
+                padding: 5px !important;
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 4px !important;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
+                box-sizing: border-box !important;
+            }
+            .hizli-btn {
+                border: none !important; color: white !important; padding: 6px 12px !important; margin: 5px !important;
+                cursor: pointer !important; border-radius: 6px !important; font-weight: 700 !important; font-size: 13px !important;
+                display: inline-block !important; transition: all 0.2s ease;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+            }
+            .hizli-btn:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important; }
+            .hizli-btn:active { transform: translateY(0); }
+        `);
         var sirketler = [
             { ad: "TÜRKİYE (TS)", kod: "026", renk: "#1e3a8a" },
             { ad: "MAPFRE", kod: "050", renk: "#e11d48" },
@@ -3966,29 +3897,25 @@
         ];
         var checkExist = setInterval(function () {
             var selectBox = document.getElementById('sigortaSirketKod');
-            if (selectBox && !document.getElementById('hizli-secim-paneli')) {
-                selectBox.style.display = 'inline-block';
-                selectBox.style.verticalAlign = 'middle';
+            var targetForm = document.getElementById('genelSorguEksperForm');
+            if (selectBox && targetForm && !document.getElementById('hizli-secim-paneli')) {
                 var container = document.createElement('div');
                 container.id = 'hizli-secim-paneli';
-                for (var i = 0; i < sirketler.length; i++) {
-                    (function (idx) {
-                        var sirket = sirketler[idx], btn = document.createElement('button');
-                        btn.className = 'hizli-btn'; btn.innerHTML = sirket.ad;
-                        btn.style.backgroundColor = sirket.renk; btn.setAttribute('type', 'button');
-                        btn.onclick = function (e) {
-                            if (e.preventDefault) { e.preventDefault(); } if (e.stopPropagation) { e.stopPropagation(); }
-                            selectBox.value = sirket.kod;
-                            if ("createEvent" in document) { var evt = document.createEvent("HTMLEvents"); evt.initEvent("change", true, true); selectBox.dispatchEvent(evt); }
-							else if ("fireEvent" in selectBox) { selectBox.fireEvent("onchange"); }
-                            if (window.jQuery) { window.jQuery(selectBox).trigger('change'); }
-                            btn.style.opacity = '0.5';
-                            setTimeout(function () { btn.style.opacity = '1'; }, 200);
-                        };
-                        container.appendChild(btn);
-                    })(i);
-                }
-                selectBox.parentNode.insertBefore(container, selectBox.nextSibling);
+                sirketler.forEach(function (s) {
+                    var btn = document.createElement('button');
+                    btn.className = 'hizli-btn'; btn.innerHTML = s.ad;
+                    btn.style.backgroundColor = s.renk; btn.type = 'button';
+                    btn.onclick = function (e) {
+                        e.preventDefault(); e.stopPropagation();
+                        selectBox.value = s.kod;
+                        var r = document.getElementById('eksperAtamaTipi1');
+                        if (r) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
+                        selectBox.dispatchEvent(new Event('change', { bubbles: true }));
+                        if (window.jQuery) { window.jQuery(selectBox).trigger('change'); }
+                    };
+                    container.appendChild(btn);
+                });
+                targetForm.parentNode.insertBefore(container, targetForm);
             }
         }, 1000);
     }
