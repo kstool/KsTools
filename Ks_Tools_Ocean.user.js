@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.11
+// @version      1.12
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -15,7 +15,10 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
     'use strict';
     const url = unsafeWindow.location.href.toLowerCase();
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
+	const isTargetPage = url.includes("otohasar") && (url.includes("login") || url.includes("loginfrm"));
     if (blockedGroups.some(word => url.includes(word))) { return; }
+    if (!(url.includes("otohasar") && url.includes("loginfrm")))
+	{
     const urls = [
         "https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif",
         "https://i.pinimg.com/originals/80/7b/5c/807b5c4b02e765bb4930b7c66662ef4b.gif",
@@ -732,4 +735,188 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
     `;
     if (location.href.includes("otohasar") && location.href.includes("mapfre")) { GM_addStyle(mapfrefix); }
     if (location.href.includes("otohasar")) { GM_addStyle(oceanicTheme); if (location.href.includes("eks_hasar_yp_list")) { setTimeout(formatTedarikciler, 500); } }
+	}
+	else
+	{
+
+    // 2. HTML Temizliği
+    document.body.innerHTML = document.body.innerHTML.replace(/<br>/g, '');
+    document.body.removeAttribute('bgcolor');
+
+    // 3. CSS - Neon & Wave Design
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+        body {
+            background: #020617 !important;
+            /* Dinamik Gradyan ve Köşe Parlaması */
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.1) 0%, transparent 35%),
+                linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            overflow: hidden;
+        }
+
+        /* Neon Işımalı Panel */
+        form[name="giris"] {
+            background: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.3) !important;
+            border-radius: 12px !important;
+            padding: 50px !important;
+            width: 300px !important;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(99, 102, 201, 0.55) !important
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Panel Arkası Neon Işıma Efekti */
+        form[name="giris"]::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #6366f1, transparent, #06b6d4);
+            border-radius: 24px;
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.3;
+        }
+
+        /* Logo */
+        img[src*="logo"] {
+            width: 100px !important;
+            height: auto !important;
+            margin: 0 auto 20px !important;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+
+        /* Input Grupları */
+        .input-group {
+            margin-bottom: 15px !important;
+            text-align: left !important;
+        }
+
+        label {
+            color: #94a3b8 !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input {
+            width: 100% !important;
+            background: rgba(2, 6, 23, 0.8) !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 12px !important;
+            color: #fff !important;
+            padding: 10px 14px !important;
+            font-size: 13px !important;
+            box-sizing: border-box !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        input:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3) !important;
+            transform: translateY(-1px);
+        }
+		/* --- Güvenlik Kodu Yazısı ve Çerçevesi --- */
+        .labelGüvenlikKodu, .labelGüvenlikKodu b, .labelGüvenlikKodu font {
+            color: #ffffff !important; /* Yazı bembeyaz */
+            font-size: 11px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            display: inline-block !important;
+            font-weight: 600 !important;
+        }
+
+        /* Captcha Görselinin Etrafındaki Alan */
+        #loginimage, #LoginCaptchaForm_CaptchaImage {
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 2px !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+		#LoginCaptcha {
+            margin-top: 14px !important;
+        }
+
+
+        img[onclick*="reloadImages"] {
+            width: 18px !important; /* Ankara'daki dev butonu küçülttük */
+            height: 18px !important;
+            margin-left: 10px !important;
+            cursor: pointer;
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(180deg); /* Neon Cyan rengi yaptık */
+            transition: transform 0.3s;
+        }
+
+        img[onclick*="reloadImages"]:hover { transform: rotate(180deg); }
+
+        /* Giriş Butonu - Neon */
+        button {
+            width: 100% !important;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 12px !important;
+            font-weight: 800 !important;
+            font-size: 13px !important;
+            cursor: pointer !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4) !important;
+            transition: all 0.2s !important;
+        }
+
+        button:hover {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.6) !important;
+            transform: scale(1.02);
+        }
+
+        /* Linkler */
+        a[href*="sifremi"] {
+            color: #64748b !important;
+            font-size: 11px !important;
+            text-decoration: none !important;
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+        }
+        a:hover { color: #818cf8 !important; }
+    `;
+    document.head.appendChild(style);
+
+    // 4. Placeholder ve İsim Bağımsız Seçiciler
+    const inputs = [
+        { id: 'user_name', ph: 'Kullanıcı Adı' },
+        { id: 'user_pass', ph: 'Şifre' },
+        { id: 'customer_code', ph: 'Kurum Kodu' }
+    ];
+
+    inputs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) el.setAttribute('placeholder', item.ph);
+    });
+
+    // Ankara Sigorta'daki karışık isimli captcha inputunu bul ve düzelt
+    const captchaInput = document.querySelector('input[name*="guvenlikkodu"]');
+    if (captchaInput) {
+        captchaInput.setAttribute('placeholder', 'Güvenlik Kodu');
+        captchaInput.style.marginTop = "10px";
+    }
+	}
 })();
