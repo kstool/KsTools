@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.63
+// @version      1.64
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -38,7 +38,7 @@
     */
     const url = location.href.toLowerCase();
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
-    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart", "loginfrm", "login", "signin", "sign"];
+    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart", "signin", "sign"];
     if (!hedefSiteler.test(url) || blockedGroups.some(word => url.includes(word))) { return; }
     let config = { bottom: '0px', right: '0px', width: '250px', borderRadius: '4px', blur: '15px', themeColor: '#1cb2cd', backColor: '#3d3e41', Color: 'white', isCollapsed: false, wasDragging: false, zIndex: 3169999, isUnlocked: false };
     const getSetting = (key) => GM_getValue(key, true);
@@ -1316,6 +1316,7 @@
                         { key: 'KS_SAHIB', icon: '🏷️', title: 'Sahibinden', desc: 'Fiyat ortalaması gösteren panel', sub: false },
                         { key: 'KS_SBM', icon: '🏦', title: 'SBM Panel', desc: "SBM 3'lü bölme, resim indirme, ekran görüntüsü alma ve hızlı sigorta seçim ekleyen paneller", sub: false },
                         { key: 'KS_WP', icon: '💬', title: 'WhatsApp', desc: 'Resimlere çift tıklama hızlı indirme', sub: false },
+                        { key: 'KS_LGN', icon: '🏦', title: 'Login', desc: 'Otoanaliz için kurum kodunu otomatik doldurma', sub: false },
                     ]
                 }
             ];
@@ -1516,7 +1517,8 @@
         DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
         TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false),
         SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
-        WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false);
+        WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false),
+		LOGIN = GM_getValue('KS_LGN', false);
     // Hızlı ve Panel takipli Ön girişi
     if (KS_SYSTEM && ANALIZPANEL && location.href.includes("otohasar") && (location.href.includes("eks_hasar.php") || location.href.includes("eks_hasar_magdur.php"))) {
         const magdurpanel = location.href.includes("eks_hasar_magdur.php");
@@ -2346,8 +2348,9 @@
                     setVal('COKLU_EKSPER', '125');
                     setVal('ZABIT_TIPI_TRAMER', 'Anlaşmalı Tutanak');
                     setVal('TAHMINI_HASAR', '20000'); }
+			   	else if (location.href.includes("hepiyi")) {setVal('TAHMINI_HASAR', '');}
 			    else { const th = document.getElementById('TAHMINI_HASAR'); if (!th?.value || parseFloat(th.value) === 0) { setVal('TAHMINI_HASAR', '20000'); } }
-                alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
+                //alert('Ön giriş için otomatik seçimler tamamlandı. ✅');
             });
             /* ===== 5. KONTROL VE HIGHLIGHT ===== */
             function highlightFields() {
@@ -3285,7 +3288,43 @@
         const ayarlar = getSistemAyarlari();
         const style = document.createElement('style'); style.innerHTML = ``;
         document.head.appendChild(style);
-        // ── ÖNIZLEME DÜZELTME: Canvas'ları küçült + tıklayınca büyük aç ──
+
+        // ── RESIM SAYACI: Listede ve yüklenenler ──
+        const RESIM_LIMIT = 40;
+        function getResimSayilari() {
+            // Listede bekleyen (template-upload satırları)
+            const bekleyen = document.querySelectorAll('tr.template-upload').length;
+            // Başarıyla yüklenmiş (template-download satırları)
+            const yuklenen = document.querySelectorAll('tr.template-download').length;
+            const toplam = bekleyen + yuklenen;
+            return { bekleyen, yuklenen, toplam };
+        }
+        function updateSayacPanel() {
+            const sayacEl = document.getElementById('ks-resim-sayac');
+            const uyariEl = document.getElementById('ks-resim-uyari');
+            if (!sayacEl || !uyariEl) return;
+            const { bekleyen, yuklenen, toplam } = getResimSayilari();
+            let renkBG, renkTX; // Renk: limit aşıldıysa kırmızı, %80 üstü sarı, normal yeşil
+            if (toplam > RESIM_LIMIT) { renkBG = '#c0392b'; renkTX = '#fff';
+            } else if (toplam >= Math.floor(RESIM_LIMIT * 0.8)) { renkBG = '#e67e22'; renkTX = '#fff';
+            } else { renkBG = '#27ae60'; renkTX = '#fff'; }
+            sayacEl.style.background = renkBG;
+sayacEl.innerHTML = `
+    <div style="font-size:10px; color:${renkTX}; line-height:1.6; padding:2px 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 2px; box-sizing:border-box;">
+            <span>📋 Liste</span><b>${bekleyen}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 2px; box-sizing:border-box;">
+            <span>✅ Yüklendi</span><b>${yuklenen}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.35); margin-top:3px; padding-top:3px; text-align:center; font-size:10px; font-weight:bold; letter-spacing:0.2px;">
+            <span>TOPLAM:</span><b>${toplam}</b>
+        </div>
+    </div>`;
+            if (toplam > RESIM_LIMIT) { uyariEl.style.display = 'block'; uyariEl.innerHTML = `⚠️ <b>${toplam} resim!</b><br><span style="font-size:9px;">Limit: ${RESIM_LIMIT} — ${toplam - RESIM_LIMIT} fazla!</span>`; }
+			else { uyariEl.style.display = 'none'; }
+        }
+        // ── ÖNIZLEME DÜZELTME ──
         function fixPreviews() {
             if (!document.getElementById('ks-preview-style')) {
                 const s = document.createElement('style');
@@ -3308,9 +3347,7 @@
                         border: 2px solid #ccc !important;
                         border-radius: 4px !important;
                     }
-                    span.preview canvas:hover {
-                        border-color: #3498db !important;
-                    }
+                    span.preview canvas:hover { border-color: #3498db !important; }
                 `;
                 document.head.appendChild(s);
             }
@@ -3318,22 +3355,14 @@
                 const canvas = tr.querySelector('span.preview canvas');
                 if (!canvas || canvas.hasAttribute('data-click-fixed')) return;
                 canvas.setAttribute('data-click-fixed', 'true');
-                // Dosya adını tr'den al
                 const fileName = tr.getAttribute('fileuploadsatir');
                 canvas.addEventListener('click', () => {
                     let fileObj = null;
                     try {
                         const $table = window.jQuery && jQuery('table.table');
-                        if ($table && $table.length) {
-							const data = $table && $table.fileupload && $table.data('blueimp-fileupload');
-                            //const data = $table.fileupload && $table.data('blueimp-fileupload');
-                            if (data) { }
-                        }
+                        if ($table && $table.length) { const data = $table && $table.fileupload && $table.data('blueimp-fileupload'); if (data) { } } /*const data = $table.fileupload && $table.data('blueimp-fileupload');*/
                     } catch (e) { }
-                    if (!fileObj) {
-                        document.querySelectorAll('input[type=file]').forEach(inp => {
-                            if (inp.files) { Array.from(inp.files).forEach(f => { if (f.name === fileName) fileObj = f; }); } });
-                    }
+                    if (!fileObj) { document.querySelectorAll('input[type=file]').forEach(inp => { if (inp.files) { Array.from(inp.files).forEach(f => { if (f.name === fileName) fileObj = f; }); } }); }
                     if (!fileObj && window._ksFiles && window._ksFiles[fileName]) { fileObj = window._ksFiles[fileName]; }
                     if (fileObj) {
                         const reader = new FileReader();
@@ -3373,7 +3402,36 @@
             panel.style.setProperty('width', config.width); panel.style.setProperty('min-width', config.width);
             const panelContent = panel.querySelector('.ks-content'), headerTitle = panel.querySelector('.ks-header h4');
             if (headerTitle) headerTitle.innerText = "Resim Seçme";
-            panelContent.innerHTML = `<div id="ks-action-container" style="display: flex; flex-direction: column; gap: 2px; padding: 2px;"></div> <div id="ks-nav-container" style="padding: 4px;"></div>`;
+            panelContent.innerHTML = `
+                <div id="ks-action-container" style="display: flex; flex-direction: column; gap: 2px; padding: 2px;"></div>
+                <!-- SAYAÇ KUTUSU -->
+                <div id="ks-resim-sayac" style="
+                    margin: 4px 2px 2px 2px;
+                    padding: 5px 4px;
+                    border-radius: 5px;
+                    background: #27ae60;
+                    text-align: center;
+                    font-size: 10px;
+                    color: #fff;
+                    transition: background 0.3s;
+                ">📋 Yükleniyor...</div>
+                <!-- UYARI KUTUSU (gizli başlar) -->
+                <div id="ks-resim-uyari" style="
+                    display: none;
+                    margin: 2px 2px 2px 2px;
+                    padding: 4px 4px;
+                    border-radius: 4px;
+                    background: #c0392b;
+                    color: #fff;
+                    font-size: 10px;
+                    font-weight: bold;
+                    text-align: center;
+                    border: 2px solid #ff6b6b;
+                    animation: ks-blink 0.8s step-start infinite;
+                "></div>
+                <style> @keyframes ks-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } </style>
+                <div id="ks-nav-container" style="padding: 4px;"></div>`;
+
             const actionContainer = panelContent.querySelector('#ks-action-container'), navContainer = panelContent.querySelector('#ks-nav-container');
             const createMiniBtn = (text, color, targetSelector, val, tooltipTitle, tooltipDesc, isScroll = false) => {
                 const container = document.createElement('div');
@@ -3411,6 +3469,7 @@
             actionContainer.appendChild(createMiniBtn('HASAR', '#2c3e50', 'select[name^="PHOTO_CTG_ID_"]', '13', 'Kategori: Hasar', 'Tümünü Hasar Resimleri yapar.'));
             actionContainer.appendChild(createMiniBtn('ONARIM', '#c0392b', 'select[name^="PHOTO_CTG_ID_"]', ayarlar.ONARIM_SONRASI, 'Kategori: Onarım', 'Tümünü Onarım Resimleri yapar.'));
             navContainer.appendChild(createMiniBtn('▲ TEPEYE ÇIK', '#34495e', null, null, 'Navigasyon', 'Sayfayı en üste kaydırır.', true));
+            updateSayacPanel();// İlk sayacı hemen güncelle
         }
         // 2. SATIR İÇİ PANELLER
         function injectRowPanels() {
@@ -3482,7 +3541,8 @@
                         btn.type = "button";
                         Object.assign(btn.style, {
                             width: '45px', fontSize: '9px', padding: '2px 2px', cursor: 'pointer', background: btnData.color, color: 'white', border: 'none', borderRadius: '2px', fontWeight: 'bold',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)', transition: 'transform 0.1s, box-shadow 0.1s' });
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)', transition: 'transform 0.1s, box-shadow 0.1s'
+                        });
                         btn.onmousedown = () => { btn.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.5)'; };
                         btn.onmouseup = () => { btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)'; };
                         const tip = document.createElement('div');
@@ -3513,10 +3573,12 @@
         if (!window._ksFiles) {
             window._ksFiles = {};
             document.addEventListener('change', (e) => { if (e.target && e.target.type === 'file' && e.target.files) { Array.from(e.target.files).forEach(f => { window._ksFiles[f.name] = f; }); } }, true);
-            document.querySelectorAll('input[type=file]').forEach(inp => { if (inp.files) Array.from(inp.files).forEach(f => { window._ksFiles[f.name] = f; });
-            });
+            document.querySelectorAll('input[type=file]').forEach(inp => { if (inp.files) Array.from(inp.files).forEach(f => { window._ksFiles[f.name] = f; }); });
         }
-        function start() { initGeneralPanel(); injectRowPanels(); fixPreviews(); }
+
+        function start() {
+            initGeneralPanel(); injectRowPanels(); fixPreviews(); updateSayacPanel(); // her döngüde sayacı tazele
+        }
         setTimeout(start, 500); setInterval(start, 500);
     }
     // Resim yükleme kontrolü
@@ -3857,6 +3919,27 @@
         };
         console.log("Tampermonkey: Bildirim kontrolü ve override işlemleri tamamlandı.");
     }
+    // Giriş Sayfa oto doldurucu
+	if (KS_SYSTEM && LOGIN && location.href.includes("otohasar") && location.href.includes("loginfrm.php")) {
+        const fillAction = () => {
+            const el = document.querySelector('input#customer_code');
+            if (el && el.value !== '2851') {
+                el.value = '2851';
+                ['click', 'focus', 'input', 'change', 'blur'].forEach(type => {
+                    el.dispatchEvent(new Event(type, { bubbles: true }));
+                });
+            }
+        };
+
+        const runner = setInterval(fillAction, 250);
+        window.addEventListener('load', () => {
+            setTimeout(() => clearInterval(runner), 4000);
+        });
+
+        document.addEventListener('readystatechange', () => {
+            if (document.readyState === 'complete') fillAction();
+        });
+    }
     // Sbm Hızlı Seçim
     if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr/trm-police/genelSorguEksper")) {
         GM_addStyle(`
@@ -3896,28 +3979,43 @@
             { ad: "ALLIANZ", kod: "011", renk: "#003781" }
         ];
         var checkExist = setInterval(function () {
-            var selectBox = document.getElementById('sigortaSirketKod');
-            var targetForm = document.getElementById('genelSorguEksperForm');
-            if (selectBox && targetForm && !document.getElementById('hizli-secim-paneli')) {
-                var container = document.createElement('div');
-                container.id = 'hizli-secim-paneli';
-                sirketler.forEach(function (s) {
-                    var btn = document.createElement('button');
-                    btn.className = 'hizli-btn'; btn.innerHTML = s.ad;
-                    btn.style.backgroundColor = s.renk; btn.type = 'button';
-                    btn.onclick = function (e) {
-                        e.preventDefault(); e.stopPropagation();
-                        selectBox.value = s.kod;
-                        var r = document.getElementById('eksperAtamaTipi1');
-                        if (r) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
-                        selectBox.dispatchEvent(new Event('change', { bubbles: true }));
-                        if (window.jQuery) { window.jQuery(selectBox).trigger('change'); }
-                    };
-                    container.appendChild(btn);
-                });
-                targetForm.parentNode.insertBefore(container, targetForm);
-            }
-        }, 1000);
+        var selectBox = document.getElementById('sigortaSirketKod');
+        var targetForm = document.getElementById('genelSorguEksperForm');
+        var hasarInput = document.getElementById('hasarDosyaNo');
+
+        // Enter Basınca Arama Yapma Bölümü
+        if (hasarInput && !hasarInput.dataset.listenerAdded) {
+            hasarInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var searchBtn = document.querySelector('.js-btn--search');
+                    if (searchBtn) searchBtn.click();
+                }
+            });
+            hasarInput.dataset.listenerAdded = "true";
+        }
+
+        // Şirket Paneli Oluşturma Bölümü
+        if (selectBox && targetForm && !document.getElementById('hizli-secim-paneli')) {
+            var container = document.createElement('div');
+            container.id = 'hizli-secim-paneli';
+            sirketler.forEach(function (s) {
+                var btn = document.createElement('button');
+                btn.className = 'hizli-btn'; btn.innerHTML = s.ad;
+                btn.style.backgroundColor = s.renk; btn.type = 'button';
+                btn.onclick = function (e) {
+                    e.preventDefault(); e.stopPropagation();
+                    selectBox.value = s.kod;
+                    var r = document.getElementById('eksperAtamaTipi1');
+                    if (r) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
+                    selectBox.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (window.jQuery) { window.jQuery(selectBox).trigger('change'); }
+                };
+                container.appendChild(btn);
+            });
+            targetForm.parentNode.insertBefore(container, targetForm);
+        }
+    }, 1000);
     }
     // Sbm 3lü sayı bölme
     if (KS_SYSTEM && SBM && (location.href.includes("online.sbm.org.tr/trm-ktt/giris") || location.href.includes("online.sbm.org.tr/trm-ktt/sirket/listView"))) {
@@ -4059,12 +4157,14 @@
 	if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr") && location.href.includes("genelSorguEksper/sonuc.sbm")) {
 	    const takeScreenshot = async () => {
 	        const btn = document.getElementById('sbm-ss-btn'), myP = document.getElementById('tramer-panel');
-	        if (typeof html2canvas === 'undefined') {
-	            await new Promise(r => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload = r; document.head.appendChild(s); }); }
+	        if (typeof html2canvas === 'undefined') { await new Promise(r => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload = r; document.head.appendChild(s); }); }
+	        // Önce tepeye çık, render bekle
+	        window.scrollTo({ top: 0, behavior: 'instant' });
+	        await new Promise(r => setTimeout(r, 300));
 	        btn.style.display = 'none';
 	        if (myP) myP.style.display = 'none';
 	        try {
-            const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+            	const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
 	            const canvas = await html2canvas(document.body, {
                 y: 200, height: scrollHeight - 200, useCORS: true, allowTaint: true,
                 backgroundColor: "#ffffff", scale: 2, logging: false, windowHeight: scrollHeight,
@@ -4072,7 +4172,7 @@
 	                    clonedDoc.body.style.backgroundColor = "#ffffff"; clonedDoc.body.style.height = 'auto'; clonedDoc.body.style.overflow = 'visible';
 	                    clonedDoc.querySelectorAll('.polite__alert, #ks-global-status-indicator, .cc-window, #sbm-ss-btn, #tramer-panel, .ui-draggable-handle').forEach(e => e.remove()); }
 	            });
-	        const shasiRaw = [...document.querySelectorAll('.fieldset-body b')].find(el => el.innerText.includes('*'))?.innerText.trim();
+				const shasiRaw = [...document.querySelectorAll('.fieldset-body b')].find(el => el.innerText.includes('*'))?.innerText.trim();
 	            const shasi = shasiRaw ? shasiRaw.replace(/\*/g, '') : '';
 	            let rawName = document.querySelector('li.ui-tabs-active a, li[aria-selected="true"] a')?.innerText.trim().replace(/\s+/g, '_') || "SBM_Rapor";
 	            const nameMap = { 'KTT': 'KTT_SBM' };
@@ -4099,6 +4199,69 @@
 	    setTimeout(init, 500);
 	    setInterval(init, 2000);
 	}
+	if (KS_SYSTEM && SBM && location.href.includes("online.sbm.org.tr") && location.href.includes("listView.sbm")) {
+        const isTargetPage = () => { const mainTitle = document.querySelector('.main-title'); return mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı"); };
+        if (isTargetPage()) {
+            if (!document.getElementById('sbm-ss-style')) {
+                const style = document.createElement('style');
+                style.id = 'sbm-ss-style';
+                style.innerHTML = '@media print { #sbm-ss-btn { display: none !important; } }';
+                document.head.appendChild(style);
+            }
+            const takeScreenshot = async () => {
+                const btn = document.getElementById('sbm-ss-btn');
+                if (!btn) return;
+                if (typeof html2canvas === 'undefined') { await new Promise(r => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload = r; document.head.appendChild(s); }); }
+                // Önce tepeye çık, render bekle
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                await new Promise(r => setTimeout(r, 300));
+                btn.style.display = 'none';
+                const ksGlobal = document.getElementById('ks-global-status-indicator');
+                if (ksGlobal) ksGlobal.style.display = 'none';
+                try {
+                    const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, document.documentElement.offsetHeight);
+                    const canvas = await html2canvas(document.body, {
+                        y: 0, x: 0, height: scrollHeight, useCORS: true, allowTaint: true,
+                        backgroundColor: "#ffffff", scale: 2, logging: false, windowHeight: scrollHeight,
+                        onclone: (clonedDoc) => {
+                            clonedDoc.body.style.backgroundColor = "#ffffff";
+                            clonedDoc.body.style.height = 'auto';
+                            clonedDoc.body.style.overflow = 'visible';
+                            clonedDoc.querySelectorAll('.polite__alert, #ks-global-status-indicator, .cc-window, #sbm-ss-btn, .ui-draggable-handle, .dropdown--user, #menuArama').forEach(e => e.remove());
+                        }
+                    });
+                    const ihbarNo = [...document.querySelectorAll('.field--output')].find(el => el.querySelector('.field-label')?.innerText.includes('İhbar No'))?.querySelector('.field-controls')?.innerText.trim();
+                    const plakaRaw = document.querySelector('td[aria-describedby$="_plakaNo"], .ui-jqgrid-btable td:nth-child(3)')?.innerText.trim();
+                    const dosyaNo = document.querySelector('td[aria-describedby$="_dosyaNo"]')?.innerText.trim() || "KTT_SORGU";
+                    let name = ihbarNo ? `${ihbarNo}_KTT_SORGU` : (plakaRaw ? `${plakaRaw}_${dosyaNo}` : dosyaNo);
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/jpeg', 0.60);
+                    link.download = `${name.replace(/\s+/g, '_')}.jpg`;
+                    link.click();
+                } catch (err) {
+                    console.error("SS Hatası:", err);
+                } finally {
+                    btn.style.display = 'block';
+                    if (ksGlobal) ksGlobal.style.display = 'block';
+                }
+            };
+            const init = () => {
+                if (document.getElementById('sbm-ss-btn')) return;
+                const btn = document.createElement('button');
+                btn.id = 'sbm-ss-btn';
+                btn.innerText = '📸 Ekran Görüntüsü Al';
+                Object.assign(btn.style, {
+	           		position: 'fixed', bottom: '10px', right: '10px', zIndex: '1000000',
+	           		padding: '8px 12px', background: 'black', color: 'white',
+	            	border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+                });
+                btn.onclick = takeScreenshot;
+                document.body.appendChild(btn);
+            };
+            setTimeout(init, 200);
+            setInterval(init, 1000);
+        }
+    }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (KS_SYSTEM && SAHIBINDEN && location.href.includes("sahibinden.com") && !location.pathname.includes("/ilan/") && !location.pathname.includes("/kategori/")) {
         if (!location.search.includes("pagingSize=50")) { const url = new URL(location.href); url.searchParams.set("pagingSize", "50"); location.replace(url.href); }
