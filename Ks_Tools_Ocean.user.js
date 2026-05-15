@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.12
+// @version      1.13
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -311,36 +311,24 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
         tr:has(> .koyubaslik) {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-       /* 7.1 READONLY & DISABLED */
-		input:disabled,
-		select:disabled,
-		textarea:disabled,
-		input[readonly],
-		select[readonly],
-		textarea[readonly],
-		.box_disabled,
-		input[readonly]:focus,
-		input:disabled:focus,
-		textarea[readonly]:focus,
-		textarea:disabled:focus {
+        /* 7.1 READONLY & DISABLED */
+		:is(input, select, textarea):is([readonly], [readonly=""], :disabled),
+		:is(input, select, textarea):is([readonly], [readonly=""], :disabled):is(:hover, :focus, :active, :focus-visible) {
 		    background-color: var(--disabled) !important;
 		    color: var(--white) !important;
 		    border-color: var(--disabled) !important;
 		    cursor: not-allowed !important;
-		    opacity: 1 !important;
+		    opacity: 1 !important;outline: none !important;
 		    box-shadow: none !important;
 		    transform: none !important;
 		}
-		input[readonly]::selection,
-		input:disabled::selection,
-		textarea[readonly]::selection,
-		textarea:disabled::selection {
-		    background-color: var(--primary) !important;
+		:is(input, select, textarea)::selection {
+		    background-color: var(--disabled) !important;
 		    color: var(--white) !important;
 		}
-		input:disabled::placeholder,
-		input[readonly]::placeholder {
-		    color: rgba(240, 249, 255, 0.5) !important;
+		:is(input, select, textarea):is([readonly], [readonly=""], :disabled)::selection {
+		    background-color: var(--reddo-dark) !important;
+		    color: var(--white) !important;
 		}
 
         /* 8. ICON HOVER NEON EFFECT */
@@ -752,9 +740,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
             background: #020617 !important;
             /* Dinamik Gradyan ve Köşe Parlaması */
             background-image:
-                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 35%),
-                radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.1) 0%, transparent 35%),
-                linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+                radial-gradient(circle at 0% 0%, rgb(99 102 241 / 43%) 0%, transparent 35%), radial-gradient(circle at 100% 100%, rgb(6 182 212 / 33%) 0%, transparent 35%), linear-gradient(135deg, #020617 0%, #405178 100%) !important;
             height: 100vh !important;
             margin: 0 !important;
             display: flex !important;
@@ -772,7 +758,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
             border-radius: 12px !important;
             padding: 50px !important;
             width: 300px !important;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(99, 102, 201, 0.55) !important
+            box-shadow: 0 0 140px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(99, 102, 201, 0.75) !important;
             position: relative;
             z-index: 1;
         }
@@ -791,11 +777,11 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
 
         /* Logo */
         img[src*="logo"] {
-            width: 100px !important;
+            width: 150px !important;
             height: auto !important;
-            margin: 0 auto 20px !important;
+            margin: 0 auto 10px !important;
             display: block;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+            filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 3px rgba(0, 0, 0, 1)) !important;
         }
 
         /* Input Grupları */
@@ -805,20 +791,21 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
         }
 
         label {
-            color: #94a3b8 !important;
+            color: #a4caff !important;
             font-size: 10px !important;
             font-weight: 700 !important;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 6px;
-            display: block;
+            margin-bottom: 6px !important;
+            display: block !important;
         }
 
-        input {
+        input , .box {
             width: 100% !important;
+			height: 32px !important;
             background: rgba(2, 6, 23, 0.8) !important;
             border: 1px solid #1e293b !important;
-            border-radius: 12px !important;
+            border-radius: 6px !important;
             color: #fff !important;
             padding: 10px 14px !important;
             font-size: 13px !important;
@@ -842,28 +829,55 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
             font-weight: 600 !important;
         }
 
+        /* --- CAPTCHA YAN YANA HİZALAMA GÜNCELLEMESİ --- */
+        #LoginCaptchaForm_CaptchaDiv {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        #LoginCaptchaForm_CaptchaImageDiv {
+            display: block !important;
+            flex: 1 !important;
+            height: 32px !important; /* Çerçeve ve padding payı eklendi */
+        }
+
+        #LoginCaptchaForm_CaptchaIconsDiv {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 42px !important;
+            height: 32px !important;
+        }
+
         /* Captcha Görselinin Etrafındaki Alan */
         #loginimage, #LoginCaptchaForm_CaptchaImage {
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             border-radius: 8px !important;
             padding: 2px !important;
             background: rgba(255, 255, 255, 0.05) !important;
+            max-width: 100% !important;
+            height: auto !important;
+            box-sizing: border-box !important;
         }
 		#LoginCaptcha {
             margin-top: 14px !important;
         }
 
-
-        img[onclick*="reloadImages"] {
-            width: 18px !important; /* Ankara'daki dev butonu küçülttük */
+        /* Yenileme Butonu ve BotDetect Sınıfı Ayarları */
+        img[onclick*="reloadImages"], .LBD_ReloadIcon {
+            width: 18px !important;
             height: 18px !important;
-            margin-left: 10px !important;
             cursor: pointer;
-            filter: invert(1) sepia(1) saturate(5) hue-rotate(180deg); /* Neon Cyan rengi yaptık */
-            transition: transform 0.3s;
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(180deg) !important; /* Neon Cyan rengi */
+            transition: transform 0.3s !important;
         }
 
-        img[onclick*="reloadImages"]:hover { transform: rotate(180deg); }
+        img[onclick*="reloadImages"]:hover, .LBD_ReloadIcon:hover {
+            transform: rotate(180deg);
+        }
 
         /* Giriş Butonu - Neon */
         button {
@@ -889,7 +903,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
 
         /* Linkler */
         a[href*="sifremi"] {
-            color: #64748b !important;
+            color: #81a8e3 !important;
             font-size: 11px !important;
             text-decoration: none !important;
             display: block;
