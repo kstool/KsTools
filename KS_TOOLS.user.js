@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.67
+// @version      1.68
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -2581,13 +2581,28 @@
                 const rows = Array.from(document.querySelectorAll('tr'));
                 let results = [];
                 rows.forEach(row => {
+                    // Sadece tek hücreli etiket + checkbox içeren satırları al
+                    if (row.cells.length < 2) return;
+
                     const labelCell = row.cells[0] ? row.cells[0].innerText.trim().toUpperCase() : "";
-                    if (!labelCell) return; let masterId = null;
-                    for (let key in donanimSozlugu) { if (labelCell.includes(key)) { masterId = donanimSozlugu[key]; break; } }
+                    if (!labelCell) return;
+
+                    // DİĞER satırını atla
+                    if (labelCell === "DİĞER") return;
+
+                    // Etiket hücresi 50 karakterden uzunsa bu bir üst wrapper satırdır, atla
+                    if (labelCell.length > 50) return;
+
+                    let masterId = null;
+                    for (let key in donanimSozlugu) {
+                        if (labelCell.includes(key)) { masterId = donanimSozlugu[key]; break; }
+                    }
                     if (masterId) {
                         const inputs = row.querySelectorAll('input[type="checkbox"]');
-                        inputs.forEach(input => { const match = input.getAttribute('onclick')?.match(/donanim\('(\d+)',(\d+)\)/);
-                            if (match) { results.push({ masterId: masterId, originalId: match[1], val: parseInt(match[2]), cb: input }); } });
+                        inputs.forEach(input => {
+                            const match = input.getAttribute('onclick')?.match(/donanim\('(\d+)',(\d+)\)/);
+                            if (match) { results.push({ masterId: masterId, originalId: match[1], val: parseInt(match[2]), cb: input }); }
+                        });
                     }
                 });
                 return results;
@@ -2603,29 +2618,46 @@
 																Object.assign(btn.style, { background: '#00aa88', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '3px 6px', margin: '2px' });
 																btn.onclick = () => { setAciklama(aciklamaMetni); applyRules(ruleFn); }; panel.appendChild(btn); };
             /* ===== 5. BUTON TANIMLARI (KURALLAR) ===== */
-            // 2000 Benzin Kuralı
-			createBtn('2000~ Benzin', 'BENZİNLİ', (id) => {
+            // 2000~ Benzin
+            createBtn('2000~ Benzin', 'BENZİNLİ', (id) => {
+                const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
+                if (!izinli.includes(id)) return null;
                 if (id <= 10) return id === 4 ? 1 : 0;
                 if ([11, 12, 22].includes(id)) return id === 11 ? 1 : 0;
-                if ([23, 6, 24].includes(id)) return 0;
+                if (id === 23) return 0; // Benzin = değer 0
+                if (id === 6) return 0;
+                if (id === 24) return 0;
                 return null; });
-            // 2000 Dizel Kuralı
-			createBtn('2000~ Dizel', 'DİZEL', (id) => {
+
+            // 2000~ Dizel
+            createBtn('2000~ Dizel', 'DİZEL', (id) => {
+                const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
+                if (!izinli.includes(id)) return null;
                 if (id <= 10) return id === 4 ? 1 : 0;
                 if ([11, 12, 22].includes(id)) return 0;
-                if ([23, 6, 24].includes(id)) return id === 24 ? 1 : 0;
+                if (id === 23) return 1; // Dizel = değer 1
+                if (id === 6) return 0;
+                if (id === 24) return 1;
                 return null; });
-            // 2010+ Benzin Kuralı
-			createBtn('2010+ Benzin', 'BENZİNLİ', (id) => {
-                if ([1, 5, 9, 10, 11, 12, 22, 23, 24].includes(id)) return 0;
+
+            // 2010+ Benzin
+            createBtn('2010+ Benzin', 'BENZİNLİ', (id) => {
+                const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
+                if (!izinli.includes(id)) return null;
+                if ([1, 5, 9, 10, 11, 12, 22, 24].includes(id)) return 0;
+                if (id === 23) return 0; // Benzin = değer 0
                 if ([2, 3, 4, 7, 8].includes(id)) return 1;
                 return null; });
-            // 2010+ Dizel Kuralı
-			createBtn('2010+ Dizel', 'DİZEL', (id) => {
-                if ([1, 5, 9, 10, 11, 12, 22, 23].includes(id)) return 0;
+
+            // 2010+ Dizel
+            createBtn('2010+ Dizel', 'DİZEL', (id) => {
+                const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
+                if (!izinli.includes(id)) return null;
+                if ([1, 5, 9, 10, 11, 12, 22].includes(id)) return 0;
+                if (id === 23) return 1; // Dizel = değer 1
                 if ([2, 3, 4, 7, 8, 24].includes(id)) return 1;
                 return null; });
-			}
+		}
         // Başlatma
         if (document.readyState === 'complete') initPanel();
         else unsafeWindow.addEventListener('load', initPanel);
@@ -3270,7 +3302,7 @@
             SICIL: ['40'], SKAYIT: ['12'], GAZETE: ['40'], FAAL: ['65'],
             IRSALIYE: ['70'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['18'],
             MUTABAKAT: ['28'], MUVAFAKAT: ['39','79'], IBRA: ['33'], ALKOL: ['4'],
-            RAYIC: ['49','184'], TRAMER: ['48','210','48','48'], VERGI: ['9'], MASAK: ['162']
+            RAYIC: ['49','184'], TRAMER: ['210','48','48','48'], VERGI: ['9'], MASAK: ['162']
         };
         const hepiyi = {
             EHLİYET: ['1','195','239','196'], RUHSAT: ['7','92','238'],
@@ -3291,7 +3323,7 @@
             SICIL: ['95'], SKAYIT: ['86'], GAZETE: ['95'], FAAL: ['94'],
             IRSALIYE: ['26'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['6'],
             MUTABAKAT: ['28'], MUVAFAKAT: ['48'], IBRA: ['33','65'], ALKOL: ['4'],
-            RAYIC: ['78','76'], TRAMER: ['22','86'], VERGI: ['9','50'], MASAK: ['81']
+            RAYIC: ['78','76'], TRAMER: ['86','22','86','86'], VERGI: ['9','50'], MASAK: ['81']
         };
         const orient = { ...varsayilan };
         const ayarlar = (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre :
@@ -5243,8 +5275,7 @@
         };
         const processClipboard = async () => {
             try {
-                const text = await navigator.clipboard.readText();
-                const rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
+                const text = await navigator.clipboard.readText(), rows = text.split('\n').filter(l => l.trim()).map(line => line.split('\t'));
                 const dataMap = new Map();
                 rows.forEach(row => {
                     const cleanRow = row.map(item => item.trim());
@@ -5387,9 +5418,9 @@
                     modelYili = docMagdur.querySelector('#MODEL_YILI')?.value ?? '';
                 } else {
                     mernisNo = docEks.querySelector('#MERNIS_NO_C')?.value ?? '';
-                    sasiNo = docEks.querySelector('input[name="HAS_SASI_NO"]')?.value ?? '';
-                    motorNo = docEks.querySelector('input[name="HAS_MOTOR_NO"]')?.value ?? '';
-                    modelYili = docEks.querySelector('#HAS_MODEL_YILI')?.value ?? '';
+                    sasiNo = docEks.querySelector('input[name="HAS_SASI_NO"]')?.value || docEks.querySelector('input[name="SASI_NO"]')?.value || '';
+                    motorNo = docEks.querySelector('input[name="HAS_MOTOR_NO"]')?.value || docEks.querySelector('input[name="MOTOR_NO"]')?.value || '';
+                    modelYili = docEks.querySelector('#HAS_MODEL_YILI')?.value || docEks.querySelector('#MODEL_YILI')?.value || '';
                 }
                 if (modelYili && modelYili !== '-1' && modelYili !== '0') { setField('input[name="MODEL_YILI"]', modelYili); }
                 setField('input[name="MAGDUR_KIMLIK_NO"]', mernisNo);
@@ -5417,7 +5448,6 @@
                 // ── Kaynak 4: İlçe ───────────────────────────────────────────────
                 // TODO: ilçe kaynağı bulununca buraya eklenecek
                 // ── Sabit değerler ───────────────────────────────────────────────
-                // Araç kiralık mı → Hayır
                 const aracKiralikHayir = document.querySelector('input[name="ARAC_KIRALIKMI"][value="0"]'); if (aracKiralikHayir) { aracKiralikHayir.checked = true; }
                 const emKemeriHayir = document.querySelector('input[name="EMNIYET_KEMERI_KITLENMISMI"][value="0"]'); if (emKemeriHayir) { emKemeriHayir.checked = true; }
                 const havaYastigiHayir = document.querySelector('input[name="HAVA_YASTIGI_ACIK_MI"][value="0"]'); if (havaYastigiHayir) { havaYastigiHayir.checked = true; }
@@ -5425,8 +5455,8 @@
                 setSelect('select[name="HASARLI_BOLGE_SEBEP_NO"]', '0');
                 setSelect('select[name="KAZA_OLUS_SEKLI"]', '4');
                 setSelect('select[name="HASAR_NEDENI"]', '20');
-                /* ── Yeni kaynak eklemek için ──────────────────────────────────────
-                const extraHtml = await fetchPage(`${BASE}/eks/sayfa.php?id=${id}`), docExtra  = parseHtml(extraHtml);
+                // ── Yeni kaynak eklemek için ──────────────────────────────────────
+                /*const extraHtml = await fetchPage(`${BASE}/eks/sayfa.php?id=${id}`), docExtra  = parseHtml(extraHtml);
                 setField('input[name="HEDEF_ALAN"]', docExtra.querySelector('#KAYNAK_ID')?.value); */
                 butonDurum(btn, 'tamam'); setTimeout(() => butonDurum(btn, 'bekliyor'), 2500); setTimeout(() => highlightSdata(), 500);
             } catch (err) {
