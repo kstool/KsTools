@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.13
+// @version      1.14
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -14,7 +14,7 @@ https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
 (function () {
     'use strict';
     const url = unsafeWindow.location.href.toLowerCase();
-    const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
+    const blockedGroups = ["ankarasigorta.com.tr/loginfrm","yazdir", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
 	const isTargetPage = url.includes("otohasar") && (url.includes("login") || url.includes("loginfrm"));
     if (blockedGroups.some(word => url.includes(word))) { return; }
     if (!(url.includes("otohasar") && url.includes("loginfrm")))
