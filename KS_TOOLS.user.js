@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.68
+// @version      1.69
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -1301,6 +1301,7 @@
                     items: [
                         { key: 'KS_PANEL_hlt', icon: '🔦', title: 'Hücre Boyama', desc: 'Eksik-Boş alan renklendirme', sub: false },
                         { key: 'KS_MANU', icon: '🔩', title: 'Manuel Parça', desc: 'Tekli-Çoklu parça girişi panelleri', sub: false },
+						{ key: 'KS_PSAY', icon: 'S', title: 'Parça Sayısı', desc: 'Parça sayısı bölümüne istenen sayıyı seçilmesini sağlayan panel', sub: false },
                         { key: 'KS_REF', icon: '📌', title: 'Referans Panel', desc: 'Excel ile kopyalama yapıştırma fonksiyon butonları', sub: false },
                         { key: 'KS_DNM', icon: '⚙️', title: 'Donanım Girişi', desc: 'Araç donanımı hızlı giriş butonları', sub: false },
                         { key: 'KS_IMG', icon: '🖼️', title: 'Resim Yükleme', desc: 'Toplu evrak kategorisi', sub: false },
@@ -1484,9 +1485,7 @@
                 if (cancelBtn) {
                     cancelBtn.addEventListener('click', (e) => {
                         e.preventDefault(); e.stopPropagation();
-                        const keysToReset = [
-                            'KS_PANEL', 'KS_PANEL_hlt', 'KS_PANEL_pol', 'KS_PANEL_sgs', 'KS_PANEL_rc', 'KS_PANEL_pert', 'KS_PANEL_hsr', 'KS_PANEL_srtp', 'KS_PANEL_srad', 'KS_PANEL_tra', 'KS_PANEL_sad', 'KS_PANEL_aad', 'KS_PANEL_mull', 'KS_PANEL_ryc', 'KS_PANEL_rycorn', 'KS_PANEL_pys', 'KS_PANEL_not', 'KS_PANEL_hasar', 'KS_MANU', 'KS_REF', 'KS_DNM', 'KS_IMG', 'KS_TRS', 'KS_QCA', 'KS_SAHIB', 'KS_SBM', 'KS_WP', 'KS_NTF'
-                        ];
+                        const keysToReset = SECTIONS.flatMap(s => s.items.map(i => i.key)).concat(['KS_THEME']);
                         if (confirm('Ana kontrol hariç tüm alt özellikler kapatılacak ve hafıza sıfırlanacak. Onaylıyor musunuz?')) { keysToReset.forEach(key => GM_setValue(key, false));
                             GM_setValue('KS_SYS', true); alert('Alt özellikler kapatıldı. Sayfa yenileniyor!'); window.location.reload(); }
                     });
@@ -1499,6 +1498,44 @@
         };
         setInterval(injectPanel, 2000); injectPanel();
     }
+	// 🎲 %5 ihtimalle göster
+    const GIF_URL = 'https://media.tenor.com/yB6ozDoWij4AAAAj/honkai-star-rail-dance.gif';
+    const GIF_W = 100;
+    const GIF_H = 100;
+
+    const style = document.createElement('style');
+    style.textContent = `
+    #tm-gif-container { position: fixed; z-index: 2147483647; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; width: ${GIF_W}px; }
+    #tm-gif-container.tm-visible { opacity: 1; }
+    #tm-gif-container img { width: ${GIF_W}px !important; height: auto !important; display: block; }
+    `;
+    document.head.appendChild(style);
+
+    const container = document.createElement('div');
+    container.id = 'tm-gif-container';
+    const img = document.createElement('img');
+    img.src = GIF_URL;
+    img.alt = '';
+    img.draggable = false;
+    container.appendChild(img);
+    document.body.appendChild(container);
+
+    const attachToPanel = () => {
+      const panel = document.getElementById(PANEL_ID);
+      if (!panel) return false;
+      const updatePos = () => {
+        const rect = panel.getBoundingClientRect();
+        const realH = container.offsetHeight || GIF_H;
+        container.style.left = (rect.right - GIF_W) + 'px';
+        container.style.top = (rect.top - realH) + 'px';
+      };
+      panel.addEventListener('mouseenter', () => { if (window.isUnlocked === true) { container.classList.add('tm-visible'); setTimeout(updatePos, 10); } });
+      panel.addEventListener('mouseleave', () => { container.classList.remove('tm-visible'); });
+      panel.addEventListener('mousemove', () => { if (window.isUnlocked === true) { updatePos(); } else { container.classList.remove('tm-visible'); } });
+      return true;
+    };
+
+    const interval = setInterval(() => { if (attachToPanel()) clearInterval(interval); }, 500);
     /* ══════════════════════════════════════════════════════
        SETTINGS READ
     ══════════════════════════════════════════════════════ */
@@ -1513,7 +1550,7 @@
         ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
         ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false),
 		ANALIZPANEL_mulk= GM_getValue('KS_PANEL_mulk', false),ANALIZPANEL_uzak= GM_getValue('KS_PANEL_uzak', false),
-        MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false),
+        MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false), PSAY = GM_getValue('KS_PSAY', false),
         DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
         TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false),
         SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
@@ -2495,9 +2532,11 @@
                		}
            		}
 				// ── BUTON ONAY SERVİS ──────────────────────────────
+				// ── BUTON ONAY SERVİS ──────────────────────────────
                 const inp = document.querySelector('input[name="SERVIS_ADI"]');
                 const ara = document.querySelector('img[alt="SERVİS ARA"]');
                 if (!inp || !ara) return;
+                function getPageId() { const params = new URLSearchParams(window.location.search); return params.get('id') || 'unknown'; }
                 let onayBtn = document.getElementById('tm-onay-btn');
                 if (!onayBtn) {
                     onayBtn = document.createElement('button'); onayBtn.id = 'tm-onay-btn'; onayBtn.type = 'button';
@@ -2506,7 +2545,9 @@
                     onayBtn.addEventListener('click', function() {
                         const durum = getServisDurumu();
                         if (durum === 'eksik') { if (typeof ara.onclick === 'function') ara.onclick(); else ara.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
-                        const val = inp.value.trim(); if (!val) {return;} localStorage.setItem('onayli_servis', val); checkOnayDurumu();
+                        const val = inp.value.trim(); if (!val) {return;}
+                        localStorage.setItem('onayli_servis_' + getPageId(), val);
+                        checkOnayDurumu();
                     });
                 }
                 function getServisDurumu() {
@@ -2522,13 +2563,13 @@
                 function checkOnayDurumu() {
                     const durum = getServisDurumu();
                     const val = inp.value.trim();
-                    const onayliDeger = localStorage.getItem('onayli_servis');
+                    const onayliDeger = localStorage.getItem('onayli_servis_' + getPageId());
                     const onayliMi = durum === 'tamam' && val !== '' && val === onayliDeger;
                     if (durum === 'eksik') { onayBtn.disabled = false; onayBtn.innerText = 'Tekrar Seç'; onayBtn.style.background = '#e67e22'; onayBtn.style.cursor = 'pointer'; }
-                	else if (onayliMi) { onayBtn.disabled = true; onayBtn.innerText = 'Onaylandı ✓'; onayBtn.style.background = '#888'; onayBtn.style.cursor = 'not-allowed'; }
-                	else { onayBtn.disabled = false; onayBtn.innerText = 'Onayla'; onayBtn.style.background = '#4CAF50'; onayBtn.style.cursor = 'pointer'; }
+                    else if (onayliMi) { onayBtn.disabled = true; onayBtn.innerText = 'Onaylandı ✓'; onayBtn.style.background = '#888'; onayBtn.style.cursor = 'not-allowed'; }
+                    else { onayBtn.disabled = false; onayBtn.innerText = 'Onayla'; onayBtn.style.background = '#4CAF50'; onayBtn.style.cursor = 'pointer'; }
                 }
-                inp.addEventListener('change', checkOnayDurumu);inp.addEventListener('input', checkOnayDurumu);checkOnayDurumu();
+                inp.addEventListener('change', checkOnayDurumu); inp.addEventListener('input', checkOnayDurumu); checkOnayDurumu();
             }
 			if (ANALIZPANEL_hlt) { setInterval(highlightFields, 500); setInterval(updatePanel, 1000); }
         }
@@ -2804,13 +2845,13 @@
                 --transition-speed: 0.4s;
                 --toggle-loc: 250px;
             }
-			body {
+			/*body {
 			    transition: margin-right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
 			    margin-right: 260px !important;
 			}
 			body.panel-closed {
 			    margin-right: 0 !important;
-			}
+			}*/
 			#tm-panel {
                 position: fixed; top: 0; right: 0; width: 250px; height: 100vh;
                 background: var(--panel-bg);
@@ -3033,8 +3074,31 @@
             </div>
             `;
             const toggleBtn = document.createElement("div"); toggleBtn.id = "tm-toggle"; toggleBtn.innerHTML = isClosed ? "◀" : "▶"; document.body.appendChild(panel); document.body.appendChild(toggleBtn);
+			// ── BURAYA TAŞI ──
+			const PANEL_W = 260;
+			const applyMargin = () => {
+			    const isClosed = panel.classList.contains('closed');
+			    const margin = isClosed ? 0 : PANEL_W;
+			    const targets = [
+			        document.body,
+			        document.getElementById('content'),
+			        document.getElementById('main'),
+			        document.getElementById('wrapper'),
+			        document.querySelector('.container'),
+			        document.querySelector('form'),
+			        document.querySelector('table:first-of-type'),
+			    ].filter(Boolean);
+			    targets.forEach(el => {
+			        const computed = window.getComputedStyle(el);
+			        if (['fixed','absolute'].includes(computed.position)) return;
+			        el.style.transition = `margin 0.4s cubic-bezier(0.4,0,0.2,1)`;
+			        if (isClosed) { el.style.marginRight = 'auto'; el.style.marginLeft = 'auto'; } else { el.style.marginRight = `${margin}px`; el.style.marginLeft = `${margin / 6}px`; }
+			    });
+			};
+			document.querySelectorAll('*').forEach(el => { if (el.offsetWidth > 600 && el.offsetWidth < window.innerWidth) console.log(el.tagName, el.id, el.className, el.offsetWidth);});
+			applyMargin();
             /* ===== 3. PANEL LOGIC (Kapatma/Açma) ===== */
-            toggleBtn.onclick = () => { const closed = panel.classList.toggle("closed"); document.body.classList.toggle("panel-closed", closed); toggleBtn.innerHTML = closed ? "◀" : "▶"; localStorage.setItem('tm_panel_closed', closed); };
+            toggleBtn.onclick = () => { const closed = panel.classList.toggle("closed"); document.body.classList.toggle("panel-closed", closed); toggleBtn.innerHTML = closed ? "◀" : "▶"; localStorage.setItem('tm_panel_closed', closed); applyMargin(); };
             //adet kontrolü
             const adetInput = document.getElementById('tm_adet');
             if (adetInput) {
@@ -3176,6 +3240,7 @@
             $("b_aks").onclick = async () => { await MainFields(); await SideFields("28", "540"); };
             $("b_amblem").onclick = async () => { await MainFields(); await SideFields("23", "535"); };
             $("b_braket").onclick = async () => { await MainFields(); await SideFields("27", "539"); };
+            $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); };
             $("b_diger").onclick = async () => { await MainFields(); await SideFields("6", ""); };
             //---------------------------
             $("b_gnlonar").onclick = async () => {
@@ -3191,14 +3256,107 @@
                 submitForm();
             };
             setInterval(() => { const realInput = document.getElementById("PARCA_KODU"); if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blinlink"); else refs.bYeni.classList.remove("blinlink"); }, 1000); }
-        const init = () => { if (typeof initPanel === 'function') initPanel();
-            setTimeout(() => { const checkTarget = document.getElementById("SUREKLI"); if (checkTarget && !checkTarget.checked) checkTarget.click(); }, 1000); };
-        const focusTarget = () => { const input = document.getElementById('tm_kod');
-            if (input) { input.focus(); input.select(); return true; } return false; };
+        const init = () => { if (typeof initPanel === 'function') initPanel(); setTimeout(() => { const checkTarget = document.getElementById("SUREKLI"); if (checkTarget && !checkTarget.checked) checkTarget.click(); }, 1000); };
+        const focusTarget = () => { const input = document.getElementById('tm_kod'); if (input) { input.focus(); input.select(); return true; } return false; };
         if (document.readyState === "complete") init(); else unsafeWindow.addEventListener('load', init);
 		const observer = new MutationObserver(() => { if (focusTarget()) observer.disconnect(); });
         observer.observe(document.documentElement, { childList: true, subtree: true });
         window.addEventListener("load", () => { setTimeout(focusTarget, 200); }, { once: true });
+    }
+	if (KS_SYSTEM && PSAY && loc("otohasar") && loc("eks_hasar_yedpar_yeni_ref.php")) {
+        const patchAdet = () => {
+            const sel = document.querySelector('select[name="ADET"], input[name="ADET"]');
+            if (!sel || sel.dataset.ksPatch) return;
+            sel.dataset.ksPatch = '1';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = '▾';
+            btn.style.cssText = `
+                margin-left:3px;width:18px;height:18px;border:1px solid #aaa;
+                border-radius:3px;background:#2980b9;color:#fff;font-size:11px;
+                font-weight:700;cursor:pointer;line-height:1;padding:0;vertical-align:middle;
+            `;
+
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                display:none;position:absolute;left:0;top:calc(100% + 2px);z-index:999999;
+                background:#fff;border:1px solid #aaa;border-radius:6px;
+                padding:4px;box-shadow:0 4px 12px rgba(0,0,0,.2);
+                flex-wrap:wrap;gap:3px;width:328px;
+            `;
+
+            for (let i = 1; i <= 100; i++) {
+                const nb = document.createElement('button');
+                nb.type = 'button';
+                nb.textContent = i;
+                nb.style.cssText = `
+                    width:30px;height:26px;border:1px solid #ddd;border-radius:3px;
+                    background:#f8f8f8;color:#333;font-size:12px;font-weight:600;
+                    cursor:pointer;padding:0;
+                `;
+                nb.onmouseenter = () => { nb.style.background = '#2980b9'; nb.style.color = '#fff'; nb.style.borderColor = '#2980b9'; };
+                nb.onmouseleave = () => {
+                    const active = parseInt(sel.value) === i;
+                    nb.style.background = active ? '#27ae60' : '#f8f8f8';
+                    nb.style.color = active ? '#fff' : '#333';
+                    nb.style.borderColor = active ? '#27ae60' : '#ddd';
+                };
+                nb.onmousedown = (e) => {
+                    e.preventDefault();
+                    if (sel.tagName === 'SELECT') {
+                        let opt = sel.querySelector(`option[value="${i}"]`);
+                        if (!opt) { opt = document.createElement('option'); opt.value = i; opt.textContent = i; sel.appendChild(opt); }
+                        sel.value = i;
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                        if (window.jQuery) jQuery(sel).trigger('change');
+                    } else {
+                        sel.value = i;
+                        sel.dispatchEvent(new Event('input', { bubbles: true }));
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                        sel.blur();
+                    }
+                    popup.querySelectorAll('button').forEach((b, idx) => {
+                        const isActive = (idx + 1) === i;
+                        b.style.background = isActive ? '#27ae60' : '#f8f8f8';
+                        b.style.color = isActive ? '#fff' : '#333';
+                        b.style.borderColor = isActive ? '#27ae60' : '#ddd';
+                    });
+                    popup.style.display = 'none';
+                };
+                popup.appendChild(nb);
+            }
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const open = popup.style.display === 'none';
+                popup.style.display = open ? 'flex' : 'none';
+                if (open) {
+                    // Mevcut değeri yeşil yap
+                    const cur = parseInt(sel.value) || 1;
+                    popup.querySelectorAll('button').forEach((b, idx) => {
+                        const isActive = (idx + 1) === cur;
+                        b.style.background = isActive ? '#27ae60' : '#f8f8f8';
+                        b.style.color = isActive ? '#fff' : '#333';
+                        b.style.borderColor = isActive ? '#27ae60' : '#ddd';
+                    });
+                }
+            };
+
+            // Dışarı tıklayınca kapat — mousedown ile yakala ki click'ten önce çalışsın
+            document.addEventListener('mousedown', (e) => {
+                if (!wrap.contains(e.target)) popup.style.display = 'none';
+            });
+
+            const wrap = document.createElement('span');
+            wrap.style.cssText = 'position:relative;display:inline-block;vertical-align:middle;';
+            sel.parentNode.insertBefore(wrap, sel.nextSibling);
+            wrap.appendChild(btn);
+            wrap.appendChild(popup);
+        };
+
+        setTimeout(patchAdet, 300);
+        setInterval(patchAdet, 1000);
     }
     // Hızlı Çoklu Parça girişi
     if (KS_SYSTEM && MANUEL && loc("otohasar") && loc("eks_hasar_yedpar_multi.php") && !loc("eks_hasar_yedpar_multi_form.php")) {
@@ -3282,7 +3440,7 @@
             NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['32'],
             MUTABAKAT: ['211','28'], MUVAFAKAT: ['111'], IBRA: ['33'],
             ALKOL: ['4'], RAYIC: ['231','184'], TRAMER: ['230','229','228','230'],
-            VERGI: ['9','221'], MASAK: ['248']
+            VERGI: ['9','221'], MASAK: ['248'], MESLEK: ['']
         };
         const atlas = {
             EHLİYET: ['1','195','196'], RUHSAT: ['7','92','38'],
@@ -3294,7 +3452,7 @@
             MUVAFAKAT: ['111','56','57','101','130'], IBRA: ['33','132','212'],
             ALKOL: ['4'], RAYIC: ['184'], TRAMER: ['12','12','12','12'],
             VERGI: ['9','221','208','62'], MASAK: ['12'],
-            IHRACAT_REFAKAT: ['133'], TASIT_BELGESI: ['177']
+            IHRACAT_REFAKAT: ['133'], TASIT_BELGESI: ['177'], MESLEK: ['']
         };
         const mapfre = {
             EHLİYET: ['121','120'], RUHSAT: ['143','144'], KTT: ['36','11'],
@@ -3302,7 +3460,7 @@
             SICIL: ['40'], SKAYIT: ['12'], GAZETE: ['40'], FAAL: ['65'],
             IRSALIYE: ['70'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['18'],
             MUTABAKAT: ['28'], MUVAFAKAT: ['39','79'], IBRA: ['33'], ALKOL: ['4'],
-            RAYIC: ['49','184'], TRAMER: ['210','48','48','48'], VERGI: ['9'], MASAK: ['162']
+            RAYIC: ['49','184'], TRAMER: ['210','48','48','48'], VERGI: ['9'], MASAK: ['162'], MESLEK: ['']
         };
         const hepiyi = {
             EHLİYET: ['1','195','239','196'], RUHSAT: ['7','92','238'],
@@ -3315,7 +3473,7 @@
             MUTABAKAT: ['211','247','28'], MUVAFAKAT: ['111','56','57','101','130'],
             IBRA: ['33','132','212'], ALKOL: ['4'],
             RAYIC: ['231','184','225','234'], TRAMER: ['230','229','228','233'],
-            VERGI: ['9','221','136'], MASAK: ['248']
+            VERGI: ['9','221','136'], MASAK: ['248'], MESLEK: ['129']
         };
         const ankara = {
             EHLİYET: ['1'], RUHSAT: ['7','66','62'], KTT: ['38','11'],
@@ -3323,9 +3481,15 @@
             SICIL: ['95'], SKAYIT: ['86'], GAZETE: ['95'], FAAL: ['94'],
             IRSALIYE: ['26'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['6'],
             MUTABAKAT: ['28'], MUVAFAKAT: ['48'], IBRA: ['33','65'], ALKOL: ['4'],
-            RAYIC: ['78','76'], TRAMER: ['86','22','86','86'], VERGI: ['9','50'], MASAK: ['81']
+            RAYIC: ['78','76'], TRAMER: ['86','22','86','86'], VERGI: ['9','50'], MASAK: ['81'], MESLEK: ['']
         };
-        const orient = { ...varsayilan };
+		const orient = {
+		    EHLİYET: ['1'], RUHSAT: ['7'], KTT: ['5'], BEYAN: ['6'], ZABIT: ['5','23','22','11'],
+		    POLICE: ['3'], IMZA: ['8'], SICIL: ['12'], SKAYIT: ['12'], GAZETE: ['12'], FAAL: ['12'], IRSALIYE: ['26'], NUFUS: ['2'],
+		    DIGER: ['12'], ONARIM_SONRASI: ['37'], MUTABAKAT: ['28'], MUVAFAKAT: ['42'], IBRA: ['33'], ALKOL: ['4'],
+		    RAYIC: ['36','38'], TRAMER: ['12','12','12','12'], VERGI: ['9'], MASAK: ['12'], MESLEK: ['12']
+		};
+        //const orient = { ...varsayilan };
         const ayarlar = (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre :
             (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi :
             (text.includes("ATLAS") || url.includes("atlas")) ? atlas :
@@ -3337,11 +3501,11 @@
             { pattern: /\bsehl\b/i, evrakId: () => ayarlar.EHLİYET[2], note: '' },
             { pattern: /\bmruh\b/i, evrakId: () => ayarlar.RUHSAT[1], note: '' },
             { pattern: /\bsruh\b/i, evrakId: () => ayarlar.RUHSAT[2], note: '' },
-            { pattern: /\behl\b/i, evrakId: () => ayarlar.EHLİYET[0], note: '' },
-            { pattern: /\bruh\b/i, evrakId: () => ayarlar.RUHSAT[0], note: '' },
+			{ pattern: /ehl(iyet[i]?)?|s[uü]r[uü][cç][uü][_ ]belge(si)?/i, evrakId: () => ayarlar.EHLİYET[0], note: '' },
+			{ pattern: /ruh(sat[iı]?)?|ara[cç][_ ]ruhsat|tra[fF]ik[_ ]tescil?/i, evrakId: () => ayarlar.RUHSAT[0], note: '' },
             { pattern: /ktt[_ ]sbm/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
             { pattern: /ktt[_ ]sorgu/i, evrakId: () => ayarlar.TRAMER[3], note: '' },
-            { pattern: /\bktt\b|kaza[_ ]tesbit|kaza[_ ]tespit|anla[sş]mal[iı][_ ]kaza/i,evrakId: () => ayarlar.KTT[0], note: '' },
+			{ pattern: /\bktt\b|kaza[_ ]tesbit|kaza[_ ]tespit|anla[sş]mal[iı][_ ]kaza/i, evrakId: () => ayarlar.KTT[0], note: () => { const noKTT = [ orient]; return noKTT.includes(ayarlar) ? 'KTT' : ''; } },
             { pattern: /zabt|zabit|zab[iı]t|karakol|jandarma|polis[_ ]ifade/i, evrakId: () => ayarlar.ZABIT[0], note: '' },
             { pattern: /\bbeyan\b/i, evrakId: () => ayarlar.BEYAN[0], note: '' },
             { pattern: /kasko[_ ]poli[cç]e|trafik[_ ]poli[cç]e/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
@@ -3354,29 +3518,54 @@
             { pattern: /\brayic\b|piyasa|ray[iı][cç]/i, evrakId: () => ayarlar.RAYIC[0], note: '' },
             { pattern: /\bvergi\b/i, evrakId: () => ayarlar.VERGI[0], note: '' },
             { pattern: /\bfaaliyet\b/i, evrakId: () => ayarlar.FAAL[0], note: '' },
-            { pattern: /nufus|nüfus|kimlik|mernis/i, evrakId: () => ayarlar.NUFUS[0], note: '' },
+            { pattern: /tck|nufus|nüfus|kimlik|mernis/i, evrakId: () => ayarlar.NUFUS[0], note: '' },
             { pattern: /\bmutabakat\b/i, evrakId: () => ayarlar.MUTABAKAT[0],note: '' },
             { pattern: /irsaliye/i, evrakId: () => ayarlar.IRSALIYE[0], note: '' },
             { pattern: /\bmasak\b/i, evrakId: () => ayarlar.MASAK[0], note: '' },
+            { pattern: /\pol\b/i, evrakId: () => ayarlar.POLICE[0], note: '' },//HEPİYİ MUAYENE 227
+            { pattern: /\meslek\b/i, evrakId: () => ayarlar.MESLEK[0], note: '' },
+            { pattern: /taahhüt\b/i, evrakId: () => ['35'], note: '' },
         ];
         function otoEvrakSec(fileName, selectEl, noteArea, tipiSel, btnEl) {
             const normalized = fileName.toLocaleLowerCase('tr-TR').replace(/[_\-\.]/g, ' ');
+            // ── 1. GEÇIŞ: "KARŞI ARAÇ" notu tetikleyici mi? ──
+            const KARSI_PATTERN = /\bkar[şs][ıi]\b/i;
+            const isKarsi = KARSI_PATTERN.test(normalized) || KARSI_PATTERN.test(fileName);
+            // ── 2. GEÇIŞ: Evrak kuralını bul (karşı pattern'i atla) ──
+            let evrakId = null;
+            let noteVal = isKarsi ? 'KARŞI ARAÇ' : '';
             for (const kural of OTO_KURALLAR) {
+                if (kural.pattern === KARSI_PATTERN) continue; // karşı kuralını bu geçişte atla
                 if (kural.pattern.test(normalized) || kural.pattern.test(fileName)) {
-                    const evrakId = kural.evrakId();
-                    selectEl.value = evrakId;
-                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-                    if (window.jQuery) jQuery(selectEl).trigger('change');
-                    if (typeof window.change_select === 'function') { try { window.change_select(selectEl.name); } catch(e){} }
-                    if (noteArea) { noteArea.value = kural.note; ['input','change'].forEach(ev => noteArea.dispatchEvent(new Event(ev, { bubbles: true }))); }
-                    if (tipiSel) { tipiSel.value = '0'; tipiSel.dispatchEvent(new Event('change', { bubbles: true })); if (window.jQuery) jQuery(tipiSel).trigger('change'); }
-                    if (btnEl) { btnEl.textContent = '✓ ' + kural.note; btnEl.style.background = '#27ae60'; btnEl.style.outline = '2px solid #1e90ff'; btnEl.disabled = true; btnEl.style.cursor = 'default'; btnEl.style.opacity = '1'; }
-                    console.log(`[OtoEvrak] "${fileName}" → ${kural.note} (ID: ${evrakId})`);
-                    return true;
+                    evrakId = kural.evrakId();
+                    // Not: karşı değilse kuraldaki note'u al, karşıysa 'KARŞI ARAÇ' zaten set edildi
+                    if (!isKarsi) {
+                        noteVal = typeof kural.note === 'function' ? kural.note() : kural.note;
+                    }
+                    break;
                 }
             }
-            if (btnEl) { btnEl.textContent = '⚡ Oto Seç'; btnEl.style.background = '#2980b9'; btnEl.style.opacity = '1'; btnEl.disabled = false; }
-            return false;
+            if (evrakId === null && !isKarsi) {
+                // Hiçbir şey eşleşmedi
+                if (btnEl) { btnEl.textContent = '⚡ Oto Seç'; btnEl.style.background = '#2980b9'; btnEl.style.opacity = '1'; btnEl.disabled = false; }
+                return false;
+            }
+            // ── Evrak seç ──
+            if (evrakId !== null && evrakId !== '') {
+                selectEl.value = evrakId;
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                if (window.jQuery) jQuery(selectEl).trigger('change');
+                if (typeof window.change_select === 'function') { try { window.change_select(selectEl.name); } catch(e){} }
+            }
+            // ── Notu yaz ──
+            if (noteArea && noteVal) {
+                noteArea.value = noteVal;
+                ['input','change'].forEach(ev => noteArea.dispatchEvent(new Event(ev, { bubbles: true })));
+            }
+            if (tipiSel) { tipiSel.value = '0'; tipiSel.dispatchEvent(new Event('change', { bubbles: true })); if (window.jQuery) jQuery(tipiSel).trigger('change'); }
+            if (btnEl) { btnEl.textContent = '✓ ' + noteVal; btnEl.style.background = '#27ae60'; btnEl.style.outline = '2px solid #1e90ff'; btnEl.disabled = true; btnEl.style.cursor = 'default'; btnEl.style.opacity = '1'; }
+            console.log(`[OtoEvrak] "${fileName}" → "${noteVal}" (ID: ${evrakId})`);
+            return true;
         }
         // ── STİLLER ───────────────────────────────────────────────────────────────
         GM_addStyle(`
@@ -3598,7 +3787,7 @@
         summary.style.color = summaryColor;
         if (toplam === 0) { idmBar.innerHTML = ''; if (idmNames) idmNames.innerHTML = ''; return; }
         // ── IDM bar segmentleri ──
-        idmBar.innerHTML   = '';
+        idmBar.innerHTML = '';
         if (idmNames) idmNames.innerHTML = '';
         const segWidth = `${100 / toplam}%`;
         // Önce yüklenmiş (download) dosyalar — yeşil
@@ -3646,15 +3835,8 @@
             window._ksProgressHooked = true;
             // jQuery fileupload progress eventi
             if (window.jQuery) {
-                jQuery(document).on('fileuploadprogress', function(e, data) {
-                    const pct = Math.round(data.loaded / data.total * 100);
-                    (data.files || []).forEach(f => { window._ksBars[f.name] = pct; });
-                    updateProgressArea();
-                });
-                jQuery(document).on('fileuploaddone fileuploadfail', function(e, data) {
-                    (data.files || []).forEach(f => { window._ksBars[f.name] = 100; });
-                    updateProgressArea();
-                });
+                jQuery(document).on('fileuploadprogress', function(e, data) { const pct = Math.round(data.loaded / data.total * 100); (data.files || []).forEach(f => { window._ksBars[f.name] = pct; }); updateProgressArea(); });
+                jQuery(document).on('fileuploaddone fileuploadfail', function(e, data) { (data.files || []).forEach(f => { window._ksBars[f.name] = 100; }); updateProgressArea(); });
             }
         };
 
@@ -3781,17 +3963,18 @@
             { label: 'GAZETE', vals: ayarlar.GAZETE, color: '#95a5a6', t: 'Sicil Gazetesi' },
             { label: 'SİCİLKAYIT', vals: ayarlar.SICIL, color: '#7f8c8d', t: 'Sicil Kayıt' },
             { label: 'SSKKT', vals: ayarlar.SKAYIT, color: '#8395a7', t: 'SSK Kaydı' },
+            { label: 'MESLEK', vals: ayarlar.MESLEK, color: '#ee5253', t: 'Meslek Belgesi' },
             { label: 'FAALİYET', vals: ayarlar.FAAL, color: '#ee5253', t: 'Faaliyet' },
             { label: 'MUTABAKAT', vals: ayarlar.MUTABAKAT, color: '#10ac84', t: 'Mutabakatname' },
             { label: 'MUVAFFAKAT', vals: ayarlar.MUVAFAKAT, color: '#22af94', t: 'Muvaffakatname' },
             { label: 'TESLİMİBRA', vals: ayarlar.IBRA, color: '#2e86de', t: 'İbraname/Teslim İbra' },
-            { label: 'İRSALYE', vals: ayarlar.IRSALIYE, color: '#f39c12', t: 'İrsaliye' },
+            { label: 'İRSALİYE', vals: ayarlar.IRSALIYE, color: '#f39c12', t: 'İrsaliye' },
             { label: 'PİYASA', vals: ayarlar.RAYIC, color: '#f1c40f', t: 'Piyasa/Rayiç/Aktüer' },
             { label: 'TRAMER', vals: ayarlar.TRAMER, color: '#5f27cd', t: 'Tramer/Ağır/Geçmiş Hasar' },
             { label: 'MASAK', vals: ayarlar.MASAK, color: '#00d2d3', t: 'MASAK Evrakları' },
             { label: 'VERGİLEVHA', vals: ayarlar.VERGI, color: '#546e7a', t: 'Vergi Levhası' },
             { label: 'DİĞER', vals: ayarlar.DIGER, color: '#bdc3c7', t: 'Diğer' },
-            { label: 'SBM', vals: ['12'], color: '#34495e', t: 'SBM/Tramer Sorgu', note: 'SBM' },
+            { label: 'SBM', vals: ayarlar.DIGER, color: '#34495e', t: 'SBM/Tramer Sorgu', note: 'SBM' },
             { label: 'KARŞIARAÇ', vals: [], color: '#34495e', t: 'Karşı Araç Açıklaması', note: 'KARŞI ARAÇ' },
         ];
         const injectRowPanels = () => {
@@ -3885,7 +4068,7 @@
         if (!window._ksFiles) { window._ksFiles = {}; document.addEventListener('change', e => { if (e.target?.type === 'file' && e.target.files) Array.from(e.target.files).forEach(f => { window._ksFiles[f.name] = f; }); }, true); }
         // ── ANA DÖNGÜ ─────────────────────────────────────────────────────────────
         const start = () => { initToolbar(); injectRowPanels(); fixPreviews(); updateProgressArea(); initUploadObserver(); hookFileUploadProgress(); };
-        setTimeout(start, 100); setInterval(start, 300);
+        setTimeout(start, 100); setInterval(start, 1000);
     }
     // Resim yükleme kontrolü
     if (KS_SYSTEM && RESIM && loc("otohasar") && loc("eks_hasar_evrak_foto_list.php")) {
