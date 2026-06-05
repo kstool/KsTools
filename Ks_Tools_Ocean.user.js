@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.15
+// @version      1.16
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -13,6 +13,12 @@
 https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif
 (function () {
     'use strict';
+	function removeElements() {
+	  document.querySelectorAll('.stage__left').forEach(el => el.remove()); document.querySelectorAll('.car-zone').forEach(el => el.remove());
+	}
+	removeElements();
+	const observer = new MutationObserver(() => removeElements()); observer.observe(document.body, { childList: true, subtree: true });
+
     const url = unsafeWindow.location.href.toLowerCase();
     const blockedGroups = ["yazdir","login","loginfrm", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
 	const isTargetPage = url.includes("otohasar") && (url.includes("login") || url.includes("loginfrm"));
