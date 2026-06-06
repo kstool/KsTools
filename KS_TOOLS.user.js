@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.69
+// @version      1.70
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -1741,6 +1741,11 @@
 					        <div class="ks-tooltip-box"><strong>💾 Zorla Kaydet</strong><br>Kaydetmeyi zorlar.</div>
 					    </div>
 					</div>
+					<hr class="custom-line">
+					<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;">
+					    <button id="btnOnbellek" class="ks-btn" style="width:100%;height:100%;">📥 ÖNBELLEK KAYDET</button>
+					    <button id="btnOnbellekYukle" class="ks-btn" style="width:100%;height:100%;">📤 ÖNBELLEK YÜKLE</button>
+					</div>
 					<div id="not-section">
 							<div id="custom-page-notes-container" style="width: 100%; dashed #444;">
 						<hr class="custom-line">
@@ -1752,9 +1757,7 @@
 							</div>
 					</div>
                 </div>
-                <div id="panel-hasar" class="tab-panel-content">
-                    ${hapBuildPanelHTML(typeof dosyaId !== 'undefined' ? dosyaId : '---')}
-                </div>
+                <div id="panel-hasar" class="tab-panel-content"> ${hapBuildPanelHTML(typeof dosyaId !== 'undefined' ? dosyaId : '---')} </div>
             `;
             // TIKLAMA OLAYLARINI BAĞLAMA (Event Listeners)
             // 1. Ana Sekmeler (İşlemler / Hasar Analizi)
@@ -1780,6 +1783,11 @@
 			var vovoBtn = panelContent.querySelector('#btnKaydetvovo');
             if (vovoBtn) {
                 vovoBtn.onclick = function(e) {
+					var origKaydetOk = w.kaydet_ok;
+					w.kaydet_ok = function() {
+					    alert('RESPONSE:\n' + w.ajax1.response.substring(0, 500));
+					    origKaydetOk.apply(this, arguments);
+					};
                     e.preventDefault(); e.stopPropagation(); var w = unsafeWindow;
                     // Orijinalleri sakla
                     var orig_check_form2 = w.check_form2, orig_check_form = w.check_form, orig_kaydet_ok = w.kaydet_ok;
@@ -1830,6 +1838,80 @@
                     };
                     w.Uyarilari_Temizle();
                     w.kaydet();
+                };
+            }
+			if (loc('orient')) { // model hatası düzeltimi
+            	window.addEventListener('load', function() {
+            	    setTimeout(function() {
+            	        var sasiBtn = unsafeWindow.document.getElementById('SASI_MDL');
+            	        if (!sasiBtn) return;
+            	        sasiBtn.setAttribute('onclick',
+            	            "popup('popup_modeller.php?uygun=1&id='+$('#HAS_MARKA_ID').val()+'&HAS_MODEL_YILI='+$('#HAS_MODEL_YILI').val()+'&sasi='+$('#HAS_SASI_NO').val()+'&motor_no='+$('#HAS_MOTOR_NO').val(),'modeller',330,600)"
+            	        );
+            	        console.log('[KS] Uygun modeller tıklamas düzeltildi - motorNo kaldırıldı');
+            	    }, 1500);
+            	});
+			}
+			/* ── Önbellek Sistemi ── */
+            var onbellekKey = 'onbellek_' + dosyaId, btnOnbellek = panelContent.querySelector('#btnOnbellek'), btnOnbellekYukle = panelContent.querySelector('#btnOnbellekYukle');
+            // Başlangıçta yükle butonunu kontrol et
+            (function() {
+                var raw = GM_getValue(onbellekKey, null);
+                if (!raw) { btnOnbellekYukle.textContent = '📤 YÜKLE'; btnOnbellekYukle.disabled = true; btnOnbellekYukle.style.opacity = '0.4'; btnOnbellekYukle.style.cursor = 'not-allowed'; }
+            	else {
+                    try {
+                        var parsed = JSON.parse(raw), tarih = parsed.__tarih__ || '?';
+                        btnOnbellekYukle.textContent = '📤 YÜKLE ' + tarih; btnOnbellekYukle.disabled = false; btnOnbellekYukle.style.opacity = ''; btnOnbellekYukle.style.cursor = '';
+                    } catch(e) { btnOnbellekYukle.textContent = '📤 YÜKLE'; }
+                }
+            })();
+
+            if (btnOnbellek) {
+                btnOnbellek.onclick = function() {
+                    var w = unsafeWindow;
+                    var data = {};
+                    // Tarih damgası ekle
+                    var now = new Date();
+                    var tarih = now.getDate().toString().padStart(2,'0') + '.' + (now.getMonth()+1).toString().padStart(2,'0') + ' ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+                    data.__tarih__ = tarih;
+                    w.$(w.document.hasar.elements).each(function() {
+                        var el = this;
+                        if (!el.name) return;
+                        if (el.type === 'checkbox' || el.type === 'radio') {
+                            data[el.name] = el.checked;
+                        } else {
+                            data[el.name] = el.value;
+                        }
+                    });
+                    GM_setValue(onbellekKey, JSON.stringify(data));
+                    var count = Object.keys(data).length - 1;
+                    btnOnbellekYukle.textContent = '📤 YÜKLE ' + tarih;
+                    btnOnbellekYukle.disabled = false;
+                    btnOnbellekYukle.style.opacity = '';
+                    btnOnbellekYukle.style.cursor = '';
+                    console.log('[KS] Önbellek kaydedildi:', count, 'alan, tarih:', tarih);
+                    btnOnbellek.textContent = '✅ KAYDEDİLDİ (' + count + ')';
+                    setTimeout(function() { btnOnbellek.textContent = '📥 ÖNBELLEK KAYDET'; }, 2000);
+                };
+            }
+            if (btnOnbellekYukle) {
+                btnOnbellekYukle.onclick = function() {
+                    var w = unsafeWindow, raw = GM_getValue(onbellekKey, null);
+                    if (!raw) return;
+                    var data = JSON.parse(raw), yuklendi = 0;
+
+                    w.$(w.document.hasar.elements).each(function() {
+                        var el = this;
+                        if (!el.name || !(el.name in data) || el.name === '__tarih__') return;
+                        if (el.type === 'checkbox' || el.type === 'radio') { el.checked = data[el.name]; } else { el.value = data[el.name]; if (el.tagName === 'SELECT') { w.$(el).trigger('change'); } }
+                        yuklendi++;
+                    });
+                    console.log('[KS] Önbellek yüklendi:', yuklendi, 'alan');
+                    btnOnbellekYukle.textContent = '✅ YÜKLENDİ (' + yuklendi + ')';
+                    setTimeout(function() {
+                        var raw2 = GM_getValue(onbellekKey, null);
+                        if (raw2) { var tarih = JSON.parse(raw2).__tarih__ || '?'; btnOnbellekYukle.textContent = '📤 YÜKLE ' + tarih; }
+                    }, 2000);
                 };
             }
             /* F2 / F4 kısayolları */
@@ -3465,9 +3547,9 @@
         const hepiyi = {
             EHLİYET: ['1','195','239','196'], RUHSAT: ['7','92','238'],
             KTT: ['174','237','96','224','11','22','122','169'],
-            BEYAN: ['179','226','246','155','6'], ZABIT: ['5','118','22','169','188','194','209'],
+            BEYAN: ['226','179','246','155','6'], ZABIT: ['5','118','22','169','188','194','209'],
             POLICE: ['3','240','241'], IMZA: ['131','8'], SICIL: ['202'],
-            SKAYIT: ['219'], GAZETE: ['202'], FAAL: ['190'],
+            SKAYIT: ['86'], GAZETE: ['202'], FAAL: ['190'],
             IRSALIYE: ['26','220','41','134'], NUFUS: ['2','213','201','94'],
             DIGER: ['12','243'], ONARIM_SONRASI: ['32'],
             MUTABAKAT: ['211','247','28'], MUVAFAKAT: ['111','56','57','101','130'],
@@ -3525,6 +3607,8 @@
             { pattern: /\pol\b/i, evrakId: () => ayarlar.POLICE[0], note: '' },//HEPİYİ MUAYENE 227
             { pattern: /\meslek\b/i, evrakId: () => ayarlar.MESLEK[0], note: '' },
             { pattern: /taahhüt\b/i, evrakId: () => ['35'], note: '' },
+            { pattern: /sgk\b/i, evrakId: () => ayarlar.SKAYIT[0], note: '' },
+
         ];
         function otoEvrakSec(fileName, selectEl, noteArea, tipiSel, btnEl) {
             const normalized = fileName.toLocaleLowerCase('tr-TR').replace(/[_\-\.]/g, ' ');
@@ -3962,7 +4046,7 @@
             { label: 'İMZA', vals: ayarlar.IMZA, color: '#1abc9c', t: 'İmza Sirküsü' },
             { label: 'GAZETE', vals: ayarlar.GAZETE, color: '#95a5a6', t: 'Sicil Gazetesi' },
             { label: 'SİCİLKAYIT', vals: ayarlar.SICIL, color: '#7f8c8d', t: 'Sicil Kayıt' },
-            { label: 'SSKKT', vals: ayarlar.SKAYIT, color: '#8395a7', t: 'SSK Kaydı' },
+            { label: 'SGK', vals: ayarlar.SKAYIT, color: '#8395a7', t: 'SGK Kaydı' },
             { label: 'MESLEK', vals: ayarlar.MESLEK, color: '#ee5253', t: 'Meslek Belgesi' },
             { label: 'FAALİYET', vals: ayarlar.FAAL, color: '#ee5253', t: 'Faaliyet' },
             { label: 'MUTABAKAT', vals: ayarlar.MUTABAKAT, color: '#10ac84', t: 'Mutabakatname' },
