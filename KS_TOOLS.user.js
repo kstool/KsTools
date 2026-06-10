@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.70
+// @version      1.71
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz
 // @author       Saygın
@@ -22,6 +22,7 @@
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // ==/UserScript==
+/* global jQuery */
 (function () {
     'use strict';
     /* ---Eklenecekler
@@ -2536,14 +2537,14 @@
                 };
                 const sigortaSekli = document.getElementById('SIGORTA_SEKLI')?.value;
                 ['SURUCU_BELGE_TIPI1','RUHSAT_ASLI1','RUCU0','HAS_DEVIR_SATIS0', 'HAS_EKSIK_ASKIN_SIGORTA0','ALACAKLI_DOGUM_TARIHI_BILGISI0','TASINAN_YUK0', 'MUAFIYET0',
-				 'EKSPERTIZ_YERI_SEHIR_DISI0','HASAR_YERI0', 'ONARIM_ONAYI2','SURUCU_BELGESI_GORULDU1','EHLIYET_YETERLI1', 'ALKOL_DURUMU2','SIGORTALI_SAHIS_CHECK'].forEach(clickCb);
-                if (sigortaSekli === "2") { //kasko
-                    clickCb('SAG1'); clickCb('SURUCU_BELGESI1'); clickCb('TESPIT_SEKLI1');
+				 'EKSPERTIZ_YERI_SEHIR_DISI0','HASAR_YERI0', 'ONARIM_ONAYI2','SURUCU_BELGESI_GORULDU1','EHLIYET_YETERLI1', 'ALKOL_DURUMU2','SIGORTALI_SAHIS_CHECK','SURUCU_BELGESI0'].forEach(clickCb);
+			   if (sigortaSekli === "2") { //kasko
+                    clickCb('SAG1'); clickCb('TESPIT_SEKLI1');
                     setVal('ONARIM_SURESI', loc("hepiyi") ? '15' : '10');
                     setValSelect('KUSURLU', '-1');
                     setVal('KUSUR_ORANI', '-1');
                 } else { //trafik
-                    clickCb('SAG2'); clickCb('SURUCU_BELGESI0'); clickCb('TESPIT_SEKLI0');
+                    clickCb('SAG2'); clickCb('TESPIT_SEKLI0');
                     setVal('SAG_NEDEN', 'Olay yeri fotoğrafları mevcuttur.');
                     setVal('ONARIM_SURESI', '10');
                     setValSelect('KUSURLU', '0');
@@ -2577,7 +2578,7 @@
 				const getElByName = (name) => { const all = document.getElementsByName(name); for (let el of all) { if (el.type !== 'hidden') return el; } return all[0];};
                 if (magdurpanel) {
                     const watchFields = [ 'SURUCU_ADI', 'MAGDUR_AD', 'MAGDUR_SOYAD', 'PLAKA1', 'PLAKA2', 'PLAKA3', 'SASI_NO', 'MOTOR_NO', 'MERNIS_NO_C', 'SURUCU_EHLIYET_NO', 'SURUCU_EHLIYET_SINIFI', 'EHLIYET_TARIHI_GUN', 'EHLIYET_TARIHI_AY', 'EHLIYET_TARIHI_YIL', ];
-                    const selectFields = [ 'MODEL_YILI', 'MARKA_ID', 'ARAC_TIPI', 'MAGDUR_KIMLIK_TIPI', 'SB_ARAC_KULLANIM_TURU' ];
+                    const selectFields = [ 'MODEL_YILI', 'MARKA_ID', 'ARAC_TIPI', 'MAGDUR_KIMLIK_TIPI', 'SB_ARAC_KULLANIM_TURU','RENK' ];
                     setBg('MODEL_ADI', getValue('MODEL_ADI').replace(/[()\s]/g, '') === '');
                     setBg('KM', parseNum('KM') < 1);
                     setBg('PIYASA', parseNum('PIYASA') < 1000);
@@ -2585,7 +2586,7 @@
                     selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
                 } else {
            		    const watchFields = [ 'EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI', 'MERNIS_NO', 'KAZA_YERI', 'SB_ARACI_KULLANAN', 'SURUCU_KIMLIK_TIPI_DEGER', 'EKSPERTIZ_TARIHLERI', 'EKSPERTIZ_KESINLESTIRME_TARIHI_GUN','EKSPERTIZ_KESINLESTIRME_TARIHI_AY','EKSPERTIZ_KESINLESTIRME_TARIHI_YIL', 'KAZA_TARAF1','KAZA_TARAF2'];
-           		    const selectFields = [ 'SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI', 'HAS_MARKA_ID', 'KUSUR_ORANI', 'KUSURLU','BOLGE'];
+           		    const selectFields = [ 'SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI', 'HAS_MARKA_ID', 'KUSUR_ORANI', 'KUSURLU','BOLGE','HAS_RENK'];
 					const tdGroups = [
            		        { anchor: 'SB_SIGORTALI_ADI_C', fields: ['SB_SIGORTALI_ADI_C', 'SB_SIGORTALI_ADI'], selects: ['SIRKETMI'] },
            		        { anchor: 'SURUCU_KIMLIK_TIPI_DEGER', fields: ['SURUCU_KIMLIK_TIPI_DEGER'], selects: ['SURUCU_KIMLIK_TIPI'] },
@@ -2613,7 +2614,6 @@
                		    if (zabitTd) { zabitTd.style.backgroundColor = zabitBosMu ? WARNING_COLOR : ''; }
                		}
            		}
-				// ── BUTON ONAY SERVİS ──────────────────────────────
 				// ── BUTON ONAY SERVİS ──────────────────────────────
                 const inp = document.querySelector('input[name="SERVIS_ADI"]');
                 const ara = document.querySelector('img[alt="SERVİS ARA"]');
@@ -2706,20 +2706,12 @@
                 rows.forEach(row => {
                     // Sadece tek hücreli etiket + checkbox içeren satırları al
                     if (row.cells.length < 2) return;
-
                     const labelCell = row.cells[0] ? row.cells[0].innerText.trim().toUpperCase() : "";
                     if (!labelCell) return;
-
-                    // DİĞER satırını atla
                     if (labelCell === "DİĞER") return;
-
-                    // Etiket hücresi 50 karakterden uzunsa bu bir üst wrapper satırdır, atla
                     if (labelCell.length > 50) return;
-
                     let masterId = null;
-                    for (let key in donanimSozlugu) {
-                        if (labelCell.includes(key)) { masterId = donanimSozlugu[key]; break; }
-                    }
+                    for (let key in donanimSozlugu) { if (labelCell.includes(key)) { masterId = donanimSozlugu[key]; break; } }
                     if (masterId) {
                         const inputs = row.querySelectorAll('input[type="checkbox"]');
                         inputs.forEach(input => {
@@ -2737,9 +2729,10 @@
             };
 			// Input'u bulurken 'name' özelliğini de kontrol edelim (ID yoksa hata vermemesi için)
 			const setAciklama = (text) => { const el = document.getElementsByName('ACIKLAMA21')[0] || document.getElementById('ACIKLAMA21'); if (el) el.value = text; };
-			const createBtn = (text, aciklamaMetni, ruleFn) => { const btn = document.createElement('button'); btn.innerText = text;
-																Object.assign(btn.style, { background: '#00aa88', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '3px 6px', margin: '2px' });
-																btn.onclick = () => { setAciklama(aciklamaMetni); applyRules(ruleFn); }; panel.appendChild(btn); };
+			const createBtn = (text, aciklamaMetni, ruleFn) => { 
+				const btn = document.createElement('button'); btn.innerText = text;
+				Object.assign(btn.style, { background: '#00aa88', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '3px 6px', margin: '2px' });
+				btn.onclick = () => { setAciklama(aciklamaMetni); applyRules(ruleFn); }; panel.appendChild(btn); };
             /* ===== 5. BUTON TANIMLARI (KURALLAR) ===== */
             // 2000~ Benzin
             createBtn('2000~ Benzin', 'BENZİNLİ', (id) => {
@@ -2751,7 +2744,6 @@
                 if (id === 6) return 0;
                 if (id === 24) return 0;
                 return null; });
-
             // 2000~ Dizel
             createBtn('2000~ Dizel', 'DİZEL', (id) => {
                 const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
@@ -2762,7 +2754,6 @@
                 if (id === 6) return 0;
                 if (id === 24) return 1;
                 return null; });
-
             // 2010+ Benzin
             createBtn('2010+ Benzin', 'BENZİNLİ', (id) => {
                 const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
@@ -2771,7 +2762,6 @@
                 if (id === 23) return 0; // Benzin = değer 0
                 if ([2, 3, 4, 7, 8].includes(id)) return 1;
                 return null; });
-
             // 2010+ Dizel
             createBtn('2010+ Dizel', 'DİZEL', (id) => {
                 const izinli = [1,2,3,4,5,6,7,8,9,10,11,12,22,23,24];
@@ -2831,13 +2821,31 @@
             btnFill.innerText = "🚗 GRUPLA";
             btnFill.onclick = async () => {
                 try {
-                	const selects = document.querySelectorAll('select[name^="YP_GRUP_ID_"]');
-                	for (let s of selects) {
-                	    const idx = s.name.split('_').pop(); s.value = "2"; s.dispatchEvent(new Event('change', { bubbles: true }));
-                	    await new Promise(r => setTimeout(r, 100));
-                	    const alt = document.querySelector(`select[name="YP_ID_${idx}"]`);
-                	    if (alt) { alt.value = "0"; alt.dispatchEvent(new Event('change', { bubbles: true })); }
-                	} btnFill.innerText = "✔️ BİTTİ"; setTimeout(() => { btnFill.innerText = "🚗 GRUPLA"; }, 2000);
+                    const selects = document.querySelectorAll('select[name^="YP_GRUP_ID_"]');
+                    for (let s of selects) {
+                        const idx = s.name.split('_').pop();
+                        s.value = "2";
+                        s.dispatchEvent(new Event('change', { bubbles: true }));
+                        await new Promise(r => setTimeout(r, 50));
+
+                        const alt = document.querySelector(`select[name="YP_ID_${idx}"]`);
+                        if (alt) {
+                            alt.value = "0";
+                            alt.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+
+                        /// TEDARİKÇİ_ID_{idx} kutusunda ilk gerçek seçeneği seç (Seçiniz hariç)
+                        const tedarikci = document.querySelector(`select[name="TEDARIKCI_ID_${idx}"]`);
+                        if (tedarikci) {
+                            const ilkGercek = Array.from(tedarikci.options).find(o => o.value !== "-1");
+                            if (ilkGercek) {
+                                tedarikci.value = ilkGercek.value;
+                                tedarikci.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        }
+                    }
+                    btnFill.innerText = "✔️ BİTTİ";
+                    setTimeout(() => { btnFill.innerText = "🚗 GRUPLA"; }, 2000);
                 } catch (err) { console.error(err); }
             };
             contentArea.append(btnPaste, btnCopy, btnFill);
@@ -3516,7 +3524,7 @@
         const RESIM_LIMIT = 40;
         const text = document.body.innerText.toUpperCase(), url = location.href.toLowerCase();
         const varsayilan = {
-            EHLİYET: ['1'], RUHSAT: ['7'], KTT: ['174','11'], BEYAN: ['179','155'],
+            EHLİYET: ['1','1','1'], RUHSAT: ['7','7','7'], KTT: ['174','11'], BEYAN: ['179','155'],
             ZABIT: ['5','118'], POLICE: ['3'], IMZA: ['131'], SICIL: ['202'],
             SKAYIT: ['219'], GAZECE: ['202'], FAAL: ['190'], IRSALIYE: ['26'],
             NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['32'],
@@ -3558,7 +3566,7 @@
             VERGI: ['9','221','136'], MASAK: ['248'], MESLEK: ['129']
         };
         const ankara = {
-            EHLİYET: ['1'], RUHSAT: ['7','66','62'], KTT: ['38','11'],
+            EHLİYET: ['1','1','1'], RUHSAT: ['7','7','7'], KTT: ['38','11'],
             BEYAN: ['6'], ZABIT: ['5','73','61'], POLICE: ['3'], IMZA: ['8'],
             SICIL: ['95'], SKAYIT: ['86'], GAZETE: ['95'], FAAL: ['94'],
             IRSALIYE: ['26'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['6'],
@@ -3566,7 +3574,7 @@
             RAYIC: ['78','76'], TRAMER: ['86','22','86','86'], VERGI: ['9','50'], MASAK: ['81'], MESLEK: ['']
         };
 		const orient = {
-		    EHLİYET: ['1'], RUHSAT: ['7'], KTT: ['5'], BEYAN: ['6'], ZABIT: ['5','23','22','11'],
+		    EHLİYET: ['1','1','1'], RUHSAT: ['7','7','7'], KTT: ['5'], BEYAN: ['6'], ZABIT: ['5','23','22','11'],
 		    POLICE: ['3'], IMZA: ['8'], SICIL: ['12'], SKAYIT: ['12'], GAZETE: ['12'], FAAL: ['12'], IRSALIYE: ['26'], NUFUS: ['2'],
 		    DIGER: ['12'], ONARIM_SONRASI: ['37'], MUTABAKAT: ['28'], MUVAFAKAT: ['42'], IBRA: ['33'], ALKOL: ['4'],
 		    RAYIC: ['36','38'], TRAMER: ['12','12','12','12'], VERGI: ['9'], MASAK: ['12'], MESLEK: ['12']
@@ -3933,27 +3941,21 @@
             const origStart = srcDiv.querySelector('button.start');
             const origCancel = srcDiv.querySelector('button.cancel');
             const origKapat = srcDiv.querySelector('button[onclick*="Cıkıs"]');
-            [origStart, origCancel, origKapat].forEach(btn => {
-                if (!btn) return;
-                btn.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden';
-            });
+            [origStart, origCancel, origKapat].forEach(btn => { if (!btn) { return; } btn.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden'; });
             if (origFileBtn) origFileBtn.style.display = 'none';
             srcDiv.style.display = 'none';
             const toolbar = document.createElement('div');
             toolbar.id = 'ks-toolbar';
             const mkBtn = (label, bg, onClick) => { const b = document.createElement('button'); b.textContent = label; b.style.background = bg; b.onclick = onClick; return b; };
-            toolbar.appendChild(mkBtn('＋ Resim Ekle', '#27ae60', () => origFileBtn?.querySelector('input[type=file]')?.click()));
-            if (origStart) toolbar.appendChild(mkBtn('⬆ Yüklemeyi Başlat', '#2980b9', () => origStart.click()));
-            if (origCancel) toolbar.appendChild(mkBtn('✕ İptal Et', '#e67e22', () => origCancel.click()));
-            if (origKapat) toolbar.appendChild(mkBtn('✕ Kapat', '#c0392b', () => origKapat.click()));
+            toolbar.appendChild(mkBtn('＋ Ekle', '#27ae60', () => origFileBtn?.querySelector('input[type=file]')?.click()));
+            if (origStart) toolbar.appendChild(mkBtn('⬆ Yükle', '#2980b9', () => origStart.click()));
+            if (origCancel) toolbar.appendChild(mkBtn('İptal', '#e67e22', () => origCancel.click()));
+            if (origKapat) toolbar.appendChild(mkBtn('✕', '#c0392b', () => origKapat.click()));
+			toolbar.appendChild(mkBtn('↻', '#7f8c8d', () => window.location.reload()));
             // ── Progress alanı (badge yerine) ──
             const progressArea = document.createElement('div');
             progressArea.id = 'ks-progress-area';
-            progressArea.innerHTML = `
-                <div id="ks-progress-summary">📋 Dosya bekleniyor</div>
-                <div id="ks-idm-bar-wrap"></div>
-                <div id="ks-idm-bar-names" style="display:flex;gap:1px;margin-top:1px;"></div>
-            `;
+            progressArea.innerHTML = `<div id="ks-progress-summary">📋 Dosya bekleniyor</div><div id="ks-idm-bar-wrap"></div><div id="ks-idm-bar-names" style="display:flex;gap:1px;margin-top:1px;"></div>`;
             toolbar.appendChild(progressArea);
             // 2. satır
             const row2 = document.createElement('div');
@@ -3978,8 +3980,8 @@
             row2.appendChild(r2btn('Hasar', '#2c3e50', () => { bulkSet('select[name^="EVRAK_ID_"]', '13'); bulkSet('select[name^="PHOTO_CTG_ID_"]', '13'); }));
             row2.appendChild(r2btn('Onarım', '#c0392b', () => { bulkSet('select[name^="EVRAK_ID_"]', ayarlar.ONARIM_SONRASI[0]); bulkSet('select[name^="PHOTO_CTG_ID_"]', ayarlar.ONARIM_SONRASI[0]); }));
             row2.appendChild(sep());
-            row2.appendChild(r2btn('▲ Tepe', '#475569', () => window.scrollTo({ top: 0, behavior: 'smooth' })));
-            row2.appendChild(r2btn('▼ Aşağı', '#475569', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })));
+            row2.appendChild(r2btn('▲', '#475569', () => window.scrollTo({ top: 0, behavior: 'smooth' })));
+            row2.appendChild(r2btn('▼', '#475569', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })));
             row2.appendChild(sep());
             // ── Toplu Oto Seç butonu ──
             const otoTümBtn = r2btn('⚡ Oto Seç (Tümü)', '#1a6fa8', () => {
@@ -3992,7 +3994,7 @@
                 });
                 otoTümBtn.textContent = `✓ ${eslesen} eşleşti`;
                 otoTümBtn.style.background = '#27ae60';
-                setTimeout(() => { otoTümBtn.textContent = '⚡ Oto Seç (Tümü)'; otoTümBtn.style.background = '#1a6fa8'; }, 3000);
+                setTimeout(() => { otoTümBtn.textContent = '⚡ Oto. Seç (Tümü)'; otoTümBtn.style.background = '#1a6fa8'; }, 3000);
             });
             row2.appendChild(otoTümBtn);
             row2.appendChild(sep());
@@ -4005,7 +4007,7 @@
             otoChk.style.cssText = 'cursor:pointer;margin:0;accent-color:#27ae60';
             otoChk.addEventListener('change', function() { window._ksOtoScroll = this.checked; });
             otoLabel.appendChild(otoChk);
-            otoLabel.appendChild(document.createTextNode('Oto kaydır'));
+            otoLabel.appendChild(document.createTextNode('Oto. kaydır'));
             row2.appendChild(otoLabel);
 
             toolbar.appendChild(row2);
@@ -4153,6 +4155,368 @@
         // ── ANA DÖNGÜ ─────────────────────────────────────────────────────────────
         const start = () => { initToolbar(); injectRowPanels(); fixPreviews(); updateProgressArea(); initUploadObserver(); hookFileUploadProgress(); };
         setTimeout(start, 100); setInterval(start, 1000);
+    }
+    // Resim yükleme kontrolü
+    if (KS_SYSTEM && RESIM && loc("otohasar") && loc("eks_hasar_evrak_foto_list.php")) {
+        config.width = '150px';
+        initPanel();
+        const panel = document.getElementById('ks-master-panel');
+        if (!panel) return;
+        panel.style.setProperty('width', config.width); panel.style.setProperty('min-width', config.width);
+        if (document.body.classList.contains('ks-panel-open')) { document.body.style.marginRight = config.width; }
+        const panelContent = panel ? panel.querySelector('.ks-content') : null;
+        if (panel && panelContent) {
+            const headerTitle = panel.querySelector('.ks-header h4');
+            if (headerTitle) headerTitle.innerText = "Evrak Analizi";
+            panelContent.innerHTML = `
+    <div id="panelContent" style="color:#fff; text-align:center; padding:2px; background:rgba(0,0,0,0.2); border-radius:5px; margin-bottom:8px; font-size:11px; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">DURUM TARANIYOR</div>
+    <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 2px; width: 100%;">
+        <div style="color:#aaa; font-size:10px; text-align:center;">Tablo verileri bekleniyor...</div>
+    </div>
+    <hr class="custom-line">
+    <div class="ks-tooltip-container" style="width:100%; display:block; margin-bottom:4px;">
+        <button id="btn-toplu-indir-evrak" class="ks-btn" style="background:#1a6e3c; border:0; border-radius:4px; cursor:pointer; padding:3px 4px; font-size:11px; width:100%; display:block; box-sizing:border-box; color:#fff;">⬇️ HEPSİNİ İNDİR</button>
+        <div class="ks-tooltip-box" style="display:none; border-color:#1a6e3c;"><strong>Tüm Evrakları İndir</strong><br>PDF ve resim dahil tüm evrakları indirir.</div>
+    </div>
+    <div class="ks-tooltip-container" style="width:100%; display:block;">
+        <button id="btn-toplu-sil" class="ks-btn" style="background:#c0392b; border:0; border-radius:4px; cursor:pointer; padding:3px 4px; font-size:11px; width:100%; display:block; box-sizing:border-box;">🗑️ TÜMÜNÜ SİL</button>
+        <div class="ks-tooltip-box" style="display:none; border-color:#c0392b;"><strong>Toplu Silme</strong><br>Sayfadaki tüm kayıtları tek onay ile siler.</div>
+    </div>
+`;
+        }
+		// ── SİGORTA + MAĞDUR ÇAPRAZ KONTROL ─────────────────────────────
+        const urlParams = new URLSearchParams(window.location.search);
+        const dosyaId = urlParams.get('id');
+        async function checkSigortaMagdur() {
+            if (!dosyaId) return;
+            try {
+                const res = await fetch(`/eks/eks_hasar.php?id=${dosyaId}`, { credentials: 'include' });
+                const text = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const sigortaSekliEl = doc.getElementById('SIGORTA_SEKLI');
+                if (!sigortaSekliEl) return;
+                const sigortaVal = sigortaSekliEl.value; // "2" = KASKO, "1" = TRAFİK
+                if (sigortaVal !== '2') return;
+                const rows = Array.from(document.querySelectorAll('table tr'));
+                const hasMagdur = rows.some(r => {
+                    const td = r.querySelectorAll('td')[1];
+                    if (!td) return false;
+                    const txt = td.innerText.toLocaleLowerCase('tr-TR');
+                    return txt.includes('mağdur') || txt.includes('magdur');
+                });
+                if (!hasMagdur) return;
+                const statusHeader = document.getElementById('panelContent');
+                const existing = document.getElementById('ks-magdur-uyari');
+                if (existing) return;
+                const uyariDiv = document.createElement('div');
+                uyariDiv.id = 'ks-magdur-uyari';
+                uyariDiv.style.cssText = `
+                    padding: 5px 6px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-align: center;
+                    background: rgba(220, 53, 69, 0.2);
+                    border: 1px solid #dc3545;
+                    color: #ff8585;
+                    margin-bottom: 6px;
+                    animation: ksBlink 1s infinite;
+                `;
+                uyariDiv.innerHTML = '⚠ KASKO + MAĞDUR<br>EVRAĞI ÇAKIŞIYOR!';
+                if (statusHeader && statusHeader.parentNode) { statusHeader.parentNode.insertBefore(uyariDiv, statusHeader.nextSibling); }
+                if (statusHeader) { statusHeader.innerText = '⚠ KASKO - MAĞDUR HATASI'; statusHeader.style.color = '#dc3545'; }
+                console.warn('[OtoHasar] KASKO dosyasında mağdur evrakı tespit edildi! Dosya ID:', dosyaId);
+            } catch (err) {
+                console.warn('[checkSigortaMagdur] Fetch hatası:', err);
+            }
+        }
+        // Sayfa yüklenince bir kez çalıştır
+        checkSigortaMagdur();
+        // ─────────────────────────────────────────────────────────────────
+        function updatePanel() {
+            const container = document.querySelector('.ks-grid-container'), statusHeader = document.getElementById('panelContent');
+            if (!container) return;
+            const rows = Array.from(document.querySelectorAll('table tr'));
+            // td[1] = evrak adı (link text), tire sonrasını temizle
+            const docs = rows.map(r => {
+                const td = r.querySelectorAll('td')[1];
+                if (!td) return { raw: '', sig: false, mag: false };
+                const raw = td.innerText.toLocaleLowerCase('tr-TR').replace(/-\s*$/, '').trim();
+                return { raw, sig: raw.includes('sigortalı') || raw.includes('sigortali'), mag: raw.includes('mağdur') || raw.includes('magdur'), };
+            }).filter(d => d.raw !== '');
+            const has = (keys, onlySig = false, onlyMag = false) => docs.some(d => { if (onlySig && !d.sig) return false; if (onlyMag && !d.mag) return false; return keys.some(k => d.raw.includes(k)); });
+            // Kaza evrakı türünü tespit et
+            const isKTT = has(["kaza tesbit", "kaza tespit", "ktt", "anlasmali kaza", "anlaşmalı kaza"]), isZabit = has(["zabt", "zabit", "zabıt", "karakol", "ifade", "görgü", "polis", "jandarma"]), isBeyan = has(["beyan"]);
+            container.innerHTML = '';
+            const createBox = (text, ok, isOptional = false) => {
+                const div = document.createElement('div');
+                let borderColor, bgColor, textColor;
+                if (isOptional && ok) { borderColor = '#ffc107'; bgColor = 'rgba(255,193,7,0.15)'; textColor = '#ffe082'; }
+				else { borderColor = ok ? '#28a745' : '#dc3545'; bgColor = ok ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)'; textColor = ok ? '#85ff9e' : '#ff8585'; }
+                div.style.cssText = `padding:4px 5px; border-radius:4px; font-size:11px; font-weight:600; text-align:center;
+                    transition:all 0.3s; border-right:4px solid ${borderColor}; background:${bgColor};
+                    color:${textColor}; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.2);`;
+                div.innerText = (ok ? '' : '⚠ ') + text.toUpperCase();
+                return div;
+            };
+            const createSep = (label) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'color:#fff; font-size:9px; text-align:center; padding:3px 0 1px; letter-spacing:.05em; border-top:1px solid #333; margin-top:2px;';
+                div.innerText = '─── ' + label + ' ───';
+                return div;
+            };
+            // ── KAZA TÜRÜ ────────────────────────────────────────
+            let kazaTuru = '', kazaOk = false;
+            if (isKTT) { kazaTuru = 'KTT'; kazaOk = true; }
+            else if (isZabit) { kazaTuru = 'ZABİT'; kazaOk = true; }
+            else if (isBeyan) { kazaTuru = 'BEYAN'; kazaOk = true; }
+            else { kazaTuru = 'KAZA EVRAĞI YOK'; kazaOk = false; }
+            container.appendChild(createBox('KAZA ŞEKLİ: ' + kazaTuru, kazaOk));
+            // ── SİGORTALI EVRAK ──────────────────────────────────
+            container.appendChild(createSep('SİGORTALI'));
+            const sigEhliyet = has(['ehliyet', 'sürücü belgesi'], true, false), sigRuhsat = has(['ruhsat'], true, false), sigKimlik = has(['kimlik', 'nüfus', 'pasaport'], true, false);
+            container.appendChild(createBox('Ehliyet', sigEhliyet));
+            container.appendChild(createBox('Ruhsat', sigRuhsat));
+            if (sigKimlik) container.appendChild(createBox('Kimlik', true));
+            // ── MAĞDUR EVRAK ─────────────────────────────────────
+            container.appendChild(createSep('MAĞDUR'));
+            const magEhliyet = has(['ehliyet', 'sürücü belgesi'], false, true), magRuhsat = has(['ruhsat'], false, true), magKimlik = has(['kimlik', 'nüfus', 'pasaport'], false, true);
+            container.appendChild(createBox('Ehliyet', magEhliyet));
+            container.appendChild(createBox('Ruhsat', magRuhsat));
+            if (magKimlik) container.appendChild(createBox('Kimlik', true));
+            // Zabit ise alkol zorunlu
+            if (isZabit) { const alkol = has(['alkol']); container.appendChild(createBox('Alkol Raporu', alkol)); }
+            // ── OPSİYONEL ────────────────────────────────────────
+            const optionals = [
+                { keys: ['poliçe', 'police'], l: 'Poliçe' },
+                { keys: ['ibraname', 'ibra', 'temlik'], l: 'İbraname/İbra' },
+                { keys: ['teslim ibra'], l: 'Teslim İbra' },
+                { keys: ['faaliyet belgesi'], l: 'Faaliyet Belgesi' },
+                { keys: ['hasar bildirim', 'taahhüt'], l: 'Hasar Bildirim' },
+                { keys: ['fatura'], l: 'Fatura' },
+                { keys: ['tramer', 'kusur', 'sbm'], l: 'Tramer/Kusur' },
+                { keys: ['eksper', 'ön rapor', 'on rapor'], l: 'Eksper Raporu' },
+                { keys: ['vergi levhası'], l: 'Vergi Levhası' },
+                { keys: ['imza sirküsü'], l: 'İmza Sirküsü' },
+                { keys: ['ticaret sicil'], l: 'Ticaret Sicil' },
+                { keys: ['ihbar föyü'], l: 'İhbar Föyü' },
+                { keys: ['ssk', 'kurumu'], l: 'SSK Bildirimi' },
+                { keys: ['vekaletname', 'vekalet'], l: 'Vekaletname' },
+            ];
+            const foundOptionals = optionals.filter(o => has(o.keys));
+            if (foundOptionals.length) { container.appendChild(createSep('DİĞER')); foundOptionals.forEach(o => container.appendChild(createBox(o.l, true, true))); }
+            // ── HEADER DURUM ─────────────────────────────────────
+            const zorunluTamam = kazaOk && sigEhliyet && sigRuhsat && magEhliyet && magRuhsat && (!isZabit || has(['alkol']));
+            statusHeader.innerText = zorunluTamam ? 'EVRAK TAMAM ✓' : 'EKSİK EVRAK VAR';
+            statusHeader.style.color = zorunluTamam ? '#28a745' : '#dc3545';
+        }
+        const runner = setInterval(() => { if (document.querySelector('table')) updatePanel(); }, 2000);
+        document.addEventListener('click', (e) => {
+			if (e.target.id === 'btn-toplu-indir-evrak') {
+
+    // onayNo — birden fazla kaynaktan dene
+    const onayNo =
+        document.querySelector('input[name="ONAY_NO"]')?.value ||
+        window.location.search.match(/ONAY_NO=([^&]+)/)?.[1] ||
+        document.querySelector('a[href*="ONAY_NO"],[onclick*="ONAY_NO"]')
+            ?.getAttribute('href')?.match(/ONAY_NO=([^&'"]+)/)?.[1] ||
+        (() => {
+            for (const a of document.querySelectorAll('a')) {
+                const h = a.getAttribute('href') || a.getAttribute('onclick') || '';
+                const m = h.match(/ONAY_NO=([^&'")\s]+)/);
+                if (m) return m[1];
+            }
+            return '';
+        })();
+    if (!onayNo) { alert('ONAY_NO bulunamadı!'); return; }
+
+    // upload.php base path'i otomatik tespit
+    const uploadHref =
+        document.querySelector('a[href*="upload.php"],[onclick*="upload.php"]')
+            ?.getAttribute('href') ||
+        document.querySelector('a[href*="upload.php"],[onclick*="upload.php"]')
+            ?.getAttribute('onclick') || '';
+    const uploadPathMatch = uploadHref.match(/['"(]([^'"()]*upload\.php)/);
+    const uploadBase = uploadPathMatch ? uploadPathMatch[1].replace(/upload\.php.*$/, '') : 'eks/pic_db/';
+
+    // Evrak satırlarını topla:
+    // Her satır: sil linki var, td[4]=dosyaadı (sil linkinden sonraki örüntü)
+    // Satır yapısı: no | ad | tip | boyut | dosyaadı | tarih | _ | sil
+    const fileEntries = [];
+    document.querySelectorAll('a[href*="photo_sil.php"],[onclick*="photo_sil.php"]')
+        .forEach(silLink => {
+            const row = silLink.closest('tr');
+            if (!row) return;
+            const tds = row.querySelectorAll('td');
+            if (tds.length < 6) return;
+            const href = silLink.getAttribute('href') || silLink.getAttribute('onclick') || '';
+            const idMatch = href.match(/ID=(\d+)/i);
+            if (!idMatch) return;
+            const id = idMatch[1];
+            // td[0]=no, td[1]=ad, td[2]=tip, td[3]=boyut, td[4]=dosyaadı, td[5]=tarih
+            const adText   = tds[1]?.innerText?.trim() || '';
+            const dosyaAdi = tds[4]?.innerText?.trim() || (id + '.jpg');
+            // kategori adını dosya adından önce ekle (ad - dosyaadi)
+            const label = adText ? adText.split('-')[0].trim() : '';
+            const rawName = label ? `${label} - ${dosyaAdi}` : dosyaAdi;
+            fileEntries.push({ id, rawName, dosyaAdi });
+        });
+
+    if (!fileEntries.length) { alert('İndirilecek evrak bulunamadı!'); return; }
+    if (!confirm(`Toplam ${fileEntries.length} evrak indirilecek. Emin misiniz?`)) return;
+
+    const btn = document.getElementById('btn-toplu-indir-evrak');
+    btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+    const statusHeader = document.getElementById('panelContent');
+    const container    = document.querySelector('.ks-grid-container');
+    const toplam = fileEntries.length;
+
+    container.innerHTML = `
+        <div id="indir-pt" style="color:#85ff9e;font-size:11px;font-weight:bold;text-align:center;margin-bottom:4px;">0 / ${toplam} indirildi</div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;height:10px;width:100%;">
+            <div id="indir-pb" style="height:100%;width:0%;background:linear-gradient(90deg,#1a6e3c,#27ae60);border-radius:6px;transition:width 0.3s ease;"></div>
+        </div>
+        <div id="indir-log" style="margin-top:6px;max-height:120px;overflow-y:auto;font-size:9px;color:#aaa;"></div>
+    `;
+    statusHeader.innerText = 'İNDİRİLİYOR...';
+    statusHeader.style.color = '#27ae60';
+
+    let tamamlanan = 0, hatali = 0;
+
+    const updateProgress = (ad, success) => {
+        tamamlanan++;
+        const pb  = document.getElementById('indir-pb');
+        const pt  = document.getElementById('indir-pt');
+        const log = document.getElementById('indir-log');
+        if (pb)  pb.style.width  = Math.round((tamamlanan / toplam) * 100) + '%';
+        if (pt)  pt.innerText    = `${tamamlanan} / ${toplam} indirildi`;
+        if (log) {
+            const line = document.createElement('div');
+            line.style.cssText = `color:${success?'#85ff9e':'#ff8585'};padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.05);`;
+            line.innerText = (success ? '✓ ' : '✗ ') + ad;
+            log.insertBefore(line, log.firstChild);
+        }
+        if (tamamlanan === toplam) {
+            if (pb) pb.style.background = hatali > 0
+                ? 'linear-gradient(90deg,#e67e22,#f39c12)'
+                : 'linear-gradient(90deg,#1a6e3c,#2ecc71)';
+            setTimeout(() => {
+                statusHeader.innerText = hatali > 0
+                    ? `${toplam-hatali} indirildi, ${hatali} hata`
+                    : `${toplam} EVRAK İNDİRİLDİ ✓`;
+                statusHeader.style.color = hatali > 0 ? '#f39c12' : '#2ecc71';
+                btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+            }, 400);
+        }
+    };
+
+    const downloadNext = async (index) => {
+        if (index >= fileEntries.length) return;
+        const { id, rawName, dosyaAdi } = fileEntries[index];
+        try {
+            // ADIM 1: upload.php'den hash'i çek (IMAGE=2 evrak için)
+            const uploadUrl = `${uploadBase}upload.php?act=upd&id=${id}&ONAY_NO=${onayNo}&silindi=0&IMAGE=2`;
+            const pageRes   = await fetch(uploadUrl, { credentials: 'include' });
+            const pageHtml  = await pageRes.text();
+
+            const hashMatch = pageHtml.match(/dosyaHash=([a-f0-9]{32})/i);
+            if (!hashMatch) throw new Error('hash bulunamadı');
+            const hash = hashMatch[1];
+
+            // photo.php base path'i upload sayfasından tespit et
+            const photoPathMatch = pageHtml.match(/(\/[^'"]*photo\.php)/);
+            const photoBase = photoPathMatch
+                ? photoPathMatch[1].replace(/photo\.php.*$/, '')
+                : uploadBase;
+
+            // ADIM 2: dosyayı indir (IMAGE=2)
+            const fileUrl = `${photoBase}photo.php?id=${id}&ratio=&ONAY_NO=${onayNo}&IMAGE=2&dosyaHash=${hash}`;
+            const fileRes = await fetch(fileUrl, { credentials: 'include' });
+            if (!fileRes.ok) throw new Error('HTTP ' + fileRes.status);
+            const blob = await fileRes.blob();
+            if (blob.size === 0) throw new Error('boş dosya');
+
+            // uzantı: önce dosyaAdi'nden al, yoksa Content-Type'tan
+            let fileName = rawName;
+            if (!dosyaAdi.includes('.')) {
+                const mime = fileRes.headers.get('content-type') || '';
+                fileName += mime.includes('pdf') ? '.pdf' : '.jpg';
+            }
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+            updateProgress(fileName, true);
+        } catch (err) {
+            hatali++;
+            updateProgress(rawName + ' (' + err.message + ')', false);
+        }
+        setTimeout(() => downloadNext(index + 1), 800);
+    };
+
+    downloadNext(0);
+    return;
+}
+            if (e.target.id !== 'btn-toplu-sil') return;
+            const silLinks = Array.from(document.querySelectorAll('a[href*="photo_sil.php"]'));
+            if (!silLinks.length) { alert('Silinecek kayıt bulunamadı!'); return; }
+            if (!confirm(`Toplam ${silLinks.length} kayıt silinecek. Emin misiniz?`)) return;
+            const btn = document.getElementById('btn-toplu-sil');
+            btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+            const statusHeader = document.getElementById('panelContent'), container = document.querySelector('.ks-grid-container');
+            container.innerHTML = `
+                <div id="sil-progress-text" style="color:#ff8585; font-size:11px; font-weight:bold; text-align:center; margin-bottom:4px;">0 / ${silLinks.length} silindi</div>
+                <div style="background:rgba(255,255,255,0.1); border-radius:6px; overflow:hidden; height:10px; width:100%;">
+                    <div id="sil-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg,#c0392b,#e74c3c);border-radius:6px; transition:width 0.3s ease;"></div></div>
+                <div id="sil-log" style="margin-top:6px; max-height:120px; overflow-y:auto; font-size:9px; color:#aaa;"></div>
+            `;
+            statusHeader.innerText = 'SİLİNİYOR...';
+            statusHeader.style.color = '#e74c3c';
+            let blink = true;
+            const blinkInterval = setInterval(() => { statusHeader.style.opacity = blink ? '0.4' : '1'; blink = !blink; }, 500);
+            const progressText = document.getElementById('sil-progress-text'), progressBar = document.getElementById('sil-progress-bar'), logDiv = document.getElementById('sil-log');
+            let tamamlanan = 0; let hatali = 0; const toplam = silLinks.length;
+            const animateRow = (row, success) => {
+                if (!row) return;
+                row.style.transition = 'opacity 0.4s ease, background-color 0.3s ease';
+                row.style.backgroundColor = success ? '#1a4a1a' : '#4a1111';
+                setTimeout(() => { row.style.opacity = '0'; }, 200);
+                setTimeout(() => { row.style.display = 'none'; }, 600);
+            };
+            const updateProgress = (dosyaAdi, success) => {
+                tamamlanan++;
+                const yuzde = Math.round((tamamlanan / toplam) * 100); progressBar.style.width = yuzde + '%'; progressText.innerText = `${tamamlanan} / ${toplam} silindi`;
+                const logLine = document.createElement('div');
+                logLine.style.cssText = `color:${success ? '#85ff9e' : '#ff8585'}; padding:1px 0; border-bottom:1px solid rgba(255,255,255,0.05);`;
+                logLine.innerText = (success ? '✓ ' : '✗ ') + (dosyaAdi || 'bilinmeyen');
+                logDiv.insertBefore(logLine, logDiv.firstChild);
+                if (tamamlanan === toplam) {
+                    clearInterval(blinkInterval);
+                    statusHeader.style.opacity = '1';
+                    progressBar.style.background = hatali > 0 ? 'linear-gradient(90deg, #92531b, #f39c12)' : 'linear-gradient(90deg, #1a4a1a, #2ecc71)';
+                    setTimeout(() => {
+                        statusHeader.innerText = hatali > 0 ? `${toplam - hatali} silindi, ${hatali} hata` : `${toplam} KAYIT SİLİNDİ ✓`;
+                        statusHeader.style.color = hatali > 0 ? '#f39c12' : '#2ecc71';
+                        progressText.innerText = 'Sayfa yenileniyor...';
+                        setTimeout(() => location.reload(), 1500);
+                    }, 400);
+                }
+            };
+            silLinks.forEach(link => {
+                const href = link.getAttribute('href'), match = href.match(/photo_sil\.php\?ID=(\d+)/);
+                if (!match) { updateProgress('?', false); return; }
+                const id = match[1], row = link.closest('tr'), dosyaAdi = row?.querySelectorAll('td')[1]?.innerText?.trim() || id;
+                const xhttp = new XMLHttpRequest();
+                xhttp.open('POST', '/pic_db/photo_sil.php', true);
+                xhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhttp.onload = () => { animateRow(row, true); updateProgress(dosyaAdi, true); };
+                xhttp.onerror = () => { animateRow(row, false); hatali++; updateProgress(dosyaAdi, false); };
+                xhttp.send(`id=${id}&btnEVET=EVET`);
+            });
+        });
     }
     // Resim yükleme kontrolü
     if (KS_SYSTEM && RESIM && loc("otohasar") && loc("eks_hasar_evrak_foto_list.php")) {
@@ -4373,16 +4737,20 @@
 	    if (panel && panelContent) {
 	        const headerTitle = panel.querySelector('.ks-header h4'); if (headerTitle) headerTitle.innerText = "Resim Kontrol";
 	        panelContent.innerHTML = `
-		            <div id="panelContent" style="color:#fff; text-align:center; padding:2px; background:rgba(0,0,0,0.2); border-radius:5px; margin-bottom:8px; font-size:11px; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">TANIYOR...</div>
-		            <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 2px; width: 100%;">
-		                <div style="color:#aaa; font-size:10px; text-align:center;">Resimler taranıyor...</div>
-		            </div>
-		            <hr class="custom-line">
-		            <div class="ks-tooltip-container" style="width:100%; display:block;">
-		                <button id="btn-toplu-sil-resim" class="ks-btn" style="background:#c0392b; border:0; border-radius:4px; cursor:pointer; padding:3px 4px; font-size:11px; width:100%; display:block; box-sizing:border-box;">🗑️ RESİMLERİ SİL</button>
-		                <div class="ks-tooltip-box" style="display:none; border-color:#c0392b;"><strong>Tüm Resimleri Sil</strong><br>Bu sayfadaki tüm fotoğrafları siler.</div>
-		            </div>
-		        `;
+	            <div id="panelContent" style="color:#fff; text-align:center; padding:2px; background:rgba(0,0,0,0.2); border-radius:5px; margin-bottom:8px; font-size:11px; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">DURUM TARANIYOR</div>
+	            <div class="ks-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 2px; width: 100%;">
+	                <div style="color:#aaa; font-size:10px; text-align:center;">Tablo verileri bekleniyor...</div>
+	            </div>
+	            <hr class="custom-line">
+	            <div class="ks-tooltip-container" style="width:100%; display:block;">
+	                <button id="btn-toplu-sil" class="ks-btn" style="background:#c0392b; border:0; border-radius:4px; cursor:pointer; padding:3px 4px; font-size:11px; width:100%; display:block; box-sizing:border-box;">🗑️ TÜMÜNÜ SİL</button>
+	                <div class="ks-tooltip-box" style="display:none; border-color:#c0392b;"><strong>Toplu Silme</strong><br>Sayfadaki tüm kayıtları tek onay ile siler.</div>
+	            </div>
+	            <div class="ks-tooltip-container" style="width:100%; display:block; margin-bottom:4px;">
+	                <button id="btn-toplu-indir-evrak" class="ks-btn" style="background:#1a6e3c; border:0; border-radius:4px; cursor:pointer; padding:3px 4px; font-size:11px; width:100%; display:block; box-sizing:border-box; color:#fff;">⬇️ HEPSİNİ İNDİR</button>
+	                <div class="ks-tooltip-box" style="display:none; border-color:#1a6e3c;"><strong>Tüm Evrakları İndir</strong><br>PDF ve resim dahil tüm evrakları indirir.</div>
+	            </div>
+	        `;
 	    }
 	    function updatePhotoPanel() {
 	        const container = document.querySelector('.ks-grid-container'), statusHeader = document.getElementById('panelContent');
@@ -4426,11 +4794,119 @@
 	    }
 	    const runner = setInterval(() => { if (document.querySelector('table')) updatePhotoPanel(); }, 2000);
 	    document.addEventListener('click', (e) => {
-	        if (e.target.id !== 'btn-toplu-sil-resim') return;
+	    	if (e.target.id === 'btn-toplu-indir') {
+	        // --- onayNo: birden fazla kaynaktan dene ---
+	        const onayNo =
+	            document.querySelector('input[name="ONAY_NO"]')?.value ||
+	            window.location.search.match(/ONAY_NO=([^&]+)/)?.[1] ||
+	            document.querySelector('a[href*="ONAY_NO"]')?.getAttribute('href')?.match(/ONAY_NO=([^&'"]+)/)?.[1] ||
+	            document.querySelector('[href*="ONAY_NO"],[onclick*="ONAY_NO"]')?.getAttribute('onclick')?.match(/ONAY_NO=([^&'"]+)/)?.[1] ||
+	            '';
+	        if (!onayNo) { alert('ONAY_NO bulunamadı!'); return; }
+	        // --- upload.php path'ini mevcut popup linklerinden otomatik tespit et ---
+	        const uploadRaw =
+	            document.querySelector('a[href*="upload.php"]')?.getAttribute('href') ||
+	            document.querySelector('a[onclick*="upload.php"]')?.getAttribute('onclick') || '';
+	        const uploadPathMatch = uploadRaw.match(/['"(]([^'"()]*upload\.php)/);
+	        let uploadBase = uploadPathMatch ? uploadPathMatch[1].replace(/upload\.php.*$/, '') : '';
+	        if (!uploadBase) { uploadBase = window.location.pathname.startsWith('/eks/') ? '/eks/pic_db/' : '/pic_db/'; } else if (!uploadBase.startsWith('/')) { uploadBase = '/' + uploadBase; }
+
+	        const fileEntries = [];
+	        document.querySelectorAll('a[href*="photo_sil.php"]').forEach(silLink => {
+	            const row = silLink.closest('tr');
+	            if (!row) return;
+	            const tds = row.querySelectorAll('td');
+	            if (tds.length < 4) return;
+	            const idMatch = silLink.getAttribute('href').match(/ID=(\d+)/i);
+	            if (!idMatch) return;
+	            const id = idMatch[1];
+	            const td3 = tds[3]?.innerText || '';
+	            const dashIdx = td3.indexOf('-');
+	            const rawName = dashIdx >= 0 ? td3.substring(dashIdx + 1).trim() : (id + '.jpg');
+	            fileEntries.push({ id, rawName });
+	        });
+	        if (!fileEntries.length) { alert('İndirilecek dosya bulunamadı!'); return; }
+	        if (!confirm(`Toplam ${fileEntries.length} dosya indirilecek. Emin misiniz?`)) return;
+	        const btn = document.getElementById('btn-toplu-indir');
+	        btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+	        const statusHeader = document.getElementById('panelContent');
+	        const container = document.querySelector('.ks-grid-container');
+	        const toplam = fileEntries.length;
+	        container.innerHTML = `
+	            <div id="indir-pt" style="color:#85ff9e;font-size:11px;font-weight:bold;text-align:center;margin-bottom:4px;">0 / ${toplam} indirildi</div>
+	            <div style="background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;height:10px;width:100%;">
+	                <div id="indir-pb" style="height:100%;width:0%;background:linear-gradient(90deg,#1a6e3c,#27ae60);border-radius:6px;transition:width 0.3s ease;"></div>
+	            </div>
+	            <div id="indir-log" style="margin-top:6px;max-height:120px;overflow-y:auto;font-size:9px;color:#aaa;"></div>
+	        `;
+	        statusHeader.innerText = 'İNDİRİLİYOR...';
+	        statusHeader.style.color = '#27ae60';
+	        let tamamlanan = 0, hatali = 0;
+	        const updateProgress = (dosyaAdi, success) => {
+	            tamamlanan++;
+	            const pb = document.getElementById('indir-pb');
+	            const pt = document.getElementById('indir-pt');
+	            const log = document.getElementById('indir-log');
+	            if (pb) pb.style.width = Math.round((tamamlanan / toplam) * 100) + '%';
+	            if (pt) pt.innerText = `${tamamlanan} / ${toplam} indirildi`;
+	            if (log) {
+	                const line = document.createElement('div');
+	                line.style.cssText = `color:${success ? '#85ff9e' : '#ff8585'};padding:1px 0;border-bottom:1px solid rgba(255,255,255,0.05);`;
+	                line.innerText = (success ? '✓ ' : '✗ ') + dosyaAdi;
+	                log.insertBefore(line, log.firstChild);
+	            }
+	            if (tamamlanan === toplam) {
+	                if (pb) pb.style.background = hatali > 0 ? 'linear-gradient(90deg,#e67e22,#f39c12)' : 'linear-gradient(90deg,#1a6e3c,#2ecc71)';
+	                setTimeout(() => {
+	                    statusHeader.innerText = hatali > 0
+	                        ? `${toplam - hatali} indirildi, ${hatali} hata`
+	                        : `${toplam} DOSYA İNDİRİLDİ ✓`;
+	                    statusHeader.style.color = hatali > 0 ? '#f39c12' : '#2ecc71';
+	                    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+	                }, 400);
+	            }
+	        };
+	        const downloadNext = async (index) => {
+	            if (index >= fileEntries.length) return;
+	            const { id, rawName } = fileEntries[index];
+	            try {
+	                // ADIM 1: upload.php'den hash'i çek (path otomatik tespit edildi)
+	                const uploadUrl = `${uploadBase}upload.php?act=upd&id=${id}&ONAY_NO=${onayNo}&silindi=0&IMAGE=1`;
+	                const pageRes = await fetch(uploadUrl, { credentials: 'include' });
+	                const pageHtml = await pageRes.text();
+	                // hash'i bul
+	                const hashMatch = pageHtml.match(/dosyaHash=([a-f0-9]{32})/i);
+	                if (!hashMatch) throw new Error('hash bulunamadı');
+	                const hash = hashMatch[1];
+	                // photo.php path'ini de upload sayfasından otomatik tespit et
+	                const photoPathMatch = pageHtml.match(/(\/[^'"]*photo\.php)/);
+	                const photoBase = photoPathMatch ? photoPathMatch[1].replace(/photo\.php.*$/, '') : uploadBase;
+	                // ADIM 2: dosyayı indir
+	                const fileUrl = `${photoBase}photo.php?id=${id}&ratio=&ONAY_NO=${onayNo}&IMAGE=&dosyaHash=${hash}`;
+	                const fileRes = await fetch(fileUrl, { credentials: 'include' });
+	                if (!fileRes.ok) throw new Error('HTTP ' + fileRes.status);
+	                const blob = await fileRes.blob();
+	                if (blob.size === 0) throw new Error('boş dosya');
+	                const mime = fileRes.headers.get('content-type') || '';
+	                let fileName = rawName;
+	                if (!rawName.includes('.')) { fileName += mime.includes('pdf') ? '.pdf' : '.jpg'; }
+	                const a = document.createElement('a');
+	                a.href = URL.createObjectURL(blob);
+	                a.download = fileName;
+	                document.body.appendChild(a); a.click();
+	                setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+	                updateProgress(fileName, true);
+	            } catch (err) { hatali++; updateProgress(rawName + ' (' + err.message + ')', false); }
+	            setTimeout(() => downloadNext(index + 1), 800);
+	        };
+	        downloadNext(0);
+	        return;
+	    }
+	        if (e.target.id == 'btn-toplu-sil') {
 	        const silLinks = Array.from(document.querySelectorAll('a[href*="photo_sil.php"]'));
 	        if (!silLinks.length) { alert('Silinecek resim bulunamadı!'); return; }
 	        if (!confirm(`Toplam ${silLinks.length} adet fotoğraf sistemden silinecek. Emin misiniz?`)) return;
-	        const btn = document.getElementById('btn-toplu-sil-resim');
+	        const btn = document.getElementById('btn-toplu-sil');
 	        btn.disabled = true;
 	        btn.style.opacity = '0.5';
 	        btn.style.cursor = 'not-allowed';
@@ -4481,9 +4957,11 @@
 	            const deleteUrl = `pic_db/photo_sil.php?ID=${id}&id=${id}&btnEVET=EVET&islem=sil&onay=1`;
 	            fetch(deleteUrl, { method: 'GET', referrer: window.location.href }).then(() => { animateRow(row, true); updateProgress(dosyaAdi, true); }).catch(() => { animateRow(row, false); hatali++; updateProgress(dosyaAdi, false); });
 	        });
+			}
+			else return;
 	    });
 	}
-    if (KS_SYSTEM && RESIM && loc("otohasar") && (loc("eks_hasar_foto_list.php")||loc("eks_hasar_evrak_foto_list.php"))) {
+    if (KS_SYSTEM && RESIM && loc("otohasar") && loc("eks_hasar_evrak_foto_list.php")) {
         function getParam(name, url = window.location.href) {
             name = name.replace(/[\[\]]/g, '\\$&');
             var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
