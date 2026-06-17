@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.73
+// @version      1.74
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -25,21 +25,19 @@
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // ==/UserScript==
-/* global jQuery,html2canvas */
+/* global jQuery,html2canvas,pdfjsLib */
 (function () {
     'use strict';
     /* ---Eklenecekler
-	PDF DÖNÜŞTÜRME PANELİ- ILOVEPDF GİBİ
-	JPG KÜÇÜLTME PANELİ- BULKSIZE
+		PDF DÖNÜŞTÜRME PANELİ- ILOVEPDF GİBİ - JPG KÜÇÜLTME PANELİ- BULKSIZE ~ HALLEDİLDİ
         *** paneller düzenlenecek
         parça hasar paneli düzenlenecek - farklı araçlar için
         Ek tasarım şekilleri - yön panel şekli vs.
         sağ üste danseden doge - çok önemli ~~EKLENDİ GİF :D
         Gerekli evrak gösteren panel - duruma bağlı
         Veriyi sayfalar arası taşıma - aynı adres kökünde
-        Resim okuma gelişimi - isme göre
         genel sigorta sayfası giriş gelişmiş versiyon - türkiye sigorta, quick
-        Hızlı Resim girişi claude fix need~~ ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR
+		Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need~~ ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR
         resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak~~ HALLOLDU
     */
     const url = location.href.toLowerCase();
@@ -56,7 +54,6 @@
         'otohasar.ray': '#ed1c24', 'otohasar.unico': '#e30613', 'otohasar.doga': '#009640', 'otohasar.allianz': '#164481'
     };
     const matchedKey = Object.keys(themes).find(key => url.includes(key)); if (matchedKey) config.themeColor = themes[matchedKey];
-	pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     /* ══════════════════════════════════════════════════
        HASAR ANALİZ — SEDAN ŞEMALİ VERSİYON v1.0
     ══════════════════════════════════════════════════ */
@@ -102,7 +99,6 @@
         { id: 'klima', label: 'Klima Sistemi', kw: ['KLIMA', 'KOMPRESOR', 'EVAPORATOR', 'POLEN'] },
         { id: 'kilit', label: 'Merkezi Kilit', kw: ['KILIT', 'KAPATMA', 'ALARM', 'KUMANDA'] },
     ];
-    /* ── Bölge → path id eşleşmesi ── */
     const HAP_ZONE_PATHS = {
         'hap-z-fl': ['path-camurl-onSol', 'path-far-onSol', 'path-tampon-onSol'],
         'hap-z-fc': ['path-kaput', 'path-tampon-on'],
@@ -441,7 +437,7 @@
         const style = document.createElement('style');
         style.id = 'ks-dynamic-styles';
         style.innerHTML = `
-            @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
             :root { --fontier: 'Exo 2', sans-serif !important; }
             /*body { transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important; }
             body.ks-panel-open { margin-right: ${config.width} !important; width: calc(100% - ${config.width}) !important; overflow-x: hidden !important; }*/
@@ -626,6 +622,38 @@
 			.tab-panel-content.active { display: block; }
             .hap-view 		 { display:none; }
             .hap-view.active { display:block; }
+        .ks-sb-wrap { display: flex; align-items: center; gap: 0; white-space: nowrap; }
+        .ks-sb-group { display: flex; align-items: center; gap: 7px; padding: 0 9px; }
+        .ks-sb-group:first-child { padding-left: 2px; }
+        .ks-sb-group:last-child { padding-right: 2px; }
+
+        .ks-sb-divider { position: relative; width: 1px; height: 14px; background: ${config.themeColor}33; flex-shrink: 0; margin: 0 2px; }
+        .ks-sb-divider::before, .ks-sb-divider::after {
+            content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+            width: 3px; height: 3px; border-radius: 50%; background: ${config.themeColor}88;
+        }
+        .ks-sb-divider::before { top: -2px; }
+        .ks-sb-divider::after  { bottom: -2px; }
+
+        .ks-sb-item {
+            display: flex; align-items: center; gap: 4px;
+            cursor: pointer; user-select: none;
+            color: ${config.Color};
+            font-size: 13px;
+            padding: 2px 3px;
+            border-radius: ${config.borderRadius};
+            transition: background .2s ease, color .2s ease;
+        }
+        .ks-sb-item:hover { background: ${config.themeColor}1a; color: #fff; }
+        .ks-sb-item svg { width: 13px; height: 13px; flex-shrink: 0; display: block; }
+        .ks-sb-item.ks-sb-accent { color: ${config.themeColor}; font-weight: 700; letter-spacing: .4px; font-size: 12px; }
+        .ks-sb-item.ks-sb-accent svg { filter: drop-shadow(0 0 3px ${config.themeColor}66); }
+        .ks-sb-item.ks-sb-accent:hover { background: ${config.themeColor}26; text-shadow: 0 0 6px ${config.themeColor}aa; }
+        .ks-sb-item.ks-sb-lock-open { color: ${SUCCESS_COLOR}; }
+        .ks-sb-item.ks-sb-lock-open:hover { background: ${SUCCESS_COLOR}1a; }
+        .ks-sb-ipdot { font-size: 14px; line-height: 1; animation: ks-pulse 2.5s ease-in-out infinite; }
+        .ks-sb-item.ks-sb-muted { color: ${config.Color}99; font-size: 11px; }
+        .ks-sb-item.ks-sb-muted:hover { color: ${config.Color}; background: ${config.themeColor}12; }
         `;
         document.head.appendChild(style);
     };
@@ -774,11 +802,16 @@
             link.href = 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap';
             document.head.appendChild(link);
         };
+        /* ═══════════════════════════════════════════════════════
+           PJ PANEL — KS2 TEMA UYGULAMASI
+           ═══════════════════════════════════════════════════════ */
         if (!document.getElementById(PANEL_ID + '-style')) {
             injectFonts();
             const style = document.createElement("style");
             style.id = PANEL_ID + '-style';
             style.innerText = `
+                @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
+                :root { --fontier: 'Exo 2', sans-serif !important; }
                 #${PANEL_ID} {
                     position: fixed !important; bottom: ${config.bottom} !important; left: ${config.right} !important;
                     height: 24px !important; width: 24px !important;
@@ -792,23 +825,13 @@
                     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
                     animation: ks-glow-pulse 3s infinite ease-in-out !important;
                 }
-                /* Hover Durumu */
                 #${PANEL_ID}.active, #${PANEL_ID}:hover {
-                    width: auto !important;
-                    min-width: 24px !important;
-                    max-width: 600px !important;
-                    padding: 0 12px !important;
-                    transform: skewX(-8deg) !important;
-                    border-radius: 12px 0px 12px 0px !important;
-                    background: #000 !important;
+                    width: auto !important; min-width: 24px !important; max-width: 600px !important;
+                    padding: 0 12px !important; transform: skewX(-8deg) !important;
+                    border-radius: 12px 0px 12px 0px !important; background: #000 !important;
                     box-shadow: 4px 4px 15px ${config.themeColor}66 !important;
                 }
-                /* İçeriklerin Hoverda Dik Durması */
-                #${PANEL_ID}:hover > * {
-                    transform: skewX(8deg) !important;
-                    display: flex !important;
-                    align-items: center !important;
-                }
+                #${PANEL_ID}:hover > * { transform: skewX(8deg) !important; display: flex !important; align-items: center !important; }
                 @keyframes ks-glow-pulse {
                     0%, 100% { border-color: ${config.themeColor}; opacity: 0.9; }
                     50% { border-color: ${SUCCESS_COLOR}; opacity: 1; box-shadow: 0 0 15px ${config.themeColor}88; }
@@ -1165,83 +1188,134 @@
 				    display: block !important;
 				    width: calc(100% - 12px);
 				}
-				/*---------------------------------------------------*/
-				    /* ── Panel kapsayıcı ── */
+                /* ══════════════════════════════════════════════════════
+                   PJ PANEL — KS2 GÖRÜNÜM KATMANI
+                   Aynı konum: top:60px, left:0, width:240px
+                ══════════════════════════════════════════════════════ */
+                #pj-panel * , #pj-panel *::before, #pj-panel *::after {
+                    font-family: var(--fontier);
+                    -webkit-font-smoothing: antialiased;
+                    box-sizing: border-box;
+                }
                 #pj-panel {
+                    --pj-cy: ${config.themeColor};
+                    --pj-cy2: color-mix(in srgb, ${config.themeColor}, black 25%);
+                    --pj-cy3: ${SUCCESS_COLOR};
+                    --pj-bg0: ${config.backColor};
+                    --pj-bg1: color-mix(in srgb, ${config.backColor}, white 4%);
+                    --pj-bg2: color-mix(in srgb, ${config.backColor}, white 7%);
+                    --pj-bg3: color-mix(in srgb, ${config.backColor}, white 10%);
+                    --pj-bd: color-mix(in srgb, ${config.themeColor} 13%, transparent);
+                    --pj-bd2: color-mix(in srgb, ${config.themeColor} 35%, transparent);
+                    --pj-txt: ${config.Color};
+                    --pj-txt2: color-mix(in srgb, ${config.Color}, transparent 40%);
+                    --pj-txt3: color-mix(in srgb, ${config.Color}, transparent 65%);
                     position: fixed;
                     top: 60px;
-                    left: -1;                          /* right:0 → left:0 */
-                    border-left: none;                /* border-right:none → border-left:none */
-                    border-radius: 0 12px 12px 0;     /* köşeler ayna çevrildi */
-                   /* box-shadow: 4px 0 24px rgba(0,0,0,.5);   gölge yönü değişti */
-                    z-index: 2147483647;
+                    left: 0;
                     width: 240px;
-                    font-family: 'Segoe UI', system-ui, sans-serif;
+                    max-height: calc(100vh - 100px);
+                    background: var(--pj-bg0);
+                    border: 1px solid var(--pj-bd2);
+                    border-left: none;
+                    border-radius: 0 12px 12px 0;
+                    color: var(--pj-txt);
                     font-size: 12px;
-                    color: #dde;
-                    background: #13131c;
-                    border: 1px solid #252538;
-                    border-right: none;
                     display: flex;
                     flex-direction: column;
-                    max-height: calc(100vh - 100px);
+                    overflow: hidden;
+                    z-index: 2147483647;
                     transition: transform .25s ease;
                 }
                 #pj-panel.pj-collapsed { transform: translateX(-240px); }
-
-                /* ── Toggle tab ── */
+                /* üst glow çizgisi */
+                #pj-panel::before {
+                    content: '';
+                    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+                    background: linear-gradient(90deg, transparent, var(--pj-cy), transparent);
+                    z-index: 5; pointer-events: none;
+                }
+                /* scanline */
+                #pj-panel::after {
+                    content: '';
+                    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+                    background: repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in srgb, ${config.themeColor} 4%, transparent) 2px, color-mix(in srgb, ${config.themeColor} 4%, transparent) 4px);
+                    opacity: .5;
+                    animation: pj-scan 10s linear infinite;
+                }
+                @keyframes pj-scan { 0% { transform: translateY(-50%); } 100% { transform: translateY(50%); } }
+                /* ── Toggle tab (sağ kenara yapışık ok) ── */
                 #pj-toggle {
                     position: absolute;
-                    right: -28px;      /* left:-28px → right:-28px */
-                    left: auto;
-                    border-radius: 0 8px 8px 0;      /* ayna çevrildi */
-                    box-shadow: 3px 0 12px rgba(230,57,70,.4);
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 28px;
-                    height: 64px;
-                    background: #e63946;
-                    border: none;
+                    right: -28px; left: auto;
+                    top: 50%; transform: translateY(-50%);
+                    width: 28px; height: 64px;
+                    background: var(--pj-bg0);
+                    border: 1px solid var(--pj-cy);
+                    border-left: none;
+                    border-radius: 0 8px 8px 0;
+                    box-shadow: 3px 0 12px color-mix(in srgb, ${config.themeColor} 40%, transparent);
                     cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: #fff;
-                    font-size: 14px;
-                    writing-mode: vertical-rl;
+                    display: flex; align-items: center; justify-content: center;
+                    color: ${config.themeColor};
+                    font-size: 11px;
                     letter-spacing: 1px;
                     font-weight: 700;
+                    z-index: 6;
+                    transition: background .2s ease;
                 }
-
-                /* ── Sekme başlıkları ── */
-                #pj-tabs {
-                    display: flex;
-                    border-bottom: 1px solid #252538;
+                #pj-toggle:hover { background: color-mix(in srgb, ${config.themeColor} 18%, var(--pj-bg0)); }
+                /* ── Brand / başlık şeridi (KS2 brand) ── */
+                #pj-brand {
+                    position: relative; z-index: 2;
+                    display: flex; align-items: center; gap: 8px;
+                    padding: 8px 10px;
+                    border-bottom: 1px solid var(--pj-bd);
+                    background: var(--pj-bg1);
                     flex-shrink: 0;
+                }
+                #pj-brand-diamond {
+                    width: 16px; height: 16px; flex-shrink: 0;
+                    border: 1px solid var(--pj-cy);
+                    display: flex; align-items: center; justify-content: center;
+                    transform: rotate(45deg);
+                }
+                #pj-brand-diamond::after { content: ''; width: 6px; height: 6px; background: var(--pj-cy); }
+                #pj-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+                #pj-brand-title { font-size: 10px; color: var(--pj-cy); letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+                #pj-brand-sub { font-size: 9px; color: var(--pj-txt2); letter-spacing: 1px; text-transform: uppercase; }
+                /* ── Sekme başlıkları (KS2 nav-item benzeri) ── */
+                #pj-tabs {
+                    position: relative; z-index: 2;
+                    display: flex;
+                    border-bottom: 1px solid var(--pj-bd);
+                    flex-shrink: 0;
+                    background: var(--pj-bg1);
                 }
                 .pj-tab {
                     flex: 1;
-                    padding: 8px 4px;
+                    padding: 7px 4px;
                     text-align: center;
                     cursor: pointer;
-                    font-size: 10px;
-                    font-weight: 600;
-                    color: #666688;
+                    font-size: 9px;
+                    font-weight: 700;
+                    letter-spacing: .4px;
+                    text-transform: uppercase;
+                    color: var(--pj-txt2);
                     background: none;
                     border: none;
-                    border-radius: 12px 0 0 0;
-                    transition: color .15s, background .15s;
-                    letter-spacing: .3px;
+                    border-bottom: 2px solid transparent;
+                    transition: color .15s, border-color .15s, background .15s;
                 }
-                .pj-tab:last-child { border-radius: 0; }
+                .pj-tab:hover { color: var(--pj-cy); background: color-mix(in srgb, ${config.themeColor} 4%, transparent); }
                 .pj-tab.active {
-                    color: #e63946;
-                    background: #1a1a28;
-                    border-bottom: 2px solid #e63946;
+                    color: var(--pj-cy);
+                    border-bottom-color: var(--pj-cy);
+                    background: color-mix(in srgb, ${config.themeColor} 7%, transparent);
                 }
-
                 /* ── Sekme içerikleri ── */
                 .pj-pane {
+                    position: relative; z-index: 2;
                     display: none;
                     flex-direction: column;
                     overflow-y: auto;
@@ -1250,112 +1324,151 @@
                     flex: 1;
                 }
                 .pj-pane.active { display: flex; }
-
-                /* ── Genel elemanlar ── */
+                .pj-pane::-webkit-scrollbar { width: 3px; }
+                .pj-pane::-webkit-scrollbar-thumb { background: var(--pj-cy); }
+                /* ── Etiketler ── */
                 .pj-label {
-                    font-size: 10px;
-                    color: #5a5a78;
+                    font-size: 9px;
+                    color: var(--pj-txt3);
                     text-transform: uppercase;
-                    letter-spacing: .4px;
+                    letter-spacing: 1px;
                     margin-bottom: 2px;
                 }
+                /* ── Drop alanı (KS2 mod-card stili) ── */
                 .pj-drop {
-                    border: 1.5px dashed #2e2e48;
-                    border-radius: 8px;
+                    position: relative;
+                    background: var(--pj-bg3);
+                    border: 1px solid var(--pj-bd);
+                    border-radius: 2px;
                     padding: 12px 6px;
                     text-align: center;
                     cursor: pointer;
                     transition: border-color .2s, background .2s;
-                    font-size: 11px;
-                    color: #6666aa;
+                    font-size: 10px;
+                    color: var(--pj-txt2);
                     line-height: 1.5;
+                    overflow: hidden;
+                }
+                .pj-drop::before {
+                    content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+                    background: color-mix(in srgb, ${config.themeColor} 3%, transparent);
+                    transition: background .2s;
                 }
                 .pj-drop:hover, .pj-drop.drag-over {
-                    border-color: #e63946;
-                    background: rgba(230,57,70,.06);
+                    border-color: var(--pj-cy2);
+                    background: color-mix(in srgb, ${config.themeColor} 5%, var(--pj-bg3));
                 }
-                .pj-drop .di { font-size: 22px; display: block; margin-bottom: 4px; }
+                .pj-drop:hover::before, .pj-drop.drag-over::before { background: var(--pj-cy); }
+                .pj-drop .di { font-size: 18px; display: block; margin-bottom: 4px; filter: drop-shadow(0 0 4px ${config.themeColor}66); }
                 input[type=file].pj-hidden { display: none; }
-
+                /* ── Select / Input ── */
                 select.pj-sel, input.pj-input {
                     width: 100%;
-                    box-sizing: border-box;
-                    background: #1c1c2a;
-                    border: 1px solid #2e2e48;
-                    border-radius: 6px;
-                    color: #dde;
+                    background: var(--pj-bg3);
+                    border: 1px solid var(--pj-bd);
+                    border-radius: 2px;
+                    color: var(--pj-txt);
                     padding: 5px 8px;
                     font-size: 11px;
                     outline: none;
+                    transition: border-color .15s;
                 }
-                select.pj-sel:focus, input.pj-input:focus { border-color: #e63946; }
-
+                select.pj-sel:focus, input.pj-input:focus { border-color: var(--pj-cy); }
                 .pj-row { display: flex; gap: 6px; align-items: center; }
                 .pj-row > * { flex: 1; }
-
+                /* ── Range slider ── */
                 input[type=range].pj-range {
                     width: 100%;
-                    accent-color: #e63946;
+                    accent-color: ${config.themeColor};
                     cursor: pointer;
                     margin: 0;
                 }
                 .pj-rval {
                     font-size: 11px;
-                    color: #e63946;
+                    color: var(--pj-cy);
                     font-weight: 700;
                     min-width: 28px;
                     text-align: right;
                     flex: none;
                 }
-
+                /* ── Butonlar (KS2 fbtn — siber kesim/clip-path) ── */
                 .pj-btn {
+                    position: relative;
                     width: 100%;
-                    padding: 7px;
-                    border-radius: 7px;
+                    padding: 8px 0;
                     border: none;
-                    font-size: 11px;
+                    outline: none;
+                    background: transparent;
+                    font-size: 10px;
                     font-weight: 700;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                    color: var(--pj-cy);
                     cursor: pointer;
-                    transition: opacity .15s, transform .1s;
-                    letter-spacing: .3px;
+                    transition: color .2s ease;
+                }
+                .pj-btn::before {
+                    content: '';
+                    position: absolute; inset: 0;
+                    clip-path: polygon(4% 0, 100% 0, 96% 100%, 0% 100%);
+                    border: 1px solid var(--pj-bd2);
+                    background: color-mix(in srgb, ${config.themeColor} 6%, transparent);
+                    box-shadow: inset 0 0 10px color-mix(in srgb, ${config.themeColor} 10%, transparent);
+                    transition: all .2s ease;
+                }
+                .pj-btn span { position: relative; z-index: 1; }
+                .pj-btn:hover { color: #fff; text-shadow: 0 0 10px ${config.themeColor}; }
+                .pj-btn:hover::before {
+                    background: color-mix(in srgb, ${config.themeColor} 22%, transparent);
+                    border-color: var(--pj-cy);
+                    box-shadow: 0 0 16px color-mix(in srgb, ${config.themeColor} 40%, transparent), inset 0 0 10px color-mix(in srgb, ${config.themeColor} 20%, transparent);
                 }
                 .pj-btn:active { transform: scale(.97); }
-                .pj-btn-red  { background: linear-gradient(135deg,#e63946,#c1121f); color:#fff; }
-                .pj-btn-gray { background: #242436; color:#8888aa; }
-                .pj-btn:disabled { opacity:.4; cursor:not-allowed; }
+                .pj-btn:disabled { opacity: .35; cursor: not-allowed; }
+                .pj-btn:disabled:hover { color: var(--pj-cy); text-shadow: none; }
 
-                /* ── Temizleme Buton Stili ── */
+                .pj-btn-red { color: var(--pj-cy); } /* ana eylem -> tema rengi */
+                .pj-btn-gray {
+                    color: var(--pj-txt2);
+                }
+                .pj-btn-gray::before {
+                    border-color: var(--pj-bd);
+                    background: var(--pj-bg2);
+                    box-shadow: none;
+                }
+                .pj-btn-gray:hover { color: var(--pj-txt); text-shadow: none; }
+                .pj-btn-gray:hover::before { background: var(--pj-bg3); border-color: var(--pj-bd2); box-shadow: none; }
+                /* ── Temizleme linki ── */
                 .pj-clear-btn {
                     background: none;
                     border: none;
-                    color: #8888aa;
-                    font-size: 10px;
+                    color: var(--pj-txt2);
+                    font-size: 9px;
+                    letter-spacing: .5px;
+                    text-transform: uppercase;
                     cursor: pointer;
                     float: right;
                     padding: 0;
-                    text-decoration: underline;
                 }
-                .pj-clear-btn:hover { color: #e63946; }
-                .pj-clear-btn:disabled { color: #333344; cursor: not-allowed; text-decoration: none; }
-
-                /* ── İlerleme ── */
+                .pj-clear-btn:hover { color: var(--pj-cy); }
+                .pj-clear-btn:disabled { color: var(--pj-txt3); cursor: not-allowed; }
+                /* ── İlerleme çubuğu ── */
                 .pj-progress { display: none; }
                 .pj-track {
-                    height: 4px;
-                    background: #252538;
-                    border-radius: 99px;
+                    height: 3px;
+                    background: var(--pj-bg3);
+                    border: 1px solid var(--pj-bd);
                     overflow: hidden;
                     margin-bottom: 4px;
                 }
                 .pj-fill {
                     height: 100%;
-                    background: linear-gradient(90deg,#e63946,#ff7070);
-                    border-radius: 99px;
+                    background: linear-gradient(90deg, var(--pj-cy2), ${config.themeColor});
+                    box-shadow: 0 0 6px ${config.themeColor};
                     transition: width .2s;
                     width: 0;
                 }
-                .pj-status { font-size: 10px; color: #5a5a78; }
-
+                .pj-status { font-size: 9px; color: var(--pj-txt2); letter-spacing: .3px; }
                 /* ── Dosya listesi ── */
                 .pj-filelist {
                     display: flex;
@@ -1364,534 +1477,542 @@
                     max-height: 80px;
                     overflow-y: auto;
                 }
+                .pj-filelist::-webkit-scrollbar { width: 3px; }
+                .pj-filelist::-webkit-scrollbar-thumb { background: var(--pj-cy); }
                 .pj-filetag {
-                    background: #1c1c2a;
-                    border-radius: 5px;
+                    background: var(--pj-bg2);
+                    border: 1px solid var(--pj-bd);
+                    border-radius: 2px;
                     padding: 3px 6px;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     font-size: 10px;
-                    color: #9090b8;
+                    color: var(--pj-txt2);
                 }
                 .pj-filetag span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
                 .pj-filetag button {
-                    background: none; border: none; color: #e63946;
+                    background: none; border: none; color: ${config.themeColor};
                     cursor: pointer; font-size: 12px; padding: 0 0 0 4px; flex-shrink: 0;
                 }
-
-                /* ── Sonuç önizleme ── */
+                /* ── Sonuç önizleme (KS2 card-footer / status-pill) ── */
                 .pj-results { display: none; flex-direction: column; gap: 6px; }
                 .pj-result-item {
-                    background: #1a1a28;
-                    border-radius: 7px;
+                    position: relative;
+                    background: var(--pj-bg2);
+                    border: 1px solid var(--pj-bd);
+                    border-radius: 2px;
                     padding: 6px 8px;
                     display: flex;
                     align-items: center;
                     gap: 6px;
+                    overflow: hidden;
+                    transition: border-color .2s;
                 }
+                .pj-result-item::before {
+                    content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+                    background: var(--pj-cy3);
+                }
+                .pj-result-item:hover { border-color: var(--pj-bd2); }
                 .pj-result-item img {
-                    width: 36px;
-                    height: 36px;
+                    width: 34px;
+                    height: 34px;
                     object-fit: cover;
-                    border-radius: 4px;
+                    border: 1px solid var(--pj-bd);
+                    border-radius: 2px;
                     flex-shrink: 0;
-                    background: #111;
+                    background: var(--pj-bg0);
                 }
                 .pj-result-info { flex: 1; overflow: hidden; }
-                .pj-result-name { font-size: 10px; color: #aab; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                .pj-result-size { font-size: 9px; color: #5a5a78; }
+                .pj-result-name { font-size: 10px; color: var(--pj-txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .pj-result-size { font-size: 9px; color: var(--pj-txt2); margin-top: 1px; }
+                .pj-result-size span { color: var(--pj-cy3); }
                 .pj-result-dl {
-                    background: #e63946; color: #fff; border: none;
-                    border-radius: 5px; padding: 4px 7px;
-                    cursor: pointer; font-size: 10px; font-weight: 700;
+                    background: transparent;
+                    color: var(--pj-cy);
+                    border: 1px solid var(--pj-bd2);
+                    border-radius: 2px;
+                    padding: 4px 7px;
+                    cursor: pointer;
+                    font-size: 10px;
+                    font-weight: 700;
                     flex-shrink: 0;
+                    transition: background .15s, color .15s;
                 }
+                .pj-result-dl:hover { background: color-mix(in srgb, ${config.themeColor} 18%, transparent); color: #fff; }
                 .pj-dl-all-wrap { display: none; }
 
-                /* ── Scrollbar ── */
+                /* ── Scrollbar (genel) ── */
                 #pj-panel ::-webkit-scrollbar { width: 4px; }
                 #pj-panel ::-webkit-scrollbar-track { background: transparent; }
-                #pj-panel ::-webkit-scrollbar-thumb { background: #2e2e48; border-radius: 4px; }
-
+                #pj-panel ::-webkit-scrollbar-thumb { background: var(--pj-bd2); border-radius: 0; }
                 /* ── Bölücü ── */
-                .pj-sep { border: none; border-top: 1px solid #252538; margin: 0; }
-
+                .pj-sep { border: none; border-top: 1px solid var(--pj-bd); margin: 0; }
             `;
             document.head.appendChild(style);
         }
-		 /* ═══════════════════════════════════════════════════════
-            HTML
-         ═══════════════════════════════════════════════════════ */
-         const panel = document.createElement('div');
-         panel.id = 'pj-panel';
-         panel.innerHTML = `
-             <button id="pj-toggle" title="Paneli kapat" style="display: none;">❌</button>
-
-             <!-- SEKMELER -->
-             <div id="pj-tabs">
-                 <button class="pj-tab active" data-tab="pdf">📄 PDF→JPG</button>
-                 <button class="pj-tab"        data-tab="jpg">🖼 JPG Sıkıştır</button>
-             </div>
-
-             <!-- ══ PDF→JPG PANE ══ -->
-             <div class="pj-pane active" id="pj-pane-pdf">
-
-                 <!-- Çoklu dosya drop -->
-                 <div class="pj-drop" id="pdf-drop">
-                     <span class="di">📂</span>
-                     <strong>PDF seç / sürükle</strong><br>
-                     <span style="font-size:10px;color:#555577">Birden fazla dosya desteklenir</span>
-                 </div>
-                 <input type="file" class="pj-hidden" id="pdf-input" accept=".pdf" multiple>
-
-                 <!-- Dosya listesi -->
-                 <div>
-                     <button class="pj-clear-btn" id="pdf-clear" disabled>Temizle</button>
-                     <div class="pj-label">Seçilen Dosyalar</div>
-                 </div>
-                 <div class="pj-filelist" id="pdf-filelist"></div>
-
-                 <hr class="pj-sep">
-
-                 <!-- Format -->
-                 <div>
-                     <div class="pj-label">Format</div>
-                     <select class="pj-sel" id="pdf-format">
-                         <option value="image/jpeg" selected>JPG</option>
-                         <option value="image/png">PNG</option>
-                         <option value="image/webp">WebP</option>
-                     </select>
-                 </div>
-
-                 <!-- Kalite -->
-                 <div>
-                     <div class="pj-label">Kalite <span class="pj-rval" id="pdf-qualval">92%</span></div>
-                     <input type="range" class="pj-range" id="pdf-quality" min="10" max="100" value="92">
-                 </div>
-
-                 <!-- Ölçek -->
-                 <div>
-                     <div class="pj-label">DPI / Ölçek</div>
-                     <select class="pj-sel" id="pdf-scale">
-                         <option value="1">72 dpi (×1)</option>
-                         <option value="1.5" selected>108 dpi (×1.5)</option>
-                         <option value="2">150 dpi (×2)</option>
-                         <option value="3">216 dpi (×3)</option>
-                         <option value="4">300 dpi (×4)</option>
-                     </select>
-                 </div>
-
-                 <!-- Sayfa aralığı -->
-                 <div>
-                     <div class="pj-label">Sayfa aralığı (örn: 1-3,5)</div>
-                     <input class="pj-input" id="pdf-pages" placeholder="Boş = tümü">
-                 </div>
-
-                 <!-- Dönüştür -->
-                 <button class="pj-btn pj-btn-red" id="pdf-convert" disabled>Dönüştür</button>
-
-                 <!-- İlerleme -->
-                 <div class="pj-progress" id="pdf-progress">
-                     <div class="pj-track"><div class="pj-fill" id="pdf-bar"></div></div>
-                     <div class="pj-status" id="pdf-status">Hazırlanıyor…</div>
-                 </div>
-
-                 <!-- Sonuçlar -->
-                <div class="pj-dl-all-wrap" id="pdf-dlwrap" style="display: none; gap: 8px; margin-bottom: 10px;">
-                     <button class="pj-btn pj-btn-red" id="pdf-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;">⬇ Tümünü ZIP İndir</button>
-                     <button class="pj-btn" id="pdf-clear-results" style="background:#555; color:#fff; flex: 1; padding: 8px 4px; white-space: nowrap;">Listeyi Temizle</button>
+        /* ═══════════════════════════════════════════════════════
+           HTML  (yapı aynı, sadece üstüne pj-brand eklendi)
+        ═══════════════════════════════════════════════════════ */
+        const panel = document.createElement('div');
+        panel.id = 'pj-panel';
+        panel.innerHTML = `
+            <button id="pj-toggle" title="Paneli kapat" style="display: none;">❌</button>
+            <!-- BRAND ŞERİDİ -->
+            <div id="pj-brand">
+                <div id="pj-brand-diamond"></div>
+                <div id="pj-brand-text">
+                    <span id="pj-brand-title">KS // MEDIA</span>
+                    <span id="pj-brand-sub">CONVERTER</span>
                 </div>
-				 <div class="pj-results" id="pdf-results"></div>
-             </div>
+            </div>
+            <!-- SEKMELER -->
+            <div id="pj-tabs">
+                <button class="pj-tab active" data-tab="pdf">📄 PDF→JPG</button>
+                <button class="pj-tab"        data-tab="jpg">🖼 JPG Sıkıştır</button>
+            </div>
+            <!-- ══ PDF→JPG PANE ══ -->
+            <div class="pj-pane active" id="pj-pane-pdf">
+                <!-- Çoklu dosya drop -->
+                <div class="pj-drop" id="pdf-drop">
+                    <span class="di">📂</span>
+                    <strong>PDF seç / sürükle</strong><br>
+                    <span style="font-size:10px;color:var(--pj-txt3)">Birden fazla dosya desteklenir</span>
+                </div>
+                <input type="file" class="pj-hidden" id="pdf-input" accept=".pdf" multiple>
 
-             <!-- ══ JPG SIKISTIR PANE ══ -->
-             <div class="pj-pane" id="pj-pane-jpg">
+                <!-- Dosya listesi -->
+                <div>
+                    <button class="pj-clear-btn" id="pdf-clear" disabled>Temizle</button>
+                    <div class="pj-label">Seçilen Dosyalar</div>
+                </div>
+                <div class="pj-filelist" id="pdf-filelist"></div>
 
-                 <div class="pj-drop" id="jpg-drop">
-                     <span class="di">🖼️</span>
-                     <strong>JPG / PNG seç</strong><br>
-                     <span style="font-size:10px;color:#555577">Birden fazla dosya desteklenir</span>
-                 </div>
-                 <input type="file" class="pj-hidden" id="jpg-input" accept="image/jpeg,image/png,image/webp" multiple>
-                 <div>
-                     <button class="pj-clear-btn" id="jpg-clear" disabled>Temizle</button>
-                     <div class="pj-label">Seçilen Dosyalar</div>
-                 </div>
-                 <div class="pj-filelist" id="jpg-filelist"></div>
+                <hr class="pj-sep">
 
-                 <hr class="pj-sep">
+                <!-- Format -->
+                <div>
+                    <div class="pj-label">Format</div>
+                    <select class="pj-sel" id="pdf-format">
+                        <option value="image/jpeg" selected>JPG</option>
+                        <option value="image/png">PNG</option>
+                        <option value="image/webp">WebP</option>
+                    </select>
+                </div>
+                <!-- Kalite -->
+                <div>
+                    <div class="pj-label">Kalite <span class="pj-rval" id="pdf-qualval">92%</span></div>
+                    <input type="range" class="pj-range" id="pdf-quality" min="10" max="100" value="92">
+                </div>
+                <!-- Ölçek -->
+                <div>
+                    <div class="pj-label">DPI / Ölçek</div>
+                    <select class="pj-sel" id="pdf-scale">
+                        <option value="1">72 dpi (×1)</option>
+                        <option value="1.5" selected>108 dpi (×1.5)</option>
+                        <option value="2">150 dpi (×2)</option>
+                        <option value="3">216 dpi (×3)</option>
+                        <option value="4">300 dpi (×4)</option>
+                    </select>
+                </div>
+                <!-- Sayfa aralığı -->
+                <div>
+                    <div class="pj-label">Sayfa aralığı (örn: 1-3,5)</div>
+                    <input class="pj-input" id="pdf-pages" placeholder="Boş = tümü">
+                </div>
+                <!-- Dönüştür -->
+                <button class="pj-btn pj-btn-red" id="pdf-convert" disabled><span>Dönüştür</span></button>
+                <!-- İlerleme -->
+                <div class="pj-progress" id="pdf-progress">
+                    <div class="pj-track"><div class="pj-fill" id="pdf-bar"></div></div>
+                    <div class="pj-status" id="pdf-status">Hazırlanıyor…</div>
+                </div>
+                <!-- Sonuçlar -->
+               <div class="pj-dl-all-wrap" id="pdf-dlwrap" style="display: none; gap: 8px; margin-bottom: 10px;">
+                    <button class="pj-btn pj-btn-red" id="pdf-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>⬇ Tümünü ZIP İndir</span></button>
+                    <button class="pj-btn pj-btn-gray" id="pdf-clear-results" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>Listeyi Temizle</span></button>
+               </div>
+        		 <div class="pj-results" id="pdf-results"></div>
+            </div>
+            <!-- ══ JPG SIKISTIR PANE ══ -->
+            <div class="pj-pane" id="pj-pane-jpg">
 
-                 <!-- Hedef format -->
-                 <div>
-                     <div class="pj-label">Çıktı Formatı</div>
-                     <select class="pj-sel" id="jpg-format">
-                         <option value="image/jpeg" selected>JPG</option>
-                         <option value="image/webp">WebP</option>
-                         <option value="image/png">PNG</option>
-                     </select>
-                 </div>
+                <div class="pj-drop" id="jpg-drop">
+                    <span class="di">🖼️</span>
+                    <strong>JPG / PNG seç</strong><br>
+                    <span style="font-size:10px;color:var(--pj-txt3)">Birden fazla dosya desteklenir</span>
+                </div>
+                <input type="file" class="pj-hidden" id="jpg-input" accept="image/jpeg,image/png,image/webp" multiple>
+                <div>
+                    <button class="pj-clear-btn" id="jpg-clear" disabled>Temizle</button>
+                    <div class="pj-label">Seçilen Dosyalar</div>
+                </div>
+                <div class="pj-filelist" id="jpg-filelist"></div>
+                <hr class="pj-sep">
+                <!-- Hedef format -->
+                <div>
+                    <div class="pj-label">Çıktı Formatı</div>
+                    <select class="pj-sel" id="jpg-format">
+                        <option value="image/jpeg" selected>JPG</option>
+                        <option value="image/webp">WebP</option>
+                        <option value="image/png">PNG</option>
+                    </select>
+                </div>
+                <!-- Kalite -->
+                <div>
+                    <div class="pj-label">Kalite <span class="pj-rval" id="jpg-qualval">55%</span></div>
+                    <input type="range" class="pj-range" id="jpg-quality" min="5" max="100" value="55">
+                </div>
+                <!-- Maks. boyut -->
+                <div>
+                    <div class="pj-label">Maks. Uzun Kenar (px)</div>
+                    <select class="pj-sel" id="jpg-maxpx">
+                        <option value="0" selected>Değiştirme</option>
+                        <option value="3840">3840 (4K)</option>
+                        <option value="1920">1920 (FHD)</option>
+                        <option value="1280">1280 (HD)</option>
+                        <option value="800">800</option>
+                        <option value="480">480</option>
+                    </select>
+                </div>
+                <!-- Boyut hedefi -->
+                <div>
+                    <div class="pj-label">Hedef Dosya Boyutu</div>
+                    <select class="pj-sel" id="jpg-targetsize">
+                        <option value="0">Yok (kalite sabitle)</option>
+                        <option value="1000" selected>≤ 1000 KB</option>
+                        <option value="500">≤ 500 KB</option>
+                        <option value="200">≤ 200 KB</option>
+                        <option value="100">≤ 100 KB</option>
+                        <option value="50">≤ 50 KB</option>
+                    </select>
+                </div>
+                <!-- Sıkıştır -->
+                <button class="pj-btn pj-btn-red" id="jpg-compress" disabled><span>Sıkıştır</span></button>
+                <!-- İlerleme -->
+                <div class="pj-progress" id="jpg-progress">
+                    <div class="pj-track"><div class="pj-fill" id="jpg-bar"></div></div>
+                    <div class="pj-status" id="jpg-status">Hazırlanıyor…</div>
+                </div>
+                <!-- Sonuçlar -->
+        		<div class="pj-dl-all-wrap" id="jpg-dlwrap" style="display: none; gap: 8px; margin-bottom: 10px;">
+        		     <button class="pj-btn pj-btn-gray" id="jpg-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>⬇ Tümünü ZIP İndir</span></button>
+        		     <button class="pj-btn pj-btn-gray" id="jpg-clear-results" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>Listeyi Temizle</span></button>
+        		</div>
+        		 <div class="pj-results" id="jpg-results"></div>
+            </div>
+        `;
+        document.body.appendChild(panel);
+        /* ═══════════════════════════════════════════════════════
+           YARDIMCI FONKSIYONLAR  (DEĞİŞİKLİK YOK)
+        ═══════════════════════════════════════════════════════ */
+        const $ = id => document.getElementById(id);
+        function fmtBytes(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(2) + ' MB'; }
+        function extOf(mime) { return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'; }
+        function download(dataUrl, name) { const a = document.createElement('a'); a.href = dataUrl; a.download = name; a.click(); }
+        /* JSZip'i GM_xmlhttpRequest ile çek, Function() ile sandbox'a yükle */
+        let _jszip = null;
+        function loadJSZip() {
+            if (_jszip) return Promise.resolve(_jszip);
+            return new Promise((resolve, reject) => {
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+                    onload(r) { try { const fn = new Function(r.responseText + '\nreturn JSZip;'); _jszip = fn(); resolve(_jszip); } catch(e) { reject(e); } },
+                    onerror: reject
+                });
+            });
+        }
+        async function buildZip(items, zipName) {
+            const ZipClass = await loadJSZip();
+            const zip = new ZipClass();
+            items.forEach(({ dataUrl, name }) => { const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1); zip.file(name, base64, { base64: true }); });
+            const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+            const url = URL.createObjectURL(blob);
+            download(url, zipName || 'dosyalar.zip');
+            setTimeout(() => URL.revokeObjectURL(url), 20000);
+        }
+        function parsePages(str, total) {
+            if (!str.trim()) return Array.from({ length: total }, (_, i) => i + 1);
+            const s = new Set();
+            str.split(',').forEach(p => {
+                const m = p.trim().match(/^(\d+)(?:-(\d+))?$/);
+                if (!m) return;
+                const a = +m[1], b = m[2] ? +m[2] : a;
+                for (let i = Math.max(1,a); i <= Math.min(total,b); i++) s.add(i);
+            });
+            return [...s].sort((a,b)=>a-b);
+        }
+        /* Dosya listesi kartı */
+        function makeFileTag(name, onRemove) {
+            const d = document.createElement('div');
+            d.className = 'pj-filetag';
+            d.innerHTML = `<span title="${name}">📄 ${name}</span>`;
+            const btn = document.createElement('button');
+            btn.textContent = '✕';
+            btn.onclick = onRemove;
+            d.appendChild(btn);
+            return d;
+        }
+        /* Sonuç kartı */
+        function makeResultCard(dataUrl, name, origSize, newSize) {
+            const d = document.createElement('div');
+            d.className = 'pj-result-item';
+            const saved = origSize ? Math.round((1 - newSize/origSize)*100) : null;
+            d.innerHTML = `
+                <img src="${dataUrl}" alt="">
+                <div class="pj-result-info">
+                    <div class="pj-result-name" title="${name}">${name}</div>
+                    <div class="pj-result-size">${fmtBytes(newSize)}${saved !== null ? ` <span>↓${saved}%</span>` : ''}</div>
+                </div>`;
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'pj-result-dl';
+            dlBtn.textContent = '↓';
+            dlBtn.onclick = () => download(dataUrl, name);
+            d.appendChild(dlBtn);
+            return d;
+        }
+        /* Boyut küçülterek canvas'tan dataUrl üret */
+        function resizeAndCompress(img, maxPx, mime, quality) {
+            let w = img.naturalWidth, h = img.naturalHeight;
+            if (maxPx > 0) { const long = Math.max(w, h); if (long > maxPx) { const r = maxPx/long; w = Math.round(w*r); h = Math.round(h*r); } }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);
+            return c.toDataURL(mime, quality);
+        }
+        /* Boyut hedefine ulaşmak için kaliteyi ikiye böl (binary search) */
+        function compressToTarget(img, maxPx, mime, targetKB) {
+            if (targetKB <= 0) return null;
+            const targetBytes = targetKB * 1024;
+            let lo = 0.05, hi = 1.0, best = null;
+            for (let i = 0; i < 12; i++) {
+                const mid = (lo + hi) / 2;
+                const d = resizeAndCompress(img, maxPx, mime, mid);
+                const bytes = Math.round((d.length - d.indexOf(',') - 1) * 0.75);
+                if (bytes <= targetBytes) { best = { d, q: mid }; lo = mid; }
+                else hi = mid;
+            }
+            return best ? best.d : resizeAndCompress(img, maxPx, mime, 0.05);
+        }
+        /* base64 dataUrl'un yaklaşık byte boyutu */
+        function dataUrlBytes(d) { return Math.round((d.length - d.indexOf(',') - 1) * 0.75); }
+        /* ═══════════════════════════════════════════════════════
+           TOGGLE / SEKMELER
+        ═══════════════════════════════════════════════════════ */
+        $('pj-toggle').onclick = () => panel.classList.toggle('pj-collapsed');
+        $('pj-toggle').onclick();
+        document.querySelectorAll('.pj-tab').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.pj-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.pj-pane').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                $('pj-pane-' + btn.dataset.tab).classList.add('active');
+            };
+        });
+        /* ═══════════════════════════════════════════════════════
+           PDF → JPG  (DEĞİŞİKLİK YOK)
+        ═══════════════════════════════════════════════════════ */
+        let pdfFiles = [];
+        let pdfResults = [];
+        const pdfDrop = $('pdf-drop');
+        const pdfInput = $('pdf-input');
+        const pdfFilelist = $('pdf-filelist');
+        const pdfConvert = $('pdf-convert');
+        const pdfClear = $('pdf-clear');
+        const pdfProgress = $('pdf-progress');
+        const pdfBar = $('pdf-bar');
+        const pdfStatus = $('pdf-status');
+        const pdfResultsEl = $('pdf-results');
+        const pdfDlwrap = $('pdf-dlwrap');
+        const pdfDlall = $('pdf-dlall');
+        const pdfQualSlider= $('pdf-quality');
+        const pdfQualVal = $('pdf-qualval');
+        pdfQualSlider.oninput = () => { pdfQualVal.textContent = pdfQualSlider.value + '%'; }
+        pdfDrop.onclick = () => pdfInput.click();
+        pdfDrop.ondragover = e => { e.preventDefault(); pdfDrop.classList.add('drag-over'); };
+        pdfDrop.ondragleave = () => pdfDrop.classList.remove('drag-over');
+        pdfDrop.ondrop = e => { e.preventDefault(); pdfDrop.classList.remove('drag-over'); addPdfFiles([...e.dataTransfer.files].filter(f => f.type === 'application/pdf')); };
+        pdfInput.onchange = () => addPdfFiles([...pdfInput.files]);
+        function addPdfFiles(files) {
+            files.forEach(f => {
+                if (pdfFiles.find(x => x.name === f.name)) return;
+                pdfFiles.push(f);
+                const tag = makeFileTag(f.name, () => { pdfFiles = pdfFiles.filter(x => x !== f); tag.remove(); pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0; });
+                pdfFilelist.appendChild(tag);
+            });
+            pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0;
+        }
+        pdfClear.onclick = () => {
+            pdfFiles = [];
+            pdfFilelist.innerHTML = '';
+            pdfConvert.disabled = true;
+            pdfClear.disabled = true;
+            pdfInput.value = '';
+        };
+        pdfConvert.onclick = async () => {
+            if (!pdfFiles.length) return;
+            pdfConvert.disabled = true;
+            pdfClear.disabled = true;
+            pdfProgress.style.display = 'block';
+            pdfResultsEl.innerHTML = ''; pdfResultsEl.style.display = 'none';
+            pdfDlwrap.style.display = 'none';
+            pdfBar.style.width = '0%';
+            pdfResults = [];
+            const scale = parseFloat($('pdf-scale').value);
+            const quality = parseInt(pdfQualSlider.value) / 100;
+            const mime = $('pdf-format').value;
+            const pagesStr= $('pdf-pages').value;
+            let totalWork = 0, done = 0;
+            // İlk geçiş: toplam sayfa sayısını bul
+            const pdfs = [];
+            for (const f of pdfFiles) {
+                const ab = await f.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                const pages = parsePages(pagesStr, pdf.numPages);
+                pdfs.push({ f, pdf, pages });
+                totalWork += pages.length;
+            }
+            for (const { f, pdf, pages } of pdfs) {
+                const baseName = f.name.replace(/\.pdf$/i, '');
+                for (const pageNum of pages) {
+                    pdfStatus.textContent = `${f.name} — sayfa ${pageNum}`;
+                    pdfBar.style.width = (done / totalWork * 100) + '%';
+                    const page = await pdf.getPage(pageNum);
+                    const vp = page.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = vp.width; canvas.height = vp.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                    const dataUrl = canvas.toDataURL(mime, quality);
+                    const name = `${baseName}_s${String(pageNum).padStart(3,'0')}.${extOf(mime)}`;
+                    pdfResults.push({ dataUrl, name });
+                    pdfResultsEl.appendChild(makeResultCard(dataUrl, name, null, dataUrlBytes(dataUrl)));
+                    done++;
+                }
+            }
+            pdfBar.style.width = '100%';
+            pdfStatus.textContent = `✅ ${pdfResults.length} görsel oluşturuldu.`;
+            pdfResultsEl.style.display = 'flex';
+            if (pdfResults.length > 0) pdfDlwrap.style.display = 'flex';
+            pdfConvert.disabled = false;
+            pdfClear.disabled = false;
 
-                 <!-- Kalite -->
-                 <div>
-                     <div class="pj-label">Kalite <span class="pj-rval" id="jpg-qualval">55%</span></div>
-                     <input type="range" class="pj-range" id="jpg-quality" min="5" max="100" value="55">
-                 </div>
-
-                 <!-- Maks. boyut -->
-                 <div>
-                     <div class="pj-label">Maks. Uzun Kenar (px)</div>
-                     <select class="pj-sel" id="jpg-maxpx">
-                         <option value="0" selected>Değiştirme</option>
-                         <option value="3840">3840 (4K)</option>
-                         <option value="1920">1920 (FHD)</option>
-                         <option value="1280">1280 (HD)</option>
-                         <option value="800">800</option>
-                         <option value="480">480</option>
-                     </select>
-                 </div>
-
-                 <!-- Boyut hedefi -->
-                 <div>
-                     <div class="pj-label">Hedef Dosya Boyutu</div>
-                     <select class="pj-sel" id="jpg-targetsize">
-                         <option value="0">Yok (kalite sabitle)</option>
-                         <option value="1000" selected>≤ 1000 KB</option>
-                         <option value="500">≤ 500 KB</option>
-                         <option value="200">≤ 200 KB</option>
-                         <option value="100">≤ 100 KB</option>
-                         <option value="50">≤ 50 KB</option>
-                     </select>
-                 </div>
-
-                 <!-- Sıkıştır -->
-                 <button class="pj-btn pj-btn-red" id="jpg-compress" disabled>Sıkıştır</button>
-
-                 <!-- İlerleme -->
-                 <div class="pj-progress" id="jpg-progress">
-                     <div class="pj-track"><div class="pj-fill" id="jpg-bar"></div></div>
-                     <div class="pj-status" id="jpg-status">Hazırlanıyor…</div>
-                 </div>
-
-                 <!-- Sonuçlar -->
-				<div class="pj-dl-all-wrap" id="jpg-dlwrap" style="display: none; gap: 8px; margin-bottom: 10px;">
-				     <button class="pj-btn pj-btn-gray" id="jpg-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;">⬇ Tümünü ZIP İndir</button>
-				     <button class="pj-btn" id="jpg-clear-results" style="background:#555; color:#fff; flex: 1; padding: 8px 4px; white-space: nowrap;">Listeyi Temizle</button>
-				</div>
-				 <div class="pj-results" id="jpg-results"></div>
-             </div>
-         `;
-         document.body.appendChild(panel);
-
-		/* ═══════════════════════════════════════════════════════
-		   YARDIMCI FONKSIYONLAR
-		═══════════════════════════════════════════════════════ */
-		const $ = id => document.getElementById(id);
-		function fmtBytes(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(2) + ' MB'; }
-		function extOf(mime) { return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'; }
-		function download(dataUrl, name) { const a = document.createElement('a'); a.href = dataUrl; a.download = name; a.click(); }
-		/* JSZip'i GM_xmlhttpRequest ile çek, Function() ile sandbox'a yükle */
-		let _jszip = null;
-		function loadJSZip() {
-		    if (_jszip) return Promise.resolve(_jszip);
-		    return new Promise((resolve, reject) => {
-		        GM_xmlhttpRequest({
-		            method: 'GET',
-		            url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-		            onload(r) { try { const fn = new Function(r.responseText + '\nreturn JSZip;'); _jszip = fn(); resolve(_jszip); } catch(e) { reject(e); } },
-		            onerror: reject
-		        });
-		    });
-		}
-		async function buildZip(items, zipName) {
-		    const ZipClass = await loadJSZip();
-		    const zip = new ZipClass();
-		    items.forEach(({ dataUrl, name }) => { const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1); zip.file(name, base64, { base64: true }); });
-		    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-		    const url = URL.createObjectURL(blob);
-		    download(url, zipName || 'dosyalar.zip');
-		    setTimeout(() => URL.revokeObjectURL(url), 20000);
-		}
-		function parsePages(str, total) {
-		    if (!str.trim()) return Array.from({ length: total }, (_, i) => i + 1);
-		    const s = new Set();
-		    str.split(',').forEach(p => {
-		        const m = p.trim().match(/^(\d+)(?:-(\d+))?$/);
-		        if (!m) return;
-		        const a = +m[1], b = m[2] ? +m[2] : a;
-		        for (let i = Math.max(1,a); i <= Math.min(total,b); i++) s.add(i);
-		    });
-		    return [...s].sort((a,b)=>a-b);
-		}
-		/* Dosya listesi kartı */
-		function makeFileTag(name, onRemove) {
-		    const d = document.createElement('div');
-		    d.className = 'pj-filetag';
-		    d.innerHTML = `<span title="${name}">📄 ${name}</span>`;
-		    const btn = document.createElement('button');
-		    btn.textContent = '✕';
-		    btn.onclick = onRemove;
-		    d.appendChild(btn);
-		    return d;
-		}
-		/* Sonuç kartı */
-		function makeResultCard(dataUrl, name, origSize, newSize) {
-		    const d = document.createElement('div');
-		    d.className = 'pj-result-item';
-		    const saved = origSize ? Math.round((1 - newSize/origSize)*100) : null;
-		    d.innerHTML = `
-		        <img src="${dataUrl}" alt="">
-		        <div class="pj-result-info">
-		            <div class="pj-result-name" title="${name}">${name}</div>
-		            <div class="pj-result-size">${fmtBytes(newSize)}${saved !== null ? ` <span style="color:#4caf50">↓${saved}%</span>` : ''}</div>
-		        </div>`;
-		    const dlBtn = document.createElement('button');
-		    dlBtn.className = 'pj-result-dl';
-		    dlBtn.textContent = '↓';
-		    dlBtn.onclick = () => download(dataUrl, name);
-		    d.appendChild(dlBtn);
-		    return d;
-		}
-		/* Boyut küçülterek canvas'tan dataUrl üret */
-		function resizeAndCompress(img, maxPx, mime, quality) {
-		    let w = img.naturalWidth, h = img.naturalHeight;
-		    if (maxPx > 0) { const long = Math.max(w, h); if (long > maxPx) { const r = maxPx/long; w = Math.round(w*r); h = Math.round(h*r); } }
-		    const c = document.createElement('canvas');
-		    c.width = w; c.height = h;
-		    c.getContext('2d').drawImage(img, 0, 0, w, h);
-		    return c.toDataURL(mime, quality);
-		}
-		/* Boyut hedefine ulaşmak için kaliteyi ikiye böl (binary search) */
-		function compressToTarget(img, maxPx, mime, targetKB) {
-		    if (targetKB <= 0) return null;
-		    const targetBytes = targetKB * 1024;
-		    let lo = 0.05, hi = 1.0, best = null;
-		    for (let i = 0; i < 12; i++) {
-		        const mid = (lo + hi) / 2;
-		        const d = resizeAndCompress(img, maxPx, mime, mid);
-		        const bytes = Math.round((d.length - d.indexOf(',') - 1) * 0.75);
-		        if (bytes <= targetBytes) { best = { d, q: mid }; lo = mid; }
-		        else hi = mid;
-		    }
-		    return best ? best.d : resizeAndCompress(img, maxPx, mime, 0.05);
-		}
-		/* base64 dataUrl'un yaklaşık byte boyutu */
-		function dataUrlBytes(d) { return Math.round((d.length - d.indexOf(',') - 1) * 0.75); }
-		/* ═══════════════════════════════════════════════════════
-		   TOGGLE / SEKMELER
-		═══════════════════════════════════════════════════════ */
-		$('pj-toggle').onclick = () => panel.classList.toggle('pj-collapsed');
-		$('pj-toggle').onclick();
-		document.querySelectorAll('.pj-tab').forEach(btn => {
-		    btn.onclick = () => {
-		        document.querySelectorAll('.pj-tab').forEach(t => t.classList.remove('active'));
-		        document.querySelectorAll('.pj-pane').forEach(p => p.classList.remove('active'));
-		        btn.classList.add('active');
-		        $('pj-pane-' + btn.dataset.tab).classList.add('active');
-		    };
-		});
-
-		/* ═══════════════════════════════════════════════════════
-		   PDF → JPG
-		═══════════════════════════════════════════════════════ */
-		let pdfFiles = [];
-		let pdfResults = [];
-		const pdfDrop = $('pdf-drop');
-		const pdfInput = $('pdf-input');
-		const pdfFilelist = $('pdf-filelist');
-		const pdfConvert = $('pdf-convert');
-		const pdfClear = $('pdf-clear');
-		const pdfProgress = $('pdf-progress');
-		const pdfBar = $('pdf-bar');
-		const pdfStatus = $('pdf-status');
-		const pdfResultsEl = $('pdf-results');
-		const pdfDlwrap = $('pdf-dlwrap');
-		const pdfDlall = $('pdf-dlall');
-		const pdfQualSlider= $('pdf-quality');
-		const pdfQualVal = $('pdf-qualval');
-		pdfQualSlider.oninput = () => { pdfQualVal.textContent = pdfQualSlider.value + '%'; }
-		pdfDrop.onclick = () => pdfInput.click();
-		pdfDrop.ondragover = e => { e.preventDefault(); pdfDrop.classList.add('drag-over'); };
-		pdfDrop.ondragleave = () => pdfDrop.classList.remove('drag-over');
-		pdfDrop.ondrop = e => { e.preventDefault(); pdfDrop.classList.remove('drag-over'); addPdfFiles([...e.dataTransfer.files].filter(f => f.type === 'application/pdf')); };
-		pdfInput.onchange = () => addPdfFiles([...pdfInput.files]);
-		function addPdfFiles(files) {
-		    files.forEach(f => {
-		        if (pdfFiles.find(x => x.name === f.name)) return;
-		        pdfFiles.push(f);
-		        const tag = makeFileTag(f.name, () => { pdfFiles = pdfFiles.filter(x => x !== f); tag.remove(); pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0; });
-		        pdfFilelist.appendChild(tag);
-		    });
-		    pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0;
-		}
-		pdfClear.onclick = () => {
-		    pdfFiles = [];
-		    pdfFilelist.innerHTML = '';
-		    pdfConvert.disabled = true;
-		    pdfClear.disabled = true;
-		    pdfInput.value = '';
-		};
-		pdfConvert.onclick = async () => {
-		    if (!pdfFiles.length) return;
-		    pdfConvert.disabled = true;
-		    pdfClear.disabled = true;
-		    pdfProgress.style.display = 'block';
-		    pdfResultsEl.innerHTML = ''; pdfResultsEl.style.display = 'none';
-		    pdfDlwrap.style.display = 'none';
-		    pdfBar.style.width = '0%';
-		    pdfResults = [];
-		    const scale = parseFloat($('pdf-scale').value);
-		    const quality = parseInt(pdfQualSlider.value) / 100;
-		    const mime = $('pdf-format').value;
-		    const pagesStr= $('pdf-pages').value;
-		    let totalWork = 0, done = 0;
-		    // İlk geçiş: toplam sayfa sayısını bul
-		    const pdfs = [];
-		    for (const f of pdfFiles) {
-		        const ab = await f.arrayBuffer();
-		        const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-		        const pages = parsePages(pagesStr, pdf.numPages);
-		        pdfs.push({ f, pdf, pages });
-		        totalWork += pages.length;
-		    }
-		    for (const { f, pdf, pages } of pdfs) {
-		        const baseName = f.name.replace(/\.pdf$/i, '');
-		        for (const pageNum of pages) {
-		            pdfStatus.textContent = `${f.name} — sayfa ${pageNum}`;
-		            pdfBar.style.width = (done / totalWork * 100) + '%';
-		            const page = await pdf.getPage(pageNum);
-		            const vp = page.getViewport({ scale });
-		            const canvas = document.createElement('canvas');
-		            canvas.width = vp.width; canvas.height = vp.height;
-		            await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-		            const dataUrl = canvas.toDataURL(mime, quality);
-		            const name = `${baseName}_s${String(pageNum).padStart(3,'0')}.${extOf(mime)}`;
-		            pdfResults.push({ dataUrl, name });
-		            pdfResultsEl.appendChild(makeResultCard(dataUrl, name, null, dataUrlBytes(dataUrl)));
-		            done++;
-		        }
-		    }
-		    pdfBar.style.width = '100%';
-		    pdfStatus.textContent = `✅ ${pdfResults.length} görsel oluşturuldu.`;
-		    pdfResultsEl.style.display = 'flex';
-		    if (pdfResults.length > 0) pdfDlwrap.style.display = 'flex';
-		    pdfConvert.disabled = false;
-		    pdfClear.disabled = false;
-
-		};
-		pdfDlall.onclick = async () => {
-		    pdfDlall.disabled = true;
-		    pdfDlall.textContent = '📦 ZIP…';
-		    await buildZip(pdfResults);
-		    pdfDlall.disabled = false;
-		    pdfDlall.textContent = '⬇ Tümünü ZIP İndir';
-		};
-		$('pdf-clear-results').onclick = () => {
-		    pdfResults = [];
-		    pdfResultsEl.innerHTML = '';
-		    pdfResultsEl.style.display = 'none';
-		    pdfDlwrap.style.display = 'none';
-		    pdfProgress.style.display = 'none'; // İlerleme çubuğunu gizler
-		    pdfBar.style.width = '0%';
-		};
-		/* ═══════════════════════════════════════════════════════
-		   JPG BOYUT KÜÇÜLTÜCÜ
-		═══════════════════════════════════════════════════════ */
-		let jpgFiles = [];
-		let jpgResults = [];
-		const jpgDrop = $('jpg-drop');
-		const jpgInput = $('jpg-input');
-		const jpgFilelist = $('jpg-filelist');
-		const jpgCompress = $('jpg-compress');
-		const jpgClear = $('jpg-clear');
-		const jpgProgress = $('jpg-progress');
-		const jpgBar = $('jpg-bar');
-		const jpgStatus = $('jpg-status');
-		const jpgResultsEl = $('jpg-results');
-		const jpgDlwrap = $('jpg-dlwrap');
-		const jpgDlall = $('jpg-dlall');
-		const jpgQualSlider = $('jpg-quality');
-		const jpgQualVal = $('jpg-qualval');
-		jpgQualSlider.oninput = () => { jpgQualVal.textContent = jpgQualSlider.value + '%'; }
-		jpgDrop.onclick = () => jpgInput.click();
-		jpgDrop.ondragover = e => { e.preventDefault(); jpgDrop.classList.add('drag-over'); };
-		jpgDrop.ondragleave = () => jpgDrop.classList.remove('drag-over');
-		jpgDrop.ondrop = e => { e.preventDefault(); jpgDrop.classList.remove('drag-over'); addJpgFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))); };
-		jpgInput.onchange = () => addJpgFiles([...jpgInput.files]);
-		function addJpgFiles(files) {
-		    files.forEach(f => {
-		        if (jpgFiles.find(x => x.name === f.name)) return;
-		        jpgFiles.push(f);
-		        const tag = makeFileTag(f.name, () => { jpgFiles = jpgFiles.filter(x => x !== f); tag.remove(); jpgCompress.disabled = jpgFiles.length === 0; jpgClear.disabled = jpgFiles.length === 0; });
-		        jpgFilelist.appendChild(tag);
-		    });
-		    jpgCompress.disabled = jpgFiles.length === 0;
-		    jpgClear.disabled = jpgFiles.length === 0;
-		}
-		jpgClear.onclick = () => {
-		    jpgFiles = [];
-		    jpgFilelist.innerHTML = '';
-		    jpgCompress.disabled = true;
-		    jpgClear.disabled = true;
-		    jpgInput.value = '';
-		};
-		jpgCompress.onclick = async () => {
-		    if (!jpgFiles.length) return;
-		    jpgCompress.disabled = true;
-		    jpgClear.disabled = true;
-		    jpgProgress.style.display = 'block';
-		    jpgResultsEl.innerHTML = ''; jpgResultsEl.style.display = 'none';
-		    jpgDlwrap.style.display = 'none';
-		    jpgBar.style.width = '0%';
-		    jpgResults = [];
-		    const mime = $('jpg-format').value;
-		    const quality = parseInt(jpgQualSlider.value) / 100;
-		    const maxPx = parseInt($('jpg-maxpx').value);
-		    const targetKB = parseInt($('jpg-targetsize').value);
-		    for (let i = 0; i < jpgFiles.length; i++) {
-		        const f = jpgFiles[i];
-		        jpgStatus.textContent = `${f.name} işleniyor…`;
-		        jpgBar.style.width = (i / jpgFiles.length * 100) + '%';
-		        const origSize = f.size;
-		        const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(f); });
-		        await new Promise(res => {
-		            const img = new Image();
-		            img.onload = () => {
-		                let out;
-		                if (targetKB > 0) { out = compressToTarget(img, maxPx, mime, targetKB); } else { out = resizeAndCompress(img, maxPx, mime, quality); }
-		                const newSize = dataUrlBytes(out);
-		                const ext = extOf(mime);
-		                const name = f.name.replace(/\.[^.]+$/, '') +'.'+ ext;
-		                jpgResults.push({ dataUrl: out, name });
-		                jpgResultsEl.appendChild(makeResultCard(out, name, origSize, newSize));
-		                res();
-		            };
-		            img.src = dataUrl;
-		        });
-		    }
-		    jpgBar.style.width = '100%';
-		    jpgStatus.textContent = `✅ ${jpgResults.length} dosya işlendi.`;
-		    jpgResultsEl.style.display = 'flex';
-		    if (jpgResults.length > 0) jpgDlwrap.style.display = 'flex';
-		    jpgCompress.disabled = false;
-		    jpgClear.disabled = false;
-		};
-		jpgDlall.onclick = async () => {
-		    jpgDlall.disabled = true;
-		    jpgDlall.textContent = '📦 ZIP…';
-		    await buildZip(jpgResults);
-		    jpgDlall.disabled = false;
-		    jpgDlall.textContent = '⬇ Tümünü ZIP İndir';
-		};
-		$('jpg-clear-results').onclick = () => {
-		    jpgResults = [];
-		    jpgResultsEl.innerHTML = '';
-		    jpgResultsEl.style.display = 'none';
-		    jpgDlwrap.style.display = 'none';
-		    jpgProgress.style.display = 'none'; // İlerleme çubuğunu gizler
-		    jpgBar.style.width = '0%';
-		};
-		/**************************************************************/
+        };
+        pdfDlall.onclick = async () => {
+            pdfDlall.disabled = true;
+            pdfDlall.textContent = '📦 ZIP…';
+            await buildZip(pdfResults);
+            pdfDlall.disabled = false;
+            pdfDlall.textContent = '⬇ Tümünü ZIP İndir';
+        };
+        $('pdf-clear-results').onclick = () => {
+            pdfResults = [];
+            pdfResultsEl.innerHTML = '';
+            pdfResultsEl.style.display = 'none';
+            pdfDlwrap.style.display = 'none';
+            pdfProgress.style.display = 'none'; // İlerleme çubuğunu gizler
+            pdfBar.style.width = '0%';
+        };
+        /* ═══════════════════════════════════════════════════════
+           JPG BOYUT KÜÇÜLTÜCÜ  (DEĞİŞİKLİK YOK)
+        ═══════════════════════════════════════════════════════ */
+        let jpgFiles = [];
+        let jpgResults = [];
+        const jpgDrop = $('jpg-drop');
+        const jpgInput = $('jpg-input');
+        const jpgFilelist = $('jpg-filelist');
+        const jpgCompress = $('jpg-compress');
+        const jpgClear = $('jpg-clear');
+        const jpgProgress = $('jpg-progress');
+        const jpgBar = $('jpg-bar');
+        const jpgStatus = $('jpg-status');
+        const jpgResultsEl = $('jpg-results');
+        const jpgDlwrap = $('jpg-dlwrap');
+        const jpgDlall = $('jpg-dlall');
+        const jpgQualSlider = $('jpg-quality');
+        const jpgQualVal = $('jpg-qualval');
+        jpgQualSlider.oninput = () => { jpgQualVal.textContent = jpgQualSlider.value + '%'; }
+        jpgDrop.onclick = () => jpgInput.click();
+        jpgDrop.ondragover = e => { e.preventDefault(); jpgDrop.classList.add('drag-over'); };
+        jpgDrop.ondragleave = () => jpgDrop.classList.remove('drag-over');
+        jpgDrop.ondrop = e => { e.preventDefault(); jpgDrop.classList.remove('drag-over'); addJpgFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))); };
+        jpgInput.onchange = () => addJpgFiles([...jpgInput.files]);
+        function addJpgFiles(files) {
+            files.forEach(f => {
+                if (jpgFiles.find(x => x.name === f.name)) return;
+                jpgFiles.push(f);
+                const tag = makeFileTag(f.name, () => { jpgFiles = jpgFiles.filter(x => x !== f); tag.remove(); jpgCompress.disabled = jpgFiles.length === 0; jpgClear.disabled = jpgFiles.length === 0; });
+                jpgFilelist.appendChild(tag);
+            });
+            jpgCompress.disabled = jpgFiles.length === 0;
+            jpgClear.disabled = jpgFiles.length === 0;
+        }
+        jpgClear.onclick = () => {
+            jpgFiles = [];
+            jpgFilelist.innerHTML = '';
+            jpgCompress.disabled = true;
+            jpgClear.disabled = true;
+            jpgInput.value = '';
+        };
+        jpgCompress.onclick = async () => {
+            if (!jpgFiles.length) return;
+            jpgCompress.disabled = true;
+            jpgClear.disabled = true;
+            jpgProgress.style.display = 'block';
+            jpgResultsEl.innerHTML = ''; jpgResultsEl.style.display = 'none';
+            jpgDlwrap.style.display = 'none';
+            jpgBar.style.width = '0%';
+            jpgResults = [];
+            const mime = $('jpg-format').value;
+            const quality = parseInt(jpgQualSlider.value) / 100;
+            const maxPx = parseInt($('jpg-maxpx').value);
+            const targetKB = parseInt($('jpg-targetsize').value);
+            for (let i = 0; i < jpgFiles.length; i++) {
+                const f = jpgFiles[i];
+                jpgStatus.textContent = `${f.name} işleniyor…`;
+                jpgBar.style.width = (i / jpgFiles.length * 100) + '%';
+                const origSize = f.size;
+                const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(f); });
+                await new Promise(res => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let out;
+                        if (targetKB > 0) { out = compressToTarget(img, maxPx, mime, targetKB); } else { out = resizeAndCompress(img, maxPx, mime, quality); }
+                        const newSize = dataUrlBytes(out);
+                        const ext = extOf(mime);
+                        const name = f.name.replace(/\.[^.]+$/, '') +'.'+ ext;
+                        jpgResults.push({ dataUrl: out, name });
+                        jpgResultsEl.appendChild(makeResultCard(out, name, origSize, newSize));
+                        res();
+                    };
+                    img.src = dataUrl;
+                });
+            }
+            jpgBar.style.width = '100%';
+            jpgStatus.textContent = `✅ ${jpgResults.length} dosya işlendi.`;
+            jpgResultsEl.style.display = 'flex';
+            if (jpgResults.length > 0) jpgDlwrap.style.display = 'flex';
+            jpgCompress.disabled = false;
+            jpgClear.disabled = false;
+        };
+        jpgDlall.onclick = async () => {
+            jpgDlall.disabled = true;
+            jpgDlall.textContent = '📦 ZIP…';
+            await buildZip(jpgResults);
+            jpgDlall.disabled = false;
+            jpgDlall.textContent = '⬇ Tümünü ZIP İndir';
+        };
+        $('jpg-clear-results').onclick = () => {
+            jpgResults = [];
+            jpgResultsEl.innerHTML = '';
+            jpgResultsEl.style.display = 'none';
+            jpgDlwrap.style.display = 'none';
+            jpgProgress.style.display = 'none'; // İlerleme çubuğunu gizler
+            jpgBar.style.width = '0%';
+        };
+        /* ═══════════════════════════════════════════════════════
+           STATUS ANA KONTROLCÜ VE AYARLAR
+        ═══════════════════════════════════════════════════════ */
         let currentIP = "IP Alınıyor...";
         let ipcolor = "orange";
         const scriptVersion = (typeof GM_info !== 'undefined') ? "v" + GM_info.script.version : "v1.0";
@@ -1905,6 +2026,7 @@
                 kstatus.innerHTML = `<span>KS</span>`;
                 document.body.appendChild(kstatus);
                 let hideTimeout = null;
+
                 const getPanelTip = () => {
                     let tip = document.getElementById('ks-dynamic-tooltip');
                     if (!tip) { tip = document.createElement('div'); tip.id = 'ks-dynamic-tooltip'; Object.assign(tip.style, { zIndex: '99999999', opacity: '0' }); document.body.appendChild(tip); }
@@ -1919,25 +2041,73 @@
                     });
                 };
                 const hidePanelTip = () => { const tip = document.getElementById('ks-dynamic-tooltip'); if (tip) { tip.style.opacity = '0'; tip.style.visibility = 'hidden'; } };
+
                 const showFullContent = () => {
                     kstatus.classList.add('active');
                     kstatus.setAttribute('data-hover', 'true');
                     kstatus.style.color = '#fff';
                     kstatus.innerHTML = `
-                    <span id="ks-settings-btn" data-tip="Ayarları Aç" style="cursor:pointer; font-size:14px;">⚙️</span>
-			            <span style="opacity:0.3; margin:0 4px;">|</span>
-			            <span id="ks-pdf-btn" data-tip="PDF / JPG Araçları" style="cursor:pointer; font-size:13px; color:${config.themeColor}; font-weight:700; letter-spacing:.5px;">PDF</span>
-			            <span style="opacity:0.3; margin:0 8px;">|</span>
-			            <span id="ks-unlock-btn" data-tip="${config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${config.isUnlocked ? '🔓' : '🔒'}</span>
-			            <span style="opacity:0.3; margin:0 2px;">|</span>
-			            <span style="color:${ipcolor}; font-size:15px; margin-right:5px;">●</span>
-			            <span data-tip="Geçerli IP Adresi" style="color:inherit;">${currentIP}</span>
-			            <span style="opacity:0.3; margin:0 8px;">|</span>
-			            <span id="ks-version-link" data-tip="Güncelleyi Aç/İndir" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">${scriptVersion}</span>
-			            <span style="opacity:0.3; margin:0 8px;">|</span>
-			            <span id="ks-theme-btn" data-tip="Tema Güncelleyi Aç/İndir" style="color:${config.Color}; cursor:pointer; padding:2px 2px; border-radius:${config.borderRadius}; transition:all 0.3s ease;">Tema</span>
-			        `;
+                        <div class="ks-sb-wrap">
+
+                            <!-- SİSTEM: ayarlar / pdf / kilit -->
+                            <div class="ks-sb-group">
+                                <span class="ks-sb-item" id="ks-settings-btn" data-tip="Ayarları Aç">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    </svg>
+                                </span>
+
+                                <span class="ks-sb-item ks-sb-accent" id="ks-pdf-btn" data-tip="PDF / JPG Araçları">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <path d="M9 15.5h1.3a1.4 1.4 0 0 0 0-2.8H9v4.6"></path>
+                                        <path d="M13.4 17.3v-4.6h1.4a1.15 1.15 0 0 1 0 2.3h-1.4"></path>
+                                        <path d="M18.6 12.7v4.6h-1.7"></path>
+                                        <path d="M18.6 15h-1.7"></path>
+                                    </svg>
+                                    <span>PDF</span>
+                                </span>
+
+                                <span class="ks-sb-item ${config.isUnlocked ? 'ks-sb-lock-open' : ''}" id="ks-unlock-btn" data-tip="${config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}">
+                                    <span id="ks-unlock-icon" style="font-size:13px;">${config.isUnlocked ? '🔓' : '🔒'}</span>
+                                </span>
+                            </div>
+
+                            <div class="ks-sb-divider"></div>
+
+                            <!-- BAĞLANTI: ip / versiyon / tema -->
+                            <div class="ks-sb-group">
+                                <span class="ks-sb-item" data-tip="Geçerli IP Adresi">
+                                    <span class="ks-sb-ipdot" style="color:${ipcolor};">●</span>
+                                    <span>${currentIP}</span>
+                                </span>
+
+                                <span class="ks-sb-item ks-sb-muted" id="ks-version-link" data-tip="Güncelleyi Aç/İndir">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+                                        <path d="M21 3v5h-5"></path>
+                                    </svg>
+                                    <span>${scriptVersion}</span>
+                                </span>
+
+                                <span class="ks-sb-item ks-sb-muted" id="ks-theme-btn" data-tip="Tema Güncelleyi Aç/İndir">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="13.5" cy="6.5" r=".6"></circle>
+                                        <circle cx="17.5" cy="10.5" r=".6"></circle>
+                                        <circle cx="8.5" cy="7.5" r=".6"></circle>
+                                        <circle cx="6.5" cy="12.5" r=".6"></circle>
+                                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C22 6.012 17.461 2 12 2z"></path>
+                                    </svg>
+                                    <span>Tema</span>
+                                </span>
+                            </div>
+
+                        </div>
+                    `;
                     bindTooltips(kstatus);
+
                     // PDF paneli toggle
                     const pdfBtn = document.getElementById('ks-pdf-btn');
                     if (pdfBtn) {
@@ -1947,16 +2117,24 @@
                             if (pjPanel) pjPanel.classList.toggle('pj-collapsed');
                         };
                     }
+
+                    // Kilit aç/kapa — artık textContent değil, ikon span'ini güncelliyoruz
                     const unlockBtn = document.getElementById('ks-unlock-btn');
                     unlockBtn.onclick = (e) => {
-                        e.stopPropagation(); config.isUnlocked = !config.isUnlocked; e.target.textContent = config.isUnlocked ? '🔓' : '🔒';
-                        e.target.setAttribute('data-tip', config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç');
+                        e.stopPropagation();
+                        config.isUnlocked = !config.isUnlocked;
+                        unlockBtn.classList.toggle('ks-sb-lock-open', config.isUnlocked);
+                        document.getElementById('ks-unlock-icon').textContent = config.isUnlocked ? '🔓' : '🔒';
+                        unlockBtn.setAttribute('data-tip', config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç');
                         unlockAllElements(config.isUnlocked);
                     };
+
                     document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
                     document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
-                    document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
+                    //document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
+					document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); console.log('ayarlar tıklandı, target:', e.target); openSettingsModal(); };
                 };
+
                 kstatus.onmouseleave = () => {
                     hidePanelTip();
                     const tip = document.getElementById('ks-dynamic-tooltip');
@@ -2206,9 +2384,9 @@
     const GIF_URL = 'https://media.tenor.com/yB6ozDoWij4AAAAj/honkai-star-rail-dance.gif', GIF_W = 100, GIF_H = 100;
     const style = document.createElement('style');
     style.textContent = `
-    #tm-gif-container { position: fixed; z-index: 2147483647; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; width: ${GIF_W}px; }
-    #tm-gif-container.tm-visible { opacity: 1; }
-    #tm-gif-container img { width: ${GIF_W}px !important; height: auto !important; display: block; } `;
+        #tm-gif-container { position: fixed; z-index: 2147483647; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; width: ${GIF_W}px; }
+        #tm-gif-container.tm-visible { opacity: 1; }
+        #tm-gif-container img { width: ${GIF_W}px !important; height: auto !important; display: block; } `;
     document.head.appendChild(style);
     const container = document.createElement('div');
     container.id = 'tm-gif-container';
@@ -2486,7 +2664,7 @@
                     w.kaydet();
                 };
             }
-            if (loc('orient')) { /* model hatası düzeltimi */
+            if (loc('orient')){// || loc('mapfre')) { /* 2 DEFA YAZAN MODEL HATASI ÇÖZÜMÜ */
                 window.addEventListener('load', function () {
                     setTimeout(function () {
                         var sasiBtn = unsafeWindow.document.getElementById('SASI_MDL');
@@ -2498,6 +2676,19 @@
                     }, 1500);
                 });
             }
+			if (location.pathname.includes('popup_modeller.php')) { //KELİME DÜZELTME
+			    window.addEventListener('load', function () {
+			        setTimeout(function () {
+			            document.querySelectorAll('*').forEach(function (el) {
+			                if (el.children.length === 0 && /escort/i.test(el.textContent)) {
+			                    var row = el.closest('tr') || el.closest('option') || el.closest('li') || el;
+			                    row.remove();
+			                }
+			            });
+			            console.log('[KS] ESCORT içerikli öğeler temizlendi');
+			        }, 800);
+			    });
+			}
             /* ── Önbellek Sistemi ── */
             var onbellekKey = 'onbellek_' + dosyaId, btnOnbellek = panelContent.querySelector('#btnOnbellek'), btnOnbellekYukle = panelContent.querySelector('#btnOnbellekYukle');
             // Başlangıçta yükle butonunu kontrol et
@@ -3135,8 +3326,7 @@
             }
             if (ANALIZPANEL_hlt) { setInterval(highlightFields, 500); setInterval(updatePanel, 1000); }
         }
-        const $s = id => document.getElementById(id) || document.getElementsByName(id)[0],
-            trg = (el, v, c = 0) => {
+        const $s = id => document.getElementById(id) || document.getElementsByName(id)[0], trg = (el, v, c = 0) => {
                 if (!el) { return; }
                 c ? el.checked = v : el.value = v;
                 ['input', 'change'].map(e => el.dispatchEvent(new Event(e, { bubbles: 1 })));
@@ -3155,7 +3345,7 @@
         document.readyState == 'complete' ? f() : window.addEventListener('load', f);
     }
     // Hızlı Donanım girişi
-if (KS_SYSTEM && DONANIM && loc("otohasar") && /eks_(magdur_arac_donanim|arac_donanim)/.test(location.href)) {
+	if (KS_SYSTEM && DONANIM && loc("otohasar") && (loc("eks_magdur_arac_donanim") || loc("eks_arac_donanim"))) {
         function initPanel() {
             if (document.getElementById('donanim-panel') || !document.body.innerText.toLowerCase().includes("donanim")) return;
             /* ===== 1. PANEL OLUŞTURMA ===== */
@@ -4004,7 +4194,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
             SKAYIT: ['86'], GAZETE: ['202'], FAAL: ['190'],
             IRSALIYE: ['26', '220', '41', '134'], NUFUS: ['2', '213', '201', '94'],
             DIGER: ['12', '243'], ONARIM_SONRASI: ['32'],
-            MUTABAKAT: ['211', '247', '28'], MUVAFAKAT: ['111', '56', '57', '101', '130'],
+            MUTABAKAT: ['211', '247', '28'], MUVAFAKAT: ['35','111', '56', '57', '101', '130'],
             IBRA: ['33', '132', '212'], ALKOL: ['4'],
             RAYIC: ['231', '184', '225', '234'], TRAMER: ['230', '229', '228', '233'],
             VERGI: ['9', '221', '136'], MASAK: ['248'], MESLEK: ['129']
@@ -4032,36 +4222,33 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                         (text.includes("ORIENT") || url.includes("orient")) ? orient : varsayilan;
         // ── OTO KURALLAR (global — bir kez tanımla) ───────────────────────────────
         const OTO_KURALLAR = [
-            { pattern: /\bmehl\b/i, evrakId: () => ayarlar.EHLİYET[1], note: '' },
-            { pattern: /\bsehl\b/i, evrakId: () => ayarlar.EHLİYET[2], note: '' },
-            { pattern: /\bmruh\b/i, evrakId: () => ayarlar.RUHSAT[1], note: '' },
-            { pattern: /\bsruh\b/i, evrakId: () => ayarlar.RUHSAT[2], note: '' },
-            { pattern: /ehl(iyet[i]?)?|s[uü]r[uü][cç][uü][_ ]belge(si)?/i, evrakId: () => ayarlar.EHLİYET[0], note: '' },
-            { pattern: /ruh(sat[iı]?)?|ara[cç][_ ]ruhsat|tra[fF]ik[_ ]tescil?/i, evrakId: () => ayarlar.RUHSAT[0], note: '' },
-            { pattern: /ktt[_ ]sbm/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
-            { pattern: /ktt[_ ]sorgu/i, evrakId: () => ayarlar.TRAMER[3], note: '' },
-            { pattern: /\bktt\b|kaza[_ ]tesbit|kaza[_ ]tespit|anla[sş]mal[iı][_ ]kaza/i, evrakId: () => ayarlar.KTT[0], note: () => { const noKTT = [orient]; return noKTT.includes(ayarlar) ? 'KTT' : ''; } },
-            { pattern: /zabt|zabit|zab[iı]t|karakol|jandarma|polis[_ ]ifade/i, evrakId: () => ayarlar.ZABIT[0], note: '' },
-            { pattern: /\bbeyan\b/i, evrakId: () => ayarlar.BEYAN[0], note: '' },
-            { pattern: /kasko[_ ]poli[cç]e|trafik[_ ]poli[cç]e/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
-            { pattern: /\bpoli[cç]e\b/i, evrakId: () => ayarlar.POLICE[0], note: '' },
-            { pattern: /\balkol\b/i, evrakId: () => ayarlar.ALKOL[0], note: '' },
-            { pattern: /\bibra\b|ibraname|teslim[_ ]ibra/i, evrakId: () => ayarlar.IBRA[0], note: '' },
-            { pattern: /a[gğ][iı]r[_ ]hasar/i, evrakId: () => ayarlar.TRAMER[2], note: '' },
+            { pattern: /ktt[_ ]sorgu\b/i, evrakId: () => ayarlar.TRAMER[3], note: '' },
+            { pattern: /ktt[_ ]sbm\b|tramer|sbm\b/i, evrakId: () => ayarlar.TRAMER[0], note: '' },//i, evrakId: () => ayarlar.TRAMER[0], note: '' },
             { pattern: /kasko[_ ]hasar|trafik[_ ]hasar/i, evrakId: () => ayarlar.TRAMER[1], note: '' },
-            { pattern: /\btramer\b|sbm/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
-            { pattern: /\brayic\b|piyasa|ray[iı][cç]/i, evrakId: () => ayarlar.RAYIC[0], note: '' },
-            { pattern: /\bvergi\b/i, evrakId: () => ayarlar.VERGI[0], note: '' },
-            { pattern: /\bfaaliyet\b/i, evrakId: () => ayarlar.FAAL[0], note: '' },
-            { pattern: /tck|nufus|nüfus|kimlik|mernis/i, evrakId: () => ayarlar.NUFUS[0], note: '' },
+            { pattern: /a[gğ][iı]r[_ ]hasar\b/i, evrakId: () => ayarlar.TRAMER[2], note: '' },
+            { pattern: /(kasko|traf[ıi]k)[_ ]pol[ıi][cç]e\b/i, evrakId: () => ayarlar.TRAMER[0], note: '' },
+            { pattern: /poli[cç]e|\bpol\b/i, evrakId: () => ayarlar.POLICE[0], note: '' },
+            { pattern: /mehl/i, evrakId: () => ayarlar.EHLİYET[1], note: '' },
+            { pattern: /sehl/i, evrakId: () => ayarlar.EHLİYET[2], note: '' },
+            { pattern: /mruh/i, evrakId: () => ayarlar.RUHSAT[1], note: '' },
+            { pattern: /sruh/i, evrakId: () => ayarlar.RUHSAT[2], note: '' },
+            { pattern: /ehl(iyet[ıi]?)?|s[uü]r[uü][cç][uü][_ ]belge(s[ıi])?/i, evrakId: () => ayarlar.EHLİYET[0], note: '' },
+            { pattern: /ruh(sat[ıi]?)?|ara[cç][_ ]ruhsat|traf[ıi]k[_ ]tesc[ıi]l?/i, evrakId: () => ayarlar.RUHSAT[0], note: '' },
+            { pattern: /\bktt\b|kaza[_ ]tes[bp][ıi]t|anla[sş]mal[iı][_ ]kaza/i, evrakId: () => ayarlar.KTT[0], note: () => ayarlar === orient ? 'KTT' : '' },
+            { pattern: /zab([iı])t|karakol|jandarma|pol[ıi]s[_ ][ıi]fade/i, evrakId: () => ayarlar.ZABIT[0], note: '' },
+            { pattern: /beyan/i, evrakId: () => ayarlar.BEYAN[0], note: '' },
+            { pattern: /alkol/i, evrakId: () => ayarlar.ALKOL[0], note: '' },
+            { pattern: /[ıi]bra|[ıi]braname|tesl[ıi]m[_ ][ıi]bra/i, evrakId: () => ayarlar.IBRA[0], note: '' },
+            { pattern: /p[ıi]yasa|ray[ıi][cç]/i, evrakId: () => ayarlar.RAYIC[0], note: '' },
+            { pattern: /\bverg[ıi]\b/i, evrakId: () => ayarlar.VERGI[0], note: '' },
+            { pattern: /\bfaal[ıi]yet\b/i, evrakId: () => ayarlar.FAAL[0], note: '' },
+            { pattern: /\btck\b|n[uü]f[uü]s|k[ıi]ml[ıi]k|mern[ıi]s/i, evrakId: () => ayarlar.NUFUS[0], note: '' },
             { pattern: /\bmutabakat\b/i, evrakId: () => ayarlar.MUTABAKAT[0], note: '' },
-            { pattern: /irsaliye/i, evrakId: () => ayarlar.IRSALIYE[0], note: '' },
-            { pattern: /\bmasak\b/i, evrakId: () => ayarlar.MASAK[0], note: '' },
-            { pattern: /\pol\b/i, evrakId: () => ayarlar.POLICE[0], note: '' },//HEPİYİ MUAYENE 227
-            { pattern: /\meslek\b/i, evrakId: () => ayarlar.MESLEK[0], note: '' },
-            { pattern: /taahhüt\b/i, evrakId: () => ['35'], note: '' },
-            { pattern: /sgk\b/i, evrakId: () => ayarlar.SKAYIT[0], note: '' },
-
+            { pattern: /[ıi]rsal[ıi]ye/i, evrakId: () => ayarlar.IRSALIYE[0], note: '' },
+            { pattern: /masak/i, evrakId: () => ayarlar.MASAK[0], note: '' },
+            { pattern: /meslek|personel/i, evrakId: () => ayarlar.MESLEK[0], note: '' },
+            { pattern: /taah+[uü]t|muvaf+akat/i, evrakId: () => ayarlar.MUVAFAKAT[0], note: '' },
+            { pattern: /sgk|s[ıi]gorta/i, evrakId: () => ayarlar.SKAYIT[0], note: '' },
         ];
         function otoEvrakSec(fileName, selectEl, noteArea, tipiSel, btnEl) {
             const normalized = fileName.toLocaleLowerCase('tr-TR').replace(/[_\-\.]/g, ' '), KARSI_PATTERN = /\bkar[şs][ıi]\b/i, isKarsi = KARSI_PATTERN.test(normalized) || KARSI_PATTERN.test(fileName);
@@ -4457,7 +4644,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
             { label: 'MESLEK', vals: ayarlar.MESLEK, color: '#ee5253', t: 'Meslek Belgesi' },
             { label: 'FAALİYET', vals: ayarlar.FAAL, color: '#ee5253', t: 'Faaliyet' },
             { label: 'MUTABAKAT', vals: ayarlar.MUTABAKAT, color: '#10ac84', t: 'Mutabakatname' },
-            { label: 'MUVAFFAKAT', vals: ayarlar.MUVAFAKAT, color: '#22af94', t: 'Muvaffakatname' },
+            { label: 'MUVAFAKAT', vals: ayarlar.MUVAFAKAT, color: '#22af94', t: 'Muvafakatname' },
             { label: 'TESLİMİBRA', vals: ayarlar.IBRA, color: '#2e86de', t: 'İbraname/Teslim İbra' },
             { label: 'İRSALİYE', vals: ayarlar.IRSALIYE, color: '#f39c12', t: 'İrsaliye' },
             { label: 'PİYASA', vals: ayarlar.RAYIC, color: '#f1c40f', t: 'Piyasa/Rayiç/Aktüer' },
@@ -5475,7 +5662,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
         document.addEventListener('readystatechange', () => { if (document.readyState === 'complete') fillAction(); });
     }
     // Sbm Hızlı Seçim
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr/trm-police/genelSorguEksper")) {
+    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr") && loc("trm-police/genelSorguEksper")) {
         GM_addStyle(`
 	        #hizli-secim-paneli {
 	            display:flex!important; flex-wrap:wrap!important; align-items:center!important;
@@ -5560,7 +5747,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
         }, 1000);
     }
     // Sbm 3lü sayı bölme
-    if (KS_SYSTEM && SBM && (loc("online.sbm.org.tr/trm-ktt/giris") || loc("online.sbm.org.tr/trm-ktt/sirket/listView"))) {
+    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr") && (loc("trm-ktt/sirket/listView") || loc("trm-ktt/giris"))) {
         let lastNum = "";
         const parseDate = s => { const b = s?.split(' ')[0].split('/'); return b?.length === 3 ? new Date(b[2], b[1] - 1, b[0]) : null; };
         const getPanel = () => {
@@ -5641,7 +5828,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
         document.readyState === 'complete' ? init() : unsafeWindow.addEventListener('load', init);
     }
     // SBM Resim indirme
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr/trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr") && loc("trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
         const MIN_WIDTH = 300;
         function initSbmDownloadPanel() {
             if (document.getElementById('sbm-download-mini-panel')) return;
@@ -5683,10 +5870,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
         setTimeout(initSbmDownloadPanel, 2000);
     }
     // SBM Ekran görüntüsü indirme
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) {
-        const isSonuc = loc("genelSorguEksper/sonuc.sbm");
-        const isDetay = loc("hasarEksper/detay.sbm");
-        const isListView = loc("listView.sbm");
+    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) { const isSonuc = loc("genelSorguEksper/sonuc.sbm"), isDetay = loc("hasarEksper/detay.sbm"), isListView = loc("listView.sbm");
         // listView sadece KTT sayfasında çalışsın
         const isKTTList = isListView && (() => { const mainTitle = document.querySelector('.main-title'); return mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı"); })();
         if (isSonuc || isDetay || isKTTList) {
