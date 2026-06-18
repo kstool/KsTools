@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.74
+// @version      1.75
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -25,20 +25,19 @@
 // @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
 // ==/UserScript==
-/* global jQuery,html2canvas,pdfjsLib */
 (function () {
     'use strict';
     /* ---Eklenecekler
-		PDF DÖNÜŞTÜRME PANELİ- ILOVEPDF GİBİ - JPG KÜÇÜLTME PANELİ- BULKSIZE ~ HALLEDİLDİ
-        *** paneller düzenlenecek
+		HALLEDİLDİ ~~ PDF DÖNÜŞTÜRME PANELİ- ILOVEPDF GİBİ - JPG KÜÇÜLTME PANELİ- BULKSIZE
+		*** paneller düzenlenecek
         parça hasar paneli düzenlenecek - farklı araçlar için
         Ek tasarım şekilleri - yön panel şekli vs.
-        sağ üste danseden doge - çok önemli ~~EKLENDİ GİF :D
+        EKLENDİ GİF :D ~~ sağ üste danseden doge - çok önemli
         Gerekli evrak gösteren panel - duruma bağlı
         Veriyi sayfalar arası taşıma - aynı adres kökünde
         genel sigorta sayfası giriş gelişmiş versiyon - türkiye sigorta, quick
-		Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need~~ ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR
-        resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak~~ HALLOLDU
+		ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR ~~ Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need
+		HALLOLDU ~~ resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak
     */
     const url = location.href.toLowerCase();
     let loc = (adros) => location.href.includes(adros);
@@ -429,6 +428,23 @@
         });
     }
     window.hapVerileriGetir = hapVerileriGetir; window.hapPanelGuncelle = hapPanelGuncelle;
+    /* ══════════════════════════════════════════════════
+       Canvas Downgrade
+    ══════════════════════════════════════════════════ */
+	function forceLegacyColors(root) {
+	    const el = root.querySelectorAll("*");
+	    el.forEach(e => {
+	        const style = getComputedStyle(e);
+	        for (const prop of ["color","backgroundColor","borderColor","outlineColor"]) {
+	            const v = style[prop];
+	            if (!v) continue;
+	            if (v.includes("color(") || v.includes("oklab") || v.includes("oklch")) {
+	                e.style.setProperty(prop, "#ffffff", "important");
+	            }
+	        }
+	        if (style.background?.includes("color(")) { e.style.background = "#333"; }
+	    });
+	}
     /* ══════════════════════════════════════════════════════
        STYLE AND PANEL
     ══════════════════════════════════════════════════════ */
@@ -514,7 +530,7 @@
                 cursor: pointer; z-index: 2; gap: 12px;
 				filter: brightness(1.3); font-weight: 700;
             }
-            .ks-header:hover { background: white; }
+            .ks-header:hover { background: #181818; }
             .ks-title-diamond { width: 12px; height: 12px; background: ${config.themeColor}; transform: rotate(45deg); flex-shrink: 0; animation: ks-pulse 2.5s ease-in-out infinite; }
             .ks-title-wrap { display: flex; flex-direction: column; flex: 1; }
             .ks-title-text { font-family: var(--fontier); font-size: 12px; font-weight: 700; color: ${config.themeColor}; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; }
@@ -622,38 +638,38 @@
 			.tab-panel-content.active { display: block; }
             .hap-view 		 { display:none; }
             .hap-view.active { display:block; }
-        .ks-sb-wrap { display: flex; align-items: center; gap: 0; white-space: nowrap; }
-        .ks-sb-group { display: flex; align-items: center; gap: 7px; padding: 0 9px; }
-        .ks-sb-group:first-child { padding-left: 2px; }
-        .ks-sb-group:last-child { padding-right: 2px; }
+            .ks-sb-wrap { display: flex; align-items: center; gap: 0; white-space: nowrap; }
+            .ks-sb-group { display: flex; align-items: center; gap: 7px; padding: 0 9px; }
+            .ks-sb-group:first-child { padding-left: 2px; }
+            .ks-sb-group:last-child { padding-right: 2px; }
 
-        .ks-sb-divider { position: relative; width: 1px; height: 14px; background: ${config.themeColor}33; flex-shrink: 0; margin: 0 2px; }
-        .ks-sb-divider::before, .ks-sb-divider::after {
-            content: ''; position: absolute; left: 50%; transform: translateX(-50%);
-            width: 3px; height: 3px; border-radius: 50%; background: ${config.themeColor}88;
-        }
-        .ks-sb-divider::before { top: -2px; }
-        .ks-sb-divider::after  { bottom: -2px; }
+            .ks-sb-divider { position: relative; width: 1px; height: 14px; background: ${config.themeColor}33; flex-shrink: 0; margin: 0 2px; }
+            .ks-sb-divider::before, .ks-sb-divider::after {
+                content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+                width: 3px; height: 3px; border-radius: 50%; background: ${config.themeColor}88;
+            }
+            .ks-sb-divider::before { top: -2px; }
+            .ks-sb-divider::after  { bottom: -2px; }
 
-        .ks-sb-item {
-            display: flex; align-items: center; gap: 4px;
-            cursor: pointer; user-select: none;
-            color: ${config.Color};
-            font-size: 13px;
-            padding: 2px 3px;
-            border-radius: ${config.borderRadius};
-            transition: background .2s ease, color .2s ease;
-        }
-        .ks-sb-item:hover { background: ${config.themeColor}1a; color: #fff; }
-        .ks-sb-item svg { width: 13px; height: 13px; flex-shrink: 0; display: block; }
-        .ks-sb-item.ks-sb-accent { color: ${config.themeColor}; font-weight: 700; letter-spacing: .4px; font-size: 12px; }
-        .ks-sb-item.ks-sb-accent svg { filter: drop-shadow(0 0 3px ${config.themeColor}66); }
-        .ks-sb-item.ks-sb-accent:hover { background: ${config.themeColor}26; text-shadow: 0 0 6px ${config.themeColor}aa; }
-        .ks-sb-item.ks-sb-lock-open { color: ${SUCCESS_COLOR}; }
-        .ks-sb-item.ks-sb-lock-open:hover { background: ${SUCCESS_COLOR}1a; }
-        .ks-sb-ipdot { font-size: 14px; line-height: 1; animation: ks-pulse 2.5s ease-in-out infinite; }
-        .ks-sb-item.ks-sb-muted { color: ${config.Color}99; font-size: 11px; }
-        .ks-sb-item.ks-sb-muted:hover { color: ${config.Color}; background: ${config.themeColor}12; }
+            .ks-sb-item {
+                display: flex; align-items: center; gap: 4px;
+                cursor: pointer; user-select: none;
+                color: ${config.Color};
+                font-size: 13px;
+                padding: 2px 3px;
+                border-radius: ${config.borderRadius};
+                transition: background .2s ease, color .2s ease;
+            }
+            .ks-sb-item:hover { background: ${config.themeColor}1a; color: #fff; }
+            .ks-sb-item svg { width: 13px; height: 13px; flex-shrink: 0; display: block; }
+            .ks-sb-item.ks-sb-accent { color: ${config.themeColor}; font-weight: 700; letter-spacing: .4px; font-size: 12px; }
+            .ks-sb-item.ks-sb-accent svg { filter: drop-shadow(0 0 3px ${config.themeColor}66); }
+            .ks-sb-item.ks-sb-accent:hover { background: ${config.themeColor}26; text-shadow: 0 0 6px ${config.themeColor}aa; }
+            .ks-sb-item.ks-sb-lock-open { color: ${SUCCESS_COLOR}; }
+            .ks-sb-item.ks-sb-lock-open:hover { background: ${SUCCESS_COLOR}1a; }
+            .ks-sb-ipdot { font-size: 14px; line-height: 1; animation: ks-pulse 2.5s ease-in-out infinite; }
+            .ks-sb-item.ks-sb-muted { color: ${config.Color}99; font-size: 11px; }
+            .ks-sb-item.ks-sb-muted:hover { color: ${config.Color}; background: ${config.themeColor}12; }
         `;
         document.head.appendChild(style);
     };
@@ -751,7 +767,12 @@
     ══════════════════════════════════════════════════════ */
     const SELECTOR = '[disabled],.disabled,[readonly],[aria-readonly="true"],[aria-disabled="true"],.ks-unlocked,.dx-texteditor-input';
     const STYLE_PROPS = { 'pointer-events': 'auto', 'opacity': '1', 'background-color': '#fff', 'border': '1px solid #e4e4e4', 'cursor': 'text', };
+    function isExcluded(el) {
+        if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
+        return el.id === 'btnOnbellekYukle' || el.classList.contains('btnOnbellekYukle');
+    }
     function unlockElement(el) {
+        if (isExcluded(el)) return;
         try {
             if (el.disabled) { el.dataset.wdDisabled = '1'; el.disabled = false; }
             if (el.readOnly || el.hasAttribute('readonly') || el.getAttribute('aria-readonly') === 'true') {
@@ -764,11 +785,10 @@
         } catch (err) { console.warn('[unlockElement] hata:', err, el); }
     }
     function lockElement(el) {
+        if (isExcluded(el)) return;
         try {
             if (el.dataset.wdDisabled) { el.disabled = true; delete el.dataset.wdDisabled; }
-            if (el.dataset.wrReadonly) {
-                el.readOnly = true; el.setAttribute('readonly', 'true'); el.setAttribute('aria-readonly', 'true'); delete el.dataset.wrReadonly;
-            }
+            if (el.dataset.wrReadonly) { el.readOnly = true; el.setAttribute('readonly', 'true'); el.setAttribute('aria-readonly', 'true'); delete el.dataset.wrReadonly; }
             if (el.dataset.wcClass) { el.classList.add('disabled'); delete el.dataset.wcClass; }
             const orig = el.dataset.wOrigStyle;
             if (orig !== undefined) { el.setAttribute('style', orig); delete el.dataset.wOrigStyle; }
@@ -776,12 +796,23 @@
             el.classList.remove('ks-unlocked');
         } catch (err) { console.warn('[lockElement] hata:', err, el); }
     }
-    function collectElements(root = document) { const els = [...root.querySelectorAll(SELECTOR)]; root.querySelectorAll('*').forEach(node => { if (node.shadowRoot) els.push(...collectElements(node.shadowRoot)); }); return els; }
+    function collectElements(root = document) {
+        let els = [...root.querySelectorAll(SELECTOR)];
+        root.querySelectorAll('*').forEach(node => { if (node.shadowRoot) els.push(...collectElements(node.shadowRoot)); });
+        return els.filter(el => !isExcluded(el));
+    }
     let _observer = null;
     function startObserver() {
         if (_observer) return;
         _observer = new MutationObserver((mutations) => {
-            mutations.forEach((m) => { m.addedNodes.forEach((node) => { if (node.nodeType !== Node.ELEMENT_NODE) return; const targets = node.matches(SELECTOR) ? [node] : [...node.querySelectorAll(SELECTOR)]; targets.forEach(unlockElement); }); });
+            mutations.forEach((m) => {
+                m.addedNodes.forEach((node) => {
+                    if (node.nodeType !== Node.ELEMENT_NODE) return;
+                    if (isExcluded(node)) return;
+                    const targets = node.matches(SELECTOR) ? [node] : [...node.querySelectorAll(SELECTOR)];
+                    targets.filter(el => !isExcluded(el)).forEach(unlockElement);
+                });
+            });
         });
         _observer.observe(document.body, { childList: true, subtree: true });
     }
@@ -1190,7 +1221,7 @@
 				}
                 /* ══════════════════════════════════════════════════════
                    PJ PANEL — KS2 GÖRÜNÜM KATMANI
-                   Aynı konum: top:60px, left:0, width:240px
+                   Aynı konum: top:60px, left:0, width:260px
                 ══════════════════════════════════════════════════════ */
                 #pj-panel * , #pj-panel *::before, #pj-panel *::after {
                     font-family: var(--fontier);
@@ -1213,7 +1244,7 @@
                     position: fixed;
                     top: 60px;
                     left: 0;
-                    width: 240px;
+                    width: 260px;
                     max-height: calc(100vh - 100px);
                     background: var(--pj-bg0);
                     border: 1px solid var(--pj-bd2);
@@ -1227,7 +1258,7 @@
                     z-index: 2147483647;
                     transition: transform .25s ease;
                 }
-                #pj-panel.pj-collapsed { transform: translateX(-240px); }
+                #pj-panel.pj-collapsed { transform: translateX(-260px); }
                 /* üst glow çizgisi */
                 #pj-panel::before {
                     content: '';
@@ -1554,9 +1585,9 @@
         /* ═══════════════════════════════════════════════════════
            HTML  (yapı aynı, sadece üstüne pj-brand eklendi)
         ═══════════════════════════════════════════════════════ */
-        const panel = document.createElement('div');
-        panel.id = 'pj-panel';
-        panel.innerHTML = `
+        const pdfjpg = document.createElement('div');
+        pdfjpg.id = 'pj-panel';
+        pdfjpg.innerHTML = `
             <button id="pj-toggle" title="Paneli kapat" style="display: none;">❌</button>
             <!-- BRAND ŞERİDİ -->
             <div id="pj-brand">
@@ -1702,314 +1733,319 @@
         		 <div class="pj-results" id="jpg-results"></div>
             </div>
         `;
-        document.body.appendChild(panel);
-        /* ═══════════════════════════════════════════════════════
-           YARDIMCI FONKSIYONLAR  (DEĞİŞİKLİK YOK)
-        ═══════════════════════════════════════════════════════ */
-        const $ = id => document.getElementById(id);
-        function fmtBytes(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(2) + ' MB'; }
-        function extOf(mime) { return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'; }
-        function download(dataUrl, name) { const a = document.createElement('a'); a.href = dataUrl; a.download = name; a.click(); }
-        /* JSZip'i GM_xmlhttpRequest ile çek, Function() ile sandbox'a yükle */
-        let _jszip = null;
-        function loadJSZip() {
-            if (_jszip) return Promise.resolve(_jszip);
-            return new Promise((resolve, reject) => {
-                GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-                    onload(r) { try { const fn = new Function(r.responseText + '\nreturn JSZip;'); _jszip = fn(); resolve(_jszip); } catch(e) { reject(e); } },
-                    onerror: reject
+            document.body.appendChild(pdfjpg);
+            /* ═══════════════════════════════════════════════════════
+               YARDIMCI FONKSIYONLAR  (DEĞİŞİKLİK YOK)
+            ═══════════════════════════════════════════════════════ */
+            const $ = id => document.getElementById(id);
+            function fmtBytes(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(2) + ' MB'; }
+            function extOf(mime) { return mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'; }
+            function downloadD(dataUrl, name) { const a = document.createElement('a'); a.href = dataUrl; a.download = name; a.click(); }
+            /* JSZip'i GM_xmlhttpRequest ile çek, Function() ile sandbox'a yükle */
+            let _jszip = null;
+            function loadJSZip() {
+                if (_jszip) return Promise.resolve(_jszip);
+                return new Promise((resolve, reject) => {
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+                        onload(r) { try { const fn = new Function(r.responseText + '\nreturn JSZip;'); _jszip = fn(); resolve(_jszip); } catch(e) { reject(e); } },
+                        onerror: reject
+                    });
                 });
-            });
-        }
-        async function buildZip(items, zipName) {
-            const ZipClass = await loadJSZip();
-            const zip = new ZipClass();
-            items.forEach(({ dataUrl, name }) => { const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1); zip.file(name, base64, { base64: true }); });
-            const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-            const url = URL.createObjectURL(blob);
-            download(url, zipName || 'dosyalar.zip');
-            setTimeout(() => URL.revokeObjectURL(url), 20000);
-        }
-        function parsePages(str, total) {
-            if (!str.trim()) return Array.from({ length: total }, (_, i) => i + 1);
-            const s = new Set();
-            str.split(',').forEach(p => {
-                const m = p.trim().match(/^(\d+)(?:-(\d+))?$/);
-                if (!m) return;
-                const a = +m[1], b = m[2] ? +m[2] : a;
-                for (let i = Math.max(1,a); i <= Math.min(total,b); i++) s.add(i);
-            });
-            return [...s].sort((a,b)=>a-b);
-        }
-        /* Dosya listesi kartı */
-        function makeFileTag(name, onRemove) {
-            const d = document.createElement('div');
-            d.className = 'pj-filetag';
-            d.innerHTML = `<span title="${name}">📄 ${name}</span>`;
-            const btn = document.createElement('button');
-            btn.textContent = '✕';
-            btn.onclick = onRemove;
-            d.appendChild(btn);
-            return d;
-        }
-        /* Sonuç kartı */
-        function makeResultCard(dataUrl, name, origSize, newSize) {
-            const d = document.createElement('div');
-            d.className = 'pj-result-item';
-            const saved = origSize ? Math.round((1 - newSize/origSize)*100) : null;
-            d.innerHTML = `
-                <img src="${dataUrl}" alt="">
-                <div class="pj-result-info">
-                    <div class="pj-result-name" title="${name}">${name}</div>
-                    <div class="pj-result-size">${fmtBytes(newSize)}${saved !== null ? ` <span>↓${saved}%</span>` : ''}</div>
-                </div>`;
-            const dlBtn = document.createElement('button');
-            dlBtn.className = 'pj-result-dl';
-            dlBtn.textContent = '↓';
-            dlBtn.onclick = () => download(dataUrl, name);
-            d.appendChild(dlBtn);
-            return d;
-        }
-        /* Boyut küçülterek canvas'tan dataUrl üret */
-        function resizeAndCompress(img, maxPx, mime, quality) {
-            let w = img.naturalWidth, h = img.naturalHeight;
-            if (maxPx > 0) { const long = Math.max(w, h); if (long > maxPx) { const r = maxPx/long; w = Math.round(w*r); h = Math.round(h*r); } }
-            const c = document.createElement('canvas');
-            c.width = w; c.height = h;
-            c.getContext('2d').drawImage(img, 0, 0, w, h);
-            return c.toDataURL(mime, quality);
-        }
-        /* Boyut hedefine ulaşmak için kaliteyi ikiye böl (binary search) */
-        function compressToTarget(img, maxPx, mime, targetKB) {
-            if (targetKB <= 0) return null;
-            const targetBytes = targetKB * 1024;
-            let lo = 0.05, hi = 1.0, best = null;
-            for (let i = 0; i < 12; i++) {
-                const mid = (lo + hi) / 2;
-                const d = resizeAndCompress(img, maxPx, mime, mid);
-                const bytes = Math.round((d.length - d.indexOf(',') - 1) * 0.75);
-                if (bytes <= targetBytes) { best = { d, q: mid }; lo = mid; }
-                else hi = mid;
             }
-            return best ? best.d : resizeAndCompress(img, maxPx, mime, 0.05);
-        }
-        /* base64 dataUrl'un yaklaşık byte boyutu */
-        function dataUrlBytes(d) { return Math.round((d.length - d.indexOf(',') - 1) * 0.75); }
-        /* ═══════════════════════════════════════════════════════
-           TOGGLE / SEKMELER
-        ═══════════════════════════════════════════════════════ */
-        $('pj-toggle').onclick = () => panel.classList.toggle('pj-collapsed');
-        $('pj-toggle').onclick();
-        document.querySelectorAll('.pj-tab').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.pj-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.pj-pane').forEach(p => p.classList.remove('active'));
-                btn.classList.add('active');
-                $('pj-pane-' + btn.dataset.tab).classList.add('active');
-            };
-        });
-        /* ═══════════════════════════════════════════════════════
-           PDF → JPG  (DEĞİŞİKLİK YOK)
-        ═══════════════════════════════════════════════════════ */
-        let pdfFiles = [];
-        let pdfResults = [];
-        const pdfDrop = $('pdf-drop');
-        const pdfInput = $('pdf-input');
-        const pdfFilelist = $('pdf-filelist');
-        const pdfConvert = $('pdf-convert');
-        const pdfClear = $('pdf-clear');
-        const pdfProgress = $('pdf-progress');
-        const pdfBar = $('pdf-bar');
-        const pdfStatus = $('pdf-status');
-        const pdfResultsEl = $('pdf-results');
-        const pdfDlwrap = $('pdf-dlwrap');
-        const pdfDlall = $('pdf-dlall');
-        const pdfQualSlider= $('pdf-quality');
-        const pdfQualVal = $('pdf-qualval');
-        pdfQualSlider.oninput = () => { pdfQualVal.textContent = pdfQualSlider.value + '%'; }
-        pdfDrop.onclick = () => pdfInput.click();
-        pdfDrop.ondragover = e => { e.preventDefault(); pdfDrop.classList.add('drag-over'); };
-        pdfDrop.ondragleave = () => pdfDrop.classList.remove('drag-over');
-        pdfDrop.ondrop = e => { e.preventDefault(); pdfDrop.classList.remove('drag-over'); addPdfFiles([...e.dataTransfer.files].filter(f => f.type === 'application/pdf')); };
-        pdfInput.onchange = () => addPdfFiles([...pdfInput.files]);
-        function addPdfFiles(files) {
-            files.forEach(f => {
-                if (pdfFiles.find(x => x.name === f.name)) return;
-                pdfFiles.push(f);
-                const tag = makeFileTag(f.name, () => { pdfFiles = pdfFiles.filter(x => x !== f); tag.remove(); pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0; });
-                pdfFilelist.appendChild(tag);
-            });
-            pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0;
-        }
-        pdfClear.onclick = () => {
-            pdfFiles = [];
-            pdfFilelist.innerHTML = '';
-            pdfConvert.disabled = true;
-            pdfClear.disabled = true;
-            pdfInput.value = '';
-        };
-        pdfConvert.onclick = async () => {
-            if (!pdfFiles.length) return;
-            pdfConvert.disabled = true;
-            pdfClear.disabled = true;
-            pdfProgress.style.display = 'block';
-            pdfResultsEl.innerHTML = ''; pdfResultsEl.style.display = 'none';
-            pdfDlwrap.style.display = 'none';
-            pdfBar.style.width = '0%';
-            pdfResults = [];
-            const scale = parseFloat($('pdf-scale').value);
-            const quality = parseInt(pdfQualSlider.value) / 100;
-            const mime = $('pdf-format').value;
-            const pagesStr= $('pdf-pages').value;
-            let totalWork = 0, done = 0;
-            // İlk geçiş: toplam sayfa sayısını bul
-            const pdfs = [];
-            for (const f of pdfFiles) {
-                const ab = await f.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-                const pages = parsePages(pagesStr, pdf.numPages);
-                pdfs.push({ f, pdf, pages });
-                totalWork += pages.length;
+            async function buildZip(items, zipName) {
+                const ZipClass = await loadJSZip();
+                const zip = new ZipClass();
+                items.forEach(({ dataUrl, name }) => { const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1); zip.file(name, base64, { base64: true }); });
+                const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                const url = URL.createObjectURL(blob);
+                downloadD(url, zipName || 'dosyalar.zip');
+                setTimeout(() => URL.revokeObjectURL(url), 20000);
             }
-            for (const { f, pdf, pages } of pdfs) {
-                const baseName = f.name.replace(/\.pdf$/i, '');
-                for (const pageNum of pages) {
-                    pdfStatus.textContent = `${f.name} — sayfa ${pageNum}`;
-                    pdfBar.style.width = (done / totalWork * 100) + '%';
-                    const page = await pdf.getPage(pageNum);
-                    const vp = page.getViewport({ scale });
-                    const canvas = document.createElement('canvas');
-                    canvas.width = vp.width; canvas.height = vp.height;
-                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-                    const dataUrl = canvas.toDataURL(mime, quality);
-                    const name = `${baseName}_s${String(pageNum).padStart(3,'0')}.${extOf(mime)}`;
-                    pdfResults.push({ dataUrl, name });
-                    pdfResultsEl.appendChild(makeResultCard(dataUrl, name, null, dataUrlBytes(dataUrl)));
-                    done++;
+            function parsePages(str, total) {
+                if (!str.trim()) return Array.from({ length: total }, (_, i) => i + 1);
+                const s = new Set();
+                str.split(',').forEach(p => {
+                    const m = p.trim().match(/^(\d+)(?:-(\d+))?$/);
+                    if (!m) return;
+                    const a = +m[1], b = m[2] ? +m[2] : a;
+                    for (let i = Math.max(1,a); i <= Math.min(total,b); i++) s.add(i);
+                });
+                return [...s].sort((a,b)=>a-b);
+            }
+            /* Dosya listesi kartı */
+            function makeFileTag(name, onRemove) {
+                const d = document.createElement('div');
+                d.className = 'pj-filetag';
+                d.innerHTML = `<span title="${name}">📄 ${name}</span>`;
+                const btn = document.createElement('button');
+                btn.textContent = '✕';
+                btn.onclick = onRemove;
+                d.appendChild(btn);
+                return d;
+            }
+            /* Sonuç kartı */
+            function makeResultCard(dataUrl, name, origSize, newSize) {
+                const d = document.createElement('div');
+                d.className = 'pj-result-item';
+                const saved = origSize ? Math.round((1 - newSize/origSize)*100) : null;
+                d.innerHTML = `
+                    <img src="${dataUrl}" alt="">
+                    <div class="pj-result-info">
+                        <div class="pj-result-name" title="${name}">${name}</div>
+                        <div class="pj-result-size">${fmtBytes(newSize)}${saved !== null ? ` <span>↓${saved}%</span>` : ''}</div>
+                    </div>`;
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'pj-result-dl';
+                dlBtn.textContent = '↓';
+                dlBtn.onclick = () => downloadD(dataUrl, name);
+                d.appendChild(dlBtn);
+                return d;
+            }
+            /* Boyut küçülterek canvas'tan dataUrl üret */
+            function resizeAndCompress(img, maxPx, mime, quality) {
+                let w = img.naturalWidth, h = img.naturalHeight;
+                if (maxPx > 0) { const long = Math.max(w, h); if (long > maxPx) { const r = maxPx/long; w = Math.round(w*r); h = Math.round(h*r); } }
+                const c = document.createElement('canvas');
+                c.width = w; c.height = h;
+                c.getContext('2d').drawImage(img, 0, 0, w, h);
+                return c.toDataURL(mime, quality);
+            }
+            /* Boyut hedefine ulaşmak için kaliteyi ikiye böl (binary search) */
+            function compressToTarget(img, maxPx, mime, targetKB) {
+                if (targetKB <= 0) return null;
+                const targetBytes = targetKB * 1024;
+                let lo = 0.05, hi = 1.0, best = null;
+                for (let i = 0; i < 12; i++) {
+                    const mid = (lo + hi) / 2;
+                    const d = resizeAndCompress(img, maxPx, mime, mid);
+                    const bytes = Math.round((d.length - d.indexOf(',') - 1) * 0.75);
+                    if (bytes <= targetBytes) { best = { d, q: mid }; lo = mid; }
+                    else hi = mid;
                 }
+                return best ? best.d : resizeAndCompress(img, maxPx, mime, 0.05);
             }
-            pdfBar.style.width = '100%';
-            pdfStatus.textContent = `✅ ${pdfResults.length} görsel oluşturuldu.`;
-            pdfResultsEl.style.display = 'flex';
-            if (pdfResults.length > 0) pdfDlwrap.style.display = 'flex';
-            pdfConvert.disabled = false;
-            pdfClear.disabled = false;
-
-        };
-        pdfDlall.onclick = async () => {
-            pdfDlall.disabled = true;
-            pdfDlall.textContent = '📦 ZIP…';
-            await buildZip(pdfResults);
-            pdfDlall.disabled = false;
-            pdfDlall.textContent = '⬇ Tümünü ZIP İndir';
-        };
-        $('pdf-clear-results').onclick = () => {
-            pdfResults = [];
-            pdfResultsEl.innerHTML = '';
-            pdfResultsEl.style.display = 'none';
-            pdfDlwrap.style.display = 'none';
-            pdfProgress.style.display = 'none'; // İlerleme çubuğunu gizler
-            pdfBar.style.width = '0%';
-        };
-        /* ═══════════════════════════════════════════════════════
-           JPG BOYUT KÜÇÜLTÜCÜ  (DEĞİŞİKLİK YOK)
-        ═══════════════════════════════════════════════════════ */
-        let jpgFiles = [];
-        let jpgResults = [];
-        const jpgDrop = $('jpg-drop');
-        const jpgInput = $('jpg-input');
-        const jpgFilelist = $('jpg-filelist');
-        const jpgCompress = $('jpg-compress');
-        const jpgClear = $('jpg-clear');
-        const jpgProgress = $('jpg-progress');
-        const jpgBar = $('jpg-bar');
-        const jpgStatus = $('jpg-status');
-        const jpgResultsEl = $('jpg-results');
-        const jpgDlwrap = $('jpg-dlwrap');
-        const jpgDlall = $('jpg-dlall');
-        const jpgQualSlider = $('jpg-quality');
-        const jpgQualVal = $('jpg-qualval');
-        jpgQualSlider.oninput = () => { jpgQualVal.textContent = jpgQualSlider.value + '%'; }
-        jpgDrop.onclick = () => jpgInput.click();
-        jpgDrop.ondragover = e => { e.preventDefault(); jpgDrop.classList.add('drag-over'); };
-        jpgDrop.ondragleave = () => jpgDrop.classList.remove('drag-over');
-        jpgDrop.ondrop = e => { e.preventDefault(); jpgDrop.classList.remove('drag-over'); addJpgFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))); };
-        jpgInput.onchange = () => addJpgFiles([...jpgInput.files]);
-        function addJpgFiles(files) {
-            files.forEach(f => {
-                if (jpgFiles.find(x => x.name === f.name)) return;
-                jpgFiles.push(f);
-                const tag = makeFileTag(f.name, () => { jpgFiles = jpgFiles.filter(x => x !== f); tag.remove(); jpgCompress.disabled = jpgFiles.length === 0; jpgClear.disabled = jpgFiles.length === 0; });
-                jpgFilelist.appendChild(tag);
+            /* base64 dataUrl'un yaklaşık byte boyutu */
+            function dataUrlBytes(d) { return Math.round((d.length - d.indexOf(',') - 1) * 0.75); }
+            /* ═══════════════════════════════════════════════════════
+               TOGGLE / SEKMELER
+            ═══════════════════════════════════════════════════════ */
+            $('pj-toggle').onclick = () => pdfjpg.classList.toggle('pj-collapsed');
+            $('pj-toggle').onclick();
+            document.querySelectorAll('.pj-tab').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.pj-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.pj-pane').forEach(p => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    $('pj-pane-' + btn.dataset.tab).classList.add('active');
+                };
             });
-            jpgCompress.disabled = jpgFiles.length === 0;
-            jpgClear.disabled = jpgFiles.length === 0;
-        }
-        jpgClear.onclick = () => {
-            jpgFiles = [];
-            jpgFilelist.innerHTML = '';
-            jpgCompress.disabled = true;
-            jpgClear.disabled = true;
-            jpgInput.value = '';
-        };
-        jpgCompress.onclick = async () => {
-            if (!jpgFiles.length) return;
-            jpgCompress.disabled = true;
-            jpgClear.disabled = true;
-            jpgProgress.style.display = 'block';
-            jpgResultsEl.innerHTML = ''; jpgResultsEl.style.display = 'none';
-            jpgDlwrap.style.display = 'none';
-            jpgBar.style.width = '0%';
-            jpgResults = [];
-            const mime = $('jpg-format').value;
-            const quality = parseInt(jpgQualSlider.value) / 100;
-            const maxPx = parseInt($('jpg-maxpx').value);
-            const targetKB = parseInt($('jpg-targetsize').value);
-            for (let i = 0; i < jpgFiles.length; i++) {
-                const f = jpgFiles[i];
-                jpgStatus.textContent = `${f.name} işleniyor…`;
-                jpgBar.style.width = (i / jpgFiles.length * 100) + '%';
-                const origSize = f.size;
-                const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(f); });
-                await new Promise(res => {
-                    const img = new Image();
-                    img.onload = () => {
-                        let out;
-                        if (targetKB > 0) { out = compressToTarget(img, maxPx, mime, targetKB); } else { out = resizeAndCompress(img, maxPx, mime, quality); }
-                        const newSize = dataUrlBytes(out);
-                        const ext = extOf(mime);
-                        const name = f.name.replace(/\.[^.]+$/, '') +'.'+ ext;
+            /* ═══════════════════════════════════════════════════════
+               PDF → JPG  (DEĞİŞİKLİK YOK)
+            ═══════════════════════════════════════════════════════ */
+            let pdfFiles = [];
+            let pdfResults = [];
+            const pdfDrop = $('pdf-drop');
+            const pdfInput = $('pdf-input');
+            const pdfFilelist = $('pdf-filelist');
+            const pdfConvert = $('pdf-convert');
+            const pdfClear = $('pdf-clear');
+            const pdfProgress = $('pdf-progress');
+            const pdfBar = $('pdf-bar');
+            const pdfStatus = $('pdf-status');
+            const pdfResultsEl = $('pdf-results');
+            const pdfDlwrap = $('pdf-dlwrap');
+            const pdfDlall = $('pdf-dlall');
+            const pdfQualSlider= $('pdf-quality');
+            const pdfQualVal = $('pdf-qualval');
+            pdfQualSlider.oninput = () => { pdfQualVal.textContent = pdfQualSlider.value + '%'; }
+            pdfDrop.onclick = () => pdfInput.click();
+            pdfDrop.ondragover = e => { e.preventDefault(); pdfDrop.classList.add('drag-over'); };
+            pdfDrop.ondragleave = () => pdfDrop.classList.remove('drag-over');
+            pdfDrop.ondrop = e => { e.preventDefault(); pdfDrop.classList.remove('drag-over'); addPdfFiles([...e.dataTransfer.files].filter(f => f.type === 'application/pdf')); };
+            pdfInput.onchange = () => addPdfFiles([...pdfInput.files]);
+            function addPdfFiles(files) {
+                files.forEach(f => {
+                    if (pdfFiles.find(x => x.name === f.name)) return;
+                    pdfFiles.push(f);
+                    const tag = makeFileTag(f.name, () => { pdfFiles = pdfFiles.filter(x => x !== f); tag.remove(); pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0; });
+                    pdfFilelist.appendChild(tag);
+                });
+                pdfConvert.disabled = pdfFiles.length === 0; pdfClear.disabled = pdfFiles.length === 0;
+            }
+            pdfClear.onclick = () => {
+                pdfFiles = [];
+                pdfFilelist.innerHTML = '';
+                pdfConvert.disabled = true;
+                pdfClear.disabled = true;
+                pdfInput.value = '';
+            };
+            pdfConvert.onclick = async () => {
+                if (!pdfFiles.length) return;
+                pdfConvert.disabled = true;
+                pdfClear.disabled = true;
+                pdfProgress.style.display = 'block';
+                pdfResultsEl.innerHTML = ''; pdfResultsEl.style.display = 'none';
+                pdfDlwrap.style.display = 'none';
+                pdfBar.style.width = '0%';
+                pdfResults = [];
+                const scale = parseFloat($('pdf-scale').value);
+                const quality = parseInt(pdfQualSlider.value) / 100;
+                const mime = $('pdf-format').value;
+                const pagesStr= $('pdf-pages').value;
+                let totalWork = 0, done = 0;
+                // İlk geçiş: toplam sayfa sayısını bul
+                const pdfs = [];
+                for (const f of pdfFiles) {
+                    const ab = await f.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                    const pages = parsePages(pagesStr, pdf.numPages);
+                    pdfs.push({ f, pdf, pages });
+                    totalWork += pages.length;
+                }
+                for (const { f, pdf, pages } of pdfs) {
+                    const baseName = f.name.replace(/\.pdf$/i, '');
+                    for (const pageNum of pages) {
+                        pdfStatus.textContent = `${f.name} — sayfa ${pageNum}`;
+                        pdfBar.style.width = (done / totalWork * 100) + '%';
+                        const page = await pdf.getPage(pageNum);
+                        const vp = page.getViewport({ scale });
+                        const canvas = document.createElement('canvas');
+                        canvas.width = vp.width; canvas.height = vp.height;
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                        const dataUrl = canvas.toDataURL(mime, quality);
+                        const name = `${baseName}_s${String(pageNum).padStart(3,'0')}.${extOf(mime)}`;
+                        pdfResults.push({ dataUrl, name });
+                        pdfResultsEl.appendChild(makeResultCard(dataUrl, name, null, dataUrlBytes(dataUrl)));
+                        done++;
+                    }
+                }
+                pdfBar.style.width = '100%';
+                pdfStatus.textContent = `✅ ${pdfResults.length} görsel oluşturuldu.`;
+                pdfResultsEl.style.display = 'flex';
+                if (pdfResults.length > 0) pdfDlwrap.style.display = 'flex';
+                pdfConvert.disabled = false;
+                pdfClear.disabled = false;
+
+            };
+            pdfDlall.onclick = async () => {
+                pdfDlall.disabled = true;
+                pdfDlall.textContent = '📦 ZIP…';
+                await buildZip(pdfResults);
+                pdfDlall.disabled = false;
+                pdfDlall.textContent = '⬇ Tümünü ZIP İndir';
+            };
+            $('pdf-clear-results').onclick = () => {
+                pdfResults = [];
+                pdfResultsEl.innerHTML = '';
+                pdfResultsEl.style.display = 'none';
+                pdfDlwrap.style.display = 'none';
+                pdfProgress.style.display = 'none'; // İlerleme çubuğunu gizler
+                pdfBar.style.width = '0%';
+            };
+            /* ═══════════════════════════════════════════════════════
+               JPG BOYUT KÜÇÜLTÜCÜ  (DEĞİŞİKLİK YOK)
+            ═══════════════════════════════════════════════════════ */
+            let jpgFiles = [];
+            let jpgResults = [];
+            const jpgDrop = $('jpg-drop');
+            const jpgInput = $('jpg-input');
+            const jpgFilelist = $('jpg-filelist');
+            const jpgCompress = $('jpg-compress');
+            const jpgClear = $('jpg-clear');
+            const jpgProgress = $('jpg-progress');
+            const jpgBar = $('jpg-bar');
+            const jpgStatus = $('jpg-status');
+            const jpgResultsEl = $('jpg-results');
+            const jpgDlwrap = $('jpg-dlwrap');
+            const jpgDlall = $('jpg-dlall');
+            const jpgQualSlider = $('jpg-quality');
+            const jpgQualVal = $('jpg-qualval');
+            jpgQualSlider.oninput = () => { jpgQualVal.textContent = jpgQualSlider.value + '%'; }
+            jpgDrop.onclick = () => jpgInput.click();
+            jpgDrop.ondragover = e => { e.preventDefault(); jpgDrop.classList.add('drag-over'); };
+            jpgDrop.ondragleave = () => jpgDrop.classList.remove('drag-over');
+            jpgDrop.ondrop = e => { e.preventDefault(); jpgDrop.classList.remove('drag-over'); addJpgFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))); };
+            jpgInput.onchange = () => addJpgFiles([...jpgInput.files]);
+            function addJpgFiles(files) {
+                files.forEach(f => {
+                    if (jpgFiles.find(x => x.name === f.name)) return;
+                    jpgFiles.push(f);
+                    const tag = makeFileTag(f.name, () => { jpgFiles = jpgFiles.filter(x => x !== f); tag.remove(); jpgCompress.disabled = jpgFiles.length === 0; jpgClear.disabled = jpgFiles.length === 0; });
+                    jpgFilelist.appendChild(tag);
+                });
+                jpgCompress.disabled = jpgFiles.length === 0;
+                jpgClear.disabled = jpgFiles.length === 0;
+            }
+            jpgClear.onclick = () => {
+                jpgFiles = [];
+                jpgFilelist.innerHTML = '';
+                jpgCompress.disabled = true;
+                jpgClear.disabled = true;
+                jpgInput.value = '';
+            };
+            jpgCompress.onclick = async () => {
+                if (!jpgFiles.length) return;
+                jpgCompress.disabled = true;
+                jpgClear.disabled = true;
+                jpgProgress.style.display = 'block';
+                jpgResultsEl.innerHTML = ''; jpgResultsEl.style.display = 'none';
+                jpgDlwrap.style.display = 'none';
+                jpgBar.style.width = '0%';
+                jpgResults = [];
+                const mime = $('jpg-format').value;
+                const quality = parseInt(jpgQualSlider.value) / 100;
+                const maxPx = parseInt($('jpg-maxpx').value);
+                const targetKB = parseInt($('jpg-targetsize').value);
+                for (let i = 0; i < jpgFiles.length; i++) {
+                    const f = jpgFiles[i];
+                    jpgStatus.textContent = `${f.name} işleniyor…`;
+                    jpgBar.style.width = (i / jpgFiles.length * 100) + '%';
+                    const origSize = f.size;
+                    const dataUrl = await new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(f);
+                    });
+                    const compressionResult = await new Promise(res => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let out;
+                            if (targetKB > 0) { out = compressToTarget(img, maxPx, mime, targetKB); } else { out = resizeAndCompress(img, maxPx, mime, quality); }
+                            const newSize = dataUrlBytes(out);
+                            const ext = extOf(mime);
+                            res({ out, newSize, ext });
+                        };
+                        img.src = dataUrl;
+                    });
+                    if (compressionResult) {
+                        const { out, newSize, ext } = compressionResult;
+                        const name = f.name.replace(/\.[^.]+$/, '') + '.' + ext;
                         jpgResults.push({ dataUrl: out, name });
                         jpgResultsEl.appendChild(makeResultCard(out, name, origSize, newSize));
-                        res();
-                    };
-                    img.src = dataUrl;
-                });
-            }
-            jpgBar.style.width = '100%';
-            jpgStatus.textContent = `✅ ${jpgResults.length} dosya işlendi.`;
-            jpgResultsEl.style.display = 'flex';
-            if (jpgResults.length > 0) jpgDlwrap.style.display = 'flex';
-            jpgCompress.disabled = false;
-            jpgClear.disabled = false;
-        };
-        jpgDlall.onclick = async () => {
-            jpgDlall.disabled = true;
-            jpgDlall.textContent = '📦 ZIP…';
-            await buildZip(jpgResults);
-            jpgDlall.disabled = false;
-            jpgDlall.textContent = '⬇ Tümünü ZIP İndir';
-        };
-        $('jpg-clear-results').onclick = () => {
-            jpgResults = [];
-            jpgResultsEl.innerHTML = '';
-            jpgResultsEl.style.display = 'none';
-            jpgDlwrap.style.display = 'none';
-            jpgProgress.style.display = 'none'; // İlerleme çubuğunu gizler
-            jpgBar.style.width = '0%';
-        };
+                    }
+                }
+
+                jpgBar.style.width = '100%';
+                jpgStatus.textContent = `✅ ${jpgResults.length} dosya işlendi.`;
+                jpgResultsEl.style.display = 'flex';
+                if (jpgResults.length > 0) jpgDlwrap.style.display = 'flex';
+                jpgCompress.disabled = false;
+                jpgClear.disabled = false;
+            };
+            jpgDlall.onclick = async () => {
+                jpgDlall.disabled = true;
+                jpgDlall.textContent = '📦 ZIP…';
+                await buildZip(jpgResults);
+                jpgDlall.disabled = false;
+                jpgDlall.textContent = '⬇ Tümünü ZIP İndir';
+            };
+            $('jpg-clear-results').onclick = () => {
+                jpgResults = [];
+                jpgResultsEl.innerHTML = '';
+                jpgResultsEl.style.display = 'none';
+                jpgDlwrap.style.display = 'none';
+                jpgProgress.style.display = 'none'; // İlerleme çubuğunu gizler
+                jpgBar.style.width = '0%';
+            };
         /* ═══════════════════════════════════════════════════════
            STATUS ANA KONTROLCÜ VE AYARLAR
         ═══════════════════════════════════════════════════════ */
@@ -2041,7 +2077,6 @@
                     });
                 };
                 const hidePanelTip = () => { const tip = document.getElementById('ks-dynamic-tooltip'); if (tip) { tip.style.opacity = '0'; tip.style.visibility = 'hidden'; } };
-
                 const showFullContent = () => {
                     kstatus.classList.add('active');
                     kstatus.setAttribute('data-hover', 'true');
@@ -2057,8 +2092,7 @@
                                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                                     </svg>
                                 </span>
-
-                                <span class="ks-sb-item ks-sb-accent" id="ks-pdf-btn" data-tip="PDF / JPG Araçları">
+                                <span class="ks-sb-item" id="ks-pdf-btn" data-tip="PDF / JPG Araçları"><!-- sınıf için renk kodu ks-sb-accent -->
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -2067,9 +2101,8 @@
                                         <path d="M18.6 12.7v4.6h-1.7"></path>
                                         <path d="M18.6 15h-1.7"></path>
                                     </svg>
-                                    <span>PDF</span>
+                                    <span>Evrak</span>
                                 </span>
-
                                 <span class="ks-sb-item ${config.isUnlocked ? 'ks-sb-lock-open' : ''}" id="ks-unlock-btn" data-tip="${config.isUnlocked ? 'Kilidi Kapat' : 'Kilidi Aç'}">
                                     <span id="ks-unlock-icon" style="font-size:13px;">${config.isUnlocked ? '🔓' : '🔒'}</span>
                                 </span>
@@ -2131,8 +2164,8 @@
 
                     document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
                     document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
-                    //document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
-					document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); console.log('ayarlar tıklandı, target:', e.target); openSettingsModal(); };
+                    document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
+					//document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); console.log('ayarlar tıklandı, target:', e.target); openSettingsModal(); };
                 };
 
                 kstatus.onmouseleave = () => {
@@ -2141,10 +2174,7 @@
                     if (tip) { tip.style.opacity = '0'; }
                     hideTimeout = setTimeout(() => { kstatus.classList.remove('active'); kstatus.innerHTML = `<span>KS</span>`; hideTimeout = null; }, 1500);
                 };
-                kstatus.onmouseenter = () => {
-                    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-                    showFullContent();
-                };
+                kstatus.onmouseenter = () => { if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; } showFullContent(); };
             }
             // ── Veri Tanımları ─────────────────────────────────────────────────
             const SECTIONS = [
@@ -2183,6 +2213,7 @@
                         { key: 'KS_IMG', icon: '🖼️', title: 'Resim Yükleme', desc: 'Toplu evrak kategorisi', sub: false },
                         { key: 'KS_NTF', icon: '🔕', title: 'Bildirim Engel', desc: '3+ tekrarlı popup engeli', sub: false },
                         { key: 'KS_ONSBM', icon: '🏦', title: 'Ön SBM Giriş Bilgileri', desc: 'Otoanaliz içerisindeki SBM Bilgileri bölümünü otomatik dolduran buton ekler.', sub: false },
+                        { key: 'KS_FILE', icon: '📁', title: 'Dosyanın Klasörünü Açar', desc: 'Aracın arşivinin klasörünü açan buton ekler, ihbar butonunun yanına.', sub: false },
                     ]
                 },
                 {
@@ -2380,7 +2411,6 @@
         };
         setInterval(injectPanel, 2000); injectPanel();
     }
-    // 🎲 %5 ihtimalle göster
     const GIF_URL = 'https://media.tenor.com/yB6ozDoWij4AAAAj/honkai-star-rail-dance.gif', GIF_W = 100, GIF_H = 100;
     const style = document.createElement('style');
     style.textContent = `
@@ -2416,7 +2446,7 @@
         ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false), ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false), ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false), ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false),
         ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false), ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false), ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
         ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false), ANALIZPANEL_mulk = GM_getValue('KS_PANEL_mulk', false), ANALIZPANEL_uzak = GM_getValue('KS_PANEL_uzak', false),
-        MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false), PSAY = GM_getValue('KS_PSAY', false), DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false),
+        MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false), PSAY = GM_getValue('KS_PSAY', false), DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false), OTOFILE = GM_getValue('KS_FILE', false),
         TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false), SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
         WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false), LOGIN = GM_getValue('KS_LGN', false), ONSBM = GM_getValue('KS_ONSBM', false);
     window.MAGDUR_DATA = { isLoaded: false, mgMODEL_ADI: null, mgKM: null, mgPIYASA: null, mgMAGDUR_AD: null, mgMAGDUR_SOYAD: null, mgPLAKA1: null, mgPLAKA2: null, mgPLAKA3: null };
@@ -3344,6 +3374,87 @@
         };
         document.readyState == 'complete' ? f() : window.addEventListener('load', f);
     }
+	// Klasör açma butonu
+	if (KS_SYSTEM && OTOFILE && loc("otohasar")) {
+	    const ayIsimleri = {
+	        "01": "1. Ocak", "02": "2. Şubat", "03": "3. Mart", "04": "4. Nisan", "05": "5. Mayıs", "06": "6. Haziran", "07": "7. Temmuz", "08": "8. Ağustos", "09": "9. Eylül", "10": "10. Ekim", "11": "11. Kasım", "12": "12. Aralık"
+	    };
+	    function turkceBuyukHarf(metin) { return metin.toString().replace(/i/g, "İ").replace(/ı/g, "I").replace(/ş/g, "Ş").replace(/ç/g, "Ç").replace(/ğ/g, "Ğ").replace(/ü/g, "Ü").replace(/ö/g, "Ö").toUpperCase().trim(); }
+	    function magdurDataHazir() { return !!(window.MAGDUR_DATA && window.MAGDUR_DATA.isLoaded !== false && window.MAGDUR_DATA.mgPLAKA1 && window.MAGDUR_DATA.mgPLAKA1.toString().trim() !== ""); }
+	    window.addEventListener('load', function() {
+	        const btnIhbar = document.querySelector('input[name="btnTUR"][value="İHBAR YAZDIR"]');
+	        if (!btnIhbar) return;
+	        const inputAy = document.querySelector('input[name="IHBAR_TARIHI_AY"]');
+	        const inputYil = document.getElementById('IHBAR_TARIHI_YIL');
+	        const selectSigorta = document.getElementById('SIGORTA_SEKLI');
+	        const plaka1 = document.getElementById('HAS_PLAKA1');
+	        const plaka2 = document.getElementById('HAS_PLAKA2');
+	        const plaka3 = document.getElementById('HAS_PLAKA3');
+	        if (!inputAy || !inputYil) return;
+	        function butonuEkle() {
+	            if (document.getElementById('KLASOR_AC_BTN')) return;
+	            const btn = document.createElement('button');
+	            btn.id = 'KLASOR_AC_BTN'; // Benzersiz ID
+	            btn.type = 'button';
+	            btn.innerText = '📁 KLASÖRÜ AÇ';
+	            btn.className = 'BUTON01';
+	            btn.style.marginRight = '10px';
+	            btn.style.backgroundColor = '#28a745';
+	            btn.style.color = 'white';
+	            btn.style.fontWeight = 'bold';
+	            btn.style.cursor = 'pointer';
+	            btnIhbar.parentNode.insertBefore(btn, btnIhbar);
+	            btn.addEventListener('click', function() {
+	                const yil = inputYil.value.trim();
+	                const ayKod = inputAy.value.trim();
+	                let ayMetin = ayIsimleri[ayKod] || ayKod;
+	                if (isNaN(ayKod)) {
+	                    const arananAy = turkceBuyukHarf(ayKod);
+	                    for (let kod in ayIsimleri) {
+	                        if (turkceBuyukHarf(ayIsimleri[kod]) === arananAy || turkceBuyukHarf(kod) === arananAy) {
+	                            ayMetin = ayIsimleri[kod];
+	                            break;
+	                        }
+	                    }
+	                }
+	                let klasorYolu = `file://///Arkn-File/Arıkan_Arsivler/${yil}/${ayMetin}`;
+	                if (selectSigorta && selectSigorta.value === "2") {
+	                    if (plaka1 && plaka2 && plaka3) {
+	                        const p1Temiz = plaka1.value.trim().padStart(2, '0');
+	                        const tamPlaka = `${p1Temiz} ${plaka2.value.trim()} ${plaka3.value.trim()}`.toUpperCase();
+	                        klasorYolu += `/OTO HASAR/${tamPlaka}`;
+	                    }
+	                } else {
+	                    if (magdurDataHazir()) {
+	                        const mP1Temiz = window.MAGDUR_DATA.mgPLAKA1.toString().trim().padStart(2, '0');
+	                        const mP2Temiz = window.MAGDUR_DATA.mgPLAKA2.toString().trim();
+	                        const mP3Temiz = window.MAGDUR_DATA.mgPLAKA3.toString().trim();
+	                        const tamPlaka = `${mP1Temiz} ${mP2Temiz} ${mP3Temiz}`.toUpperCase();
+	                        klasorYolu += `/OTO HASAR/${tamPlaka}`;
+	                    }
+	                }
+	                klasorYolu += '/';
+	                GM_openInTab(klasorYolu, { active: true, insert: true, setParent: true });
+	            });
+	        }
+	        if (selectSigorta && selectSigorta.value === "2") { butonuEkle(); }
+			else { const kontrolArasi = setInterval(function() { if (magdurDataHazir()) { butonuEkle(); clearInterval(kontrolArasi); } }, 300); setTimeout(function() { clearInterval(kontrolArasi); }, 15000); }
+	    });
+	}
+	// TRAMER ALANANINI EKLEME
+	if (KS_SYSTEM && OTOFILE && loc("otohasar")) {
+        window.addEventListener('load', function() {
+            const tramerInput = document.querySelector('input[name="TRAMER_DOSYA_NO"]');
+            if (!tramerInput) {
+                const hasarBaslikRow = Array.from(document.querySelectorAll('td[data-attr="baslik"]')).find(td => td.innerText.includes('HASAR BİLGİLERİ'))?.parentElement;
+                if (hasarBaslikRow) {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `<td class="koyu">Tramer Dosya No:</td><td class="acik" colspan="3"><input type="text" onkeyup="numbersOnly(this);" name="TRAMER_DOSYA_NO" value=""></td>`;
+                    hasarBaslikRow.parentNode.insertBefore(newRow, hasarBaslikRow.nextSibling);
+                }
+            }
+        });
+    }
     // Hızlı Donanım girişi
 	if (KS_SYSTEM && DONANIM && loc("otohasar") && (loc("eks_magdur_arac_donanim") || loc("eks_arac_donanim"))) {
         function initPanel() {
@@ -3356,9 +3467,9 @@
             `;
             document.head.appendChild(styleSheet);
             // 2. Ana Panel Oluşturma
-const panel = document.createElement('div');
-panel.id = 'donanim-panel';
-panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(config.zIndex) + 1}; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; padding: 1px; border-bottom-left-radius: 4px; animation: slideRight 0.2s ease-out; width: 200px;`;
+            const panel = document.createElement('div');
+            panel.id = 'donanim-panel';
+            panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(config.zIndex) + 1}; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; padding: 1px; border-bottom-left-radius: 4px; animation: slideRight 0.2s ease-out; width: 200px;`;
            // 3. Butonlar için ortak stil
             const btnStyle = document.createElement("style");
             btnStyle.innerText = `
@@ -5827,52 +5938,78 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
         const init = () => { getPanel(); processNodes(document.body); analyzePolicies(); obs.observe(document.body, { childList: true, subtree: true }); };
         document.readyState === 'complete' ? init() : unsafeWindow.addEventListener('load', init);
     }
-    // SBM Resim indirme
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr") && loc("trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
-        const MIN_WIDTH = 300;
-        function initSbmDownloadPanel() {
-            if (document.getElementById('sbm-download-mini-panel')) return;
-            const panel = document.createElement('div');
-            panel.id = 'sbm-download-mini-panel';
-            Object.assign(panel.style, {
-                position: 'fixed', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.9)', borderRadius: '4px', padding: '5px', zIndex: '2147483647', display: 'flex', flexDirection: 'column', gap: '4px', width: '110px', border: '1px solid #555'
-            });
-            const mainBtn = document.createElement('button');
-            mainBtn.innerText = 'RESİMLERİ İNDİR';
-            Object.assign(mainBtn.style, { background: '#27ae60', border: '0', borderRadius: '2px', color: "white", cursor: 'pointer', fontWeight: "bold", padding: '6px 2px', fontSize: '10px', width: '100%' });
-            mainBtn.onclick = async () => {
-                const images = document.querySelectorAll('img');
-                let count = 0;
-                for (const img of images) {
-                    if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
-                        const url = img.src;
-                        if (!url || url.startsWith('data:')) continue;
-                        count++;
-                        let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
-                        const urlParams = new URLSearchParams(url.split('?')[1]);
-                        if (urlParams.has('id')) { fileName = `tutanak_${urlParams.get('id')}.jpg`; } else if (url.includes('filename=')) { fileName = url.split('filename=')[1].split('&')[0] + ".jpg"; }
-                        await forceDownload(url, fileName);
-                    }
+    // Sbm Ekran görüntüsü indirme
+    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) {
+        // ============ Resim indirme (sadece KTT tutanak resimleri listesi sayfası) ============
+        const pjPanel = document.getElementById('pj-panel');
+        if (pjPanel) pjPanel.style.display = 'none';
+		const aapanel = document.querySelector("#pj-panel"); forceLegacyColors(aapanel); html2canvas(aapanel).then(canvas => { document.body.appendChild(canvas); });
+        if (loc("trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+            const MIN_WIDTH = 300;
+            async function forceDownload(url, fileName) {
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const link = document.createElement('a');
+                    link.href = unsafeWindow.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    unsafeWindow.URL.revokeObjectURL(link.href);
+                } catch (error) {
+                    console.error("Resim indirilemedi:", url, error);
                 }
-                mainBtn.innerText = `BİTTİ (${count})`; setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
-            };
-            panel.appendChild(mainBtn); document.body.appendChild(panel);
+            }
+            function initSbmDownloadPanel() {
+                if (document.getElementById('sbm-download-mini-panel')) return;
+                const panel = document.createElement('div');
+                panel.id = 'sbm-download-mini-panel';
+                Object.assign(panel.style, {
+                    position: 'fixed', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.9)',
+                    borderRadius: '4px', padding: '5px', zIndex: '2147483647', display: 'flex',
+                    flexDirection: 'column', gap: '4px', width: '110px', border: '1px solid #555'
+                });
+                const mainBtn = document.createElement('button');
+                mainBtn.innerText = 'RESİMLERİ İNDİR';
+                Object.assign(mainBtn.style, {
+                    background: '#27ae60', border: '0', borderRadius: '2px', color: "white",
+                    cursor: 'pointer', fontWeight: "bold", padding: '6px 2px', fontSize: '10px', width: '100%'
+                });
+                mainBtn.onclick = async () => {
+                    const images = document.querySelectorAll('img');
+                    let count = 0;
+                    for (const img of images) {
+                        if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
+                            const url = img.src;
+                            if (!url || url.startsWith('data:')) continue;
+                            count++;
+                            let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
+                            const urlParams = new URLSearchParams(url.split('?')[1]);
+                            if (urlParams.has('id')) {
+                                fileName = `tutanak_${urlParams.get('id')}.jpg`;
+                            } else if (url.includes('filename=')) {
+                                fileName = url.split('filename=')[1].split('&')[0] + ".jpg";
+                            }
+                            await forceDownload(url, fileName);
+                        }
+                    }
+                    mainBtn.innerText = `BİTTİ (${count})`;
+                    setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
+                };
+                panel.appendChild(mainBtn);
+                document.body.appendChild(panel);
+            }
+            unsafeWindow.addEventListener('load', initSbmDownloadPanel);
+            setTimeout(initSbmDownloadPanel, 2000);
         }
-        async function forceDownload(url, fileName) {
-            try {
-                const response = await fetch(url); const blob = await response.blob();
-                const link = document.createElement('a'); link.href = unsafeWindow.URL.createObjectURL(blob); link.download = fileName;
-                document.body.appendChild(link); link.click(); document.body.removeChild(link);
-                unsafeWindow.URL.revokeObjectURL(link.href);
-            } catch (error) { console.error("Resim indirilemedi:", url, error); }
-        }
-        unsafeWindow.addEventListener('load', initSbmDownloadPanel);
-        setTimeout(initSbmDownloadPanel, 2000);
-    }
-    // SBM Ekran görüntüsü indirme
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) { const isSonuc = loc("genelSorguEksper/sonuc.sbm"), isDetay = loc("hasarEksper/detay.sbm"), isListView = loc("listView.sbm");
+        // ============ Ekran görüntüsü indirme (sonuc / detay / KTT listView sayfaları) ============
+        const isSonuc = loc("genelSorguEksper/sonuc.sbm"), isDetay = loc("hasarEksper/detay.sbm"), isListView = loc("listView.sbm");
         // listView sadece KTT sayfasında çalışsın
-        const isKTTList = isListView && (() => { const mainTitle = document.querySelector('.main-title'); return mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı"); })();
+        const isKTTList = isListView && (() => {
+            const mainTitle = document.querySelector('.main-title');
+            return mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı");
+        })();
         if (isSonuc || isDetay || isKTTList) {
             if (!document.getElementById('sbm-ss-style')) {
                 const style = document.createElement('style');
@@ -5884,14 +6021,6 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                 const btn = document.getElementById('sbm-ss-btn');
                 const myP = document.getElementById('tramer-panel');
                 if (!btn) return;
-                if (typeof html2canvas === 'undefined') {
-                    await new Promise(r => {
-                        const s = document.createElement('script');
-                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                        s.onload = r;
-                        document.head.appendChild(s);
-                    });
-                }
                 window.scrollTo({ top: 0, behavior: 'instant' });
                 await new Promise(r => setTimeout(r, 100));
                 btn.style.display = 'none';
@@ -5899,16 +6028,15 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                 const ksGlobal = document.getElementById('ks-global-status-indicator');
                 if (ksGlobal) ksGlobal.style.display = 'none';
                 try {
-                    const scrollHeight = Math.max(
-                        document.documentElement.scrollHeight,
-                        document.body.scrollHeight,
-                        document.documentElement.offsetHeight
-                    );
+                    const scrollHeight = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,document.documentElement.offsetHeight);
                     // Her sayfa için y offset ve kaldırılacak elemanlar
                     const yOffset = isDetay ? 70 : isKTTList ? 0 : 190;
                     const canvas = await html2canvas(document.body, {
-                        y: yOffset, x: 0, height: scrollHeight - yOffset, useCORS: false, allowTaint: true, backgroundColor: "#ffffff", scale: 1, logging: false, windowHeight: scrollHeight,
-						onclone: (clonedDoc) => {
+                        y: yOffset, x: 0, height: scrollHeight - yOffset, useCORS: false,
+                        allowTaint: true, backgroundColor: "#ffffff", scale: 1, logging: false,
+                        windowHeight: scrollHeight,
+                        onclone: (clonedDoc) => {
+                            clonedDoc.querySelectorAll('#pj-panel, #pj-panel *').forEach(el => { el.style.background = '#333'; el.style.backgroundColor = '#333'; el.style.color = '#fff'; el.style.boxShadow = 'none'; el.style.borderColor = '#555'; });
                             clonedDoc.body.style.cssText = "background:#fff;height:auto;overflow:visible;";
                             const removeSelectors = [
                                 '.polite__alert', '#ks-global-status-indicator', '.cc-window',
@@ -5946,16 +6074,15 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                         if (kttNo && kttNo.length > 1) { name = `${kttNo}_Hasar_Detay`; } else if (hasarNo) { name = `${hasarNo}_Hasar_Detay`; } else { name = "Hasar_Detay"; }
                     } else if (isKTTList) {
                         // listView.sbm KTT → ihbar no veya plaka/dosya no
-                        const ihbarNo = [...document.querySelectorAll('.field--output')] .find(el => el.querySelector('.field-label')?.innerText.includes('İhbar No')) ?.querySelector('.field-controls')?.innerText.trim();
-                        const plakaRaw = document.querySelector( 'td[aria-describedby$="_plakaNo"], .ui-jqgrid-btable td:nth-child(3)' )?.innerText.trim();
-                        const dosyaNo = document.querySelector('td[aria-describedby$="_dosyaNo"]') ?.innerText.trim() || "KTT_SORGU";
+                        const ihbarNo = [...document.querySelectorAll('.field--output')].find(el => el.querySelector('.field-label')?.innerText.includes('İhbar No'))?.querySelector('.field-controls')?.innerText.trim();
+                        const plakaRaw = document.querySelector('td[aria-describedby$="_plakaNo"], .ui-jqgrid-btable td:nth-child(3)')?.innerText.trim();
+                        const dosyaNo = document.querySelector('td[aria-describedby$="_dosyaNo"]')?.innerText.trim() || "KTT_SORGU";
                         name = ihbarNo ? `${ihbarNo}_KTT_SORGU` : (plakaRaw ? `${plakaRaw}_${dosyaNo}` : dosyaNo);
-
                     } else {
                         // genelSorguEksper/sonuc.sbm → şasi + sekme adı
-                        const shasiRaw = [...document.querySelectorAll('.fieldset-body b')] .find(el => el.innerText.includes('*'))?.innerText.trim();
+                        const shasiRaw = [...document.querySelectorAll('.fieldset-body b')].find(el => el.innerText.includes('*'))?.innerText.trim();
                         const shasi = shasiRaw ? shasiRaw.replace(/\*/g, '') : '';
-                        let rawName = document.querySelector('li.ui-tabs-active a, li[aria-selected="true"] a') ?.innerText.trim().replace(/\s+/g, '_') || "SBM_Rapor";
+                        let rawName = document.querySelector('li.ui-tabs-active a, li[aria-selected="true"] a')?.innerText.trim().replace(/\s+/g, '_') || "SBM_Rapor";
                         const nameMap = { 'KTT': 'KTT_SBM' };
                         name = shasi ? `${shasi}_${nameMap[rawName] || rawName}` : (nameMap[rawName] || rawName);
                     }
@@ -5963,8 +6090,13 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                     link.href = canvas.toDataURL('image/jpeg', 0.65);
                     link.download = `${name.replace(/\s+/g, '_')}.jpg`;
                     link.click();
-                } catch (err) { console.error("SS Hatası:", err);
-                } finally { btn.style.display = 'block'; if (myP) { myP.style.display = 'block'; } if (ksGlobal) { ksGlobal.style.display = 'block'; } }
+                }
+				catch (err) {console.error("SS Hatası:", err);}
+				finally {
+                    btn.style.display = 'block';
+                    if (myP) myP.style.display = 'block';
+                    if (ksGlobal) ksGlobal.style.display = 'block';
+                }
             };
             const init = () => {
                 if (document.getElementById('sbm-ss-btn')) return;
@@ -5979,8 +6111,7 @@ panel.style.cssText = `position: fixed; top: 0; right: 0; z-index: ${Number(conf
                 btn.onclick = takeScreenshot;
                 document.body.appendChild(btn);
             };
-            setTimeout(init, 100);
-            setInterval(init, 1000);
+            setTimeout(init, 100); setInterval(init, 1000);
         }
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
