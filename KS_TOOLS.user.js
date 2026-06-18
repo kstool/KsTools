@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.75
+// @version      1.76
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -17,6 +17,7 @@
 // @grant        GM_download
 // @grant        GM_notification
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // @connect      *
 // @connect      cdnjs.cloudflare.com
 // @require      https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js
@@ -2225,6 +2226,8 @@
                         { key: 'KS_SBM', icon: '🏦', title: 'SBM Panel', desc: "SBM 3'lü bölme, resim indirme, ekran görüntüsü alma ve hızlı sigorta seçim ekleyen paneller", sub: false },
                         { key: 'KS_WP', icon: '💬', title: 'WhatsApp', desc: 'Resimlere çift tıklama hızlı indirme', sub: false },
                         { key: 'KS_LGN', icon: '🏦', title: 'Login', desc: 'Otoanaliz için kurum kodunu otomatik doldurma', sub: false },
+                        { key: 'KS_ONBELLEK', icon: '⚙️', title: 'Önbellek', desc: 'Yazıyı önbelleğe oto kaydetme sistemi, yazı bıraktıktan 2 saniye sonunda otomatik hafızaya alır.', sub: false },
+
                     ]
                 }
             ];
@@ -2448,7 +2451,7 @@
         ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false), ANALIZPANEL_mulk = GM_getValue('KS_PANEL_mulk', false), ANALIZPANEL_uzak = GM_getValue('KS_PANEL_uzak', false),
         MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false), PSAY = GM_getValue('KS_PSAY', false), DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false), OTOFILE = GM_getValue('KS_FILE', false),
         TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false), SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false),
-        WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false), LOGIN = GM_getValue('KS_LGN', false), ONSBM = GM_getValue('KS_ONSBM', false);
+        WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false), LOGIN = GM_getValue('KS_LGN', false), ONSBM = GM_getValue('KS_ONSBM', false), ONBELLEK = GM_getValue('KS_ONBELLEK', false);
     window.MAGDUR_DATA = { isLoaded: false, mgMODEL_ADI: null, mgKM: null, mgPIYASA: null, mgMAGDUR_AD: null, mgMAGDUR_SOYAD: null, mgPLAKA1: null, mgPLAKA2: null, mgPLAKA3: null };
     // Hızlı ve Panel takipli Ön girişi
     if (KS_SYSTEM && ANALIZPANEL && loc("otohasar") && (loc("eks_hasar.php") || loc("eks_hasar_magdur.php"))) {
@@ -7005,4 +7008,298 @@
         }
         setTimeout(() => highlightSdata(), 500);
     }
+	if (KS_SYSTEM && ONBELLEK)	{
+        const DEBUG = true;
+        function log(...args) { if (DEBUG) console.log('[KS-YAZIM]', ...args); }
+        function warn(...args) { if (DEBUG) console.warn('[KS-YAZIM]', ...args); }
+        const currentHost = window.location.hostname, currentPath = window.location.pathname, currentPathKey = currentHost + currentPath;
+        log('Script başladı. Host:', currentHost, '| Path anahtarı:', currentPathKey);
+        function isCurrentPageWhitelisted(list) { for (const entry of list) { if (entry === currentPathKey) { return true; } if (currentPathKey.startsWith(entry + '/')) { return true; } } return false; }
+        // ------------------------------------------------------------------
+        // GÜVENLİ DEPOLAMA KATMANI
+        // ------------------------------------------------------------------
+        const memoryStore = {};
+        let storageMode = 'unknown';
+        function testLocalStorage() {
+            try { const testKey = '__ks_yazim_test__'; localStorage.setItem(testKey, '1'); const ok = localStorage.getItem(testKey) === '1'; localStorage.removeItem(testKey); return ok; }
+        	catch (e) { warn('localStorage testi başarısız:', e.message); return false; }
+        }
+        if (testLocalStorage()) { storageMode = 'localStorage'; } else { storageMode = 'memory'; warn('localStorage kullanılamıyor. Hafıza modunda çalışılacak (sayfa yenilenince veri kaybolur).'); }
+        log('Depolama modu:', storageMode);
+        function storageGet(key) {
+            if (storageMode === 'localStorage') { try { return localStorage.getItem(key); } catch (e) { warn('storageGet hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
+            return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+        }
+        function storageSet(key, value) {
+            if (storageMode === 'localStorage') { try { localStorage.setItem(key, value); return; } catch (e) { warn('storageSet hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
+            memoryStore[key] = value;
+        }
+        function storageRemove(key) {
+            if (storageMode === 'localStorage') { try { localStorage.removeItem(key); return; } catch (e) { warn('storageRemove hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
+            delete memoryStore[key];
+        }
+        // ------------------------------------------------------------------
+        // WHITELIST / MENÜ MANTIĞI
+        // ------------------------------------------------------------------
+        function updateMenuCommands() {
+            let whitelist = GM_getValue('whitelist', []);
+            const isWhitelisted = isCurrentPageWhitelisted(whitelist);
+            log('Whitelist durumu:', whitelist, '-> bu sayfa whitelist\'te mi?', isWhitelisted);
+            if (!isWhitelisted) {
+                GM_registerMenuCommand("🟢 " + currentPathKey + " Ekle", function() {
+                    let list = GM_getValue('whitelist', []);
+                    if (!list.includes(currentPathKey)) {
+                        list.push(currentPathKey);
+                        GM_setValue('whitelist', list);
+                        log('Whitelist\'e eklendi:', currentPathKey, '-> yeni liste:', GM_getValue('whitelist', []));
+                        alert(currentPathKey + " beyaz listeye eklendi. Sayfa yenileniyor...");
+                        window.location.reload();
+                    }
+                });
+            } else {
+                GM_registerMenuCommand("🔴 " + currentPathKey + " Kaldır", function() {
+                    let list = GM_getValue('whitelist', []);
+                    list = list.filter(item => item !== currentPathKey);
+                    GM_setValue('whitelist', list);
+                    log('Whitelist\'ten kaldırıldı:', currentPathKey);
+                    alert(currentPathKey + " beyaz listeden kaldırıldı. Sayfa yenileniyor...");
+                    window.location.reload();
+                });
+            }
+        }
+        updateMenuCommands();
+        let whitelist = GM_getValue('whitelist', []);
+        let cacheFeatureActive = false;
+        // --- ÖNBELLEK VE ROZET MANTIĞI ---
+        function initCacheFeature() {
+            if (cacheFeatureActive) { log('Önbellek özelliği zaten aktif, tekrar başlatılmadı.'); return; }
+            cacheFeatureActive = true;
+            log('Önbellek özelliği aktive ediliyor (whitelist onayı ile).');
+        const STORAGE_PREFIX = 'text_cache_';
+        const pageKey = btoa(window.location.origin + window.location.pathname);
+        function getElementKey(el) {
+            const ident = el.name || el.id || ('idx' + Array.prototype.indexOf.call(
+                document.querySelectorAll('textarea, input[type="text"]'), el
+            ));
+            return STORAGE_PREFIX + pageKey + '_' + ident;
+        }
+        function findAllTargetInputs() {
+            const candidates = document.querySelectorAll('textarea, input[type="text"]');
+            const result = [];
+            for (const el of candidates) {
+                const style = window.getComputedStyle(el);
+                const visible = style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+                const usable = !el.disabled && !el.readOnly;
+                if (visible && usable) {
+                    result.push(el);
+                }
+            }
+            return result;
+        }
+        function getOrCreateBadge(target) {
+            let badge = target._ksBadge;
+            if (badge) { if (badge._reposition) badge._reposition(); return badge; }
+            badge = document.createElement('div');
+            badge.className = 'txt-cache-status-badge';
+            target._ksBadge = badge;
+            Object.assign(badge.style, {
+                position: 'fixed',
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                zIndex: '999999',
+                fontFamily: 'sans-serif',
+                opacity: '0.95',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                transition: 'background-color 0.2s, color 0.2s',
+                cursor: 'pointer',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'auto'
+            });
+            document.body.appendChild(badge);
+            function positionBadge() {
+                const rect = target.getBoundingClientRect();
+                const badgeWidth = badge.offsetWidth || 160;
+                let top = rect.bottom + 4;
+                let left = rect.right - badgeWidth;
+                if (left < 4) left = 4;
+                if (top + 24 > window.innerHeight) top = rect.top - 28;
+                if (left + badgeWidth > window.innerWidth) left = window.innerWidth - badgeWidth - 4;
+                badge.style.top = top + 'px';
+                badge.style.left = left + 'px';
+            }
+            positionBadge();
+            window.addEventListener('scroll', positionBadge, { passive: true, capture: true });
+            window.addEventListener('resize', positionBadge);
+            if (window.ResizeObserver) {
+                new ResizeObserver(positionBadge).observe(target);
+            }
+            badge._reposition = positionBadge;
+            badge.addEventListener('mouseenter', () => {
+                if (target.value.trim() !== '') {
+                    badge.textContent = '↺ Orijinale Dön';
+                    badge.style.backgroundColor = '#c0392b';
+                    badge.style.color = '#fff';
+                }
+            });
+            badge.addEventListener('mouseleave', () => { updateBadgeState(target, target._ksCurrentState || ''); });
+            badge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const confirmReset = confirm("Önbelleğe alınan veriyi silip kutuyu ilk (boş) haline getirmek istiyor musunuz?");
+                if (confirmReset) {
+                    storageRemove(getElementKey(target));
+                    target.value = '';
+                    badge.style.display = 'none';
+                    target._ksCurrentState = '';
+                }
+            });
+            return badge;
+        }
+        function updateBadgeState(target, state) {
+            const badge = getOrCreateBadge(target);
+            if (target.value.trim() === '') { badge.style.display = 'none'; return; }
+            badge.style.display = 'block';
+            target._ksCurrentState = state;
+            if (badge.matches(':hover')) return;
+            switch (state) {
+                case 'typing':
+                    badge.textContent = '⏳ Değişiklikler bekleniyor...';
+                    badge.style.backgroundColor = '#f39c12';
+                    badge.style.color = '#fff';
+                    break;
+                case 'saved':
+                    badge.textContent = storageMode === 'memory' ? '✓ Kaydedildi (sadece bu oturum)' : '✓ Önbelleğe kaydedildi';
+                    badge.style.backgroundColor = '#27ae60';
+                    badge.style.color = '#fff';
+                    break;
+                case 'loaded':
+                    badge.textContent = '● Önbellekten yüklendi';
+                    badge.style.backgroundColor = '#2980b9';
+                    badge.style.color = '#fff';
+                    break;
+            }
+        }
+        function handleInput(target) {
+            updateBadgeState(target, 'typing');
+            clearTimeout(target._ksSaveTimeout);
+            const key = getElementKey(target);
+            if (target.value.trim() === '') { storageRemove(key); return; }
+            target._ksSaveTimeout = setTimeout(() => {
+                storageSet(key, target.value);
+                log('Kaydedildi. Eleman:', target.name || target.id, '| Anahtar:', key, '| Mod:', storageMode, '| Uzunluk:', target.value.length);
+                updateBadgeState(target, 'saved');
+            }, 2000);
+        }
+        function loadCache() {
+            const targets = findAllTargetInputs();
+            if (targets.length === 0) {
+                warn('Sayfada düzenlenebilir/görünür bir textarea veya input[type="text"] bulunamadı.');
+                return;
+            }
+            for (const target of targets) {
+                const key = getElementKey(target);
+                const savedText = storageGet(key);
+                if (savedText && savedText.trim() !== '' && !target.value) {
+                    target.value = savedText;
+                    updateBadgeState(target, 'loaded');
+                    log('Önbellekten yüklendi. Eleman:', target.name || target.id, '| Anahtar:', key);
+                }
+            }
+        }
+        if (document.readyState === 'complete') { loadCache(); } else { window.addEventListener('load', loadCache); }
+        setInterval(() => {
+            const targets = findAllTargetInputs();
+            for (const target of targets) {
+                if (target._ksBadge) continue;
+                const key = getElementKey(target);
+                const savedText = storageGet(key);
+                if (savedText && savedText.trim() !== '' && !target.value) {
+                    target.value = savedText;
+                    updateBadgeState(target, 'loaded');
+                }
+            }
+        }, 1500);
+        document.addEventListener('input', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && e.target.type === 'text')) {
+                handleInput(e.target);
+            }
+        });
+        document.addEventListener('focusout', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                const badge = e.target._ksBadge;
+                if (badge && e.target.value.trim() === '') {
+                    badge.style.display = 'none';
+                }
+            }
+        });
+        if (findAllTargetInputs().length === 0) { warn('Sayfada düzenlenebilir/görünür bir textarea veya input[type="text"] bulunamadı.'); }
+        }
+        if (isCurrentPageWhitelisted(whitelist)) { initCacheFeature(); } else { log('Bu sayfa whitelist\'te değil. Sağ-tık menüsünden veya Tampermonkey menüsünden ekleyebilirsin.'); }
+        // ------------------------------------------------------------------
+        // SAĞ TIK (CONTEXT MENU) İLE WHITELIST'E EKLEME
+        // ------------------------------------------------------------------
+        let ksCustomMenu = null;
+        function removeKsCustomMenu() { if (ksCustomMenu) { ksCustomMenu.remove(); ksCustomMenu = null; } }
+        function showKsAddToWhitelistMenu(x, y) {
+            removeKsCustomMenu();
+            const menu = document.createElement('div');
+            ksCustomMenu = menu;
+            Object.assign(menu.style, {
+                position: 'fixed',
+                left: x + 'px',
+                zIndex: '2147483647',
+                background: '#ffffff',
+                color: '#1a1a1a',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                fontFamily: 'sans-serif',
+                fontSize: '13px',
+                padding: '4px 0',
+                minWidth: '220px',
+                userSelect: 'none'
+            });
+            const item = document.createElement('div');
+            item.textContent = '🟢 ' + currentPathKey + ' için Yazım Denetimi\'ni etkinleştir';
+            Object.assign(item.style, {
+                padding: '8px 14px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+            });
+            item.addEventListener('mouseenter', () => { item.style.backgroundColor = '#f0f0f0'; });
+            item.addEventListener('mouseleave', () => { item.style.backgroundColor = 'transparent'; });
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                let list = GM_getValue('whitelist', []);
+                if (!list.includes(currentPathKey)) { list.push(currentPathKey); GM_setValue('whitelist', list); whitelist = list; log('Sağ-tık menüsü ile whitelist\'e eklendi:', currentPathKey); }
+                removeKsCustomMenu();
+                initCacheFeature();
+            });
+            menu.appendChild(item);
+            document.body.appendChild(menu);
+            const menuHeight = menu.offsetHeight;
+            let top = y - menuHeight - 4;
+            if (top < 4) top = y + 4;
+            menu.style.top = top + 'px';
+            const rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 4) + 'px';
+            if (rect.left < 0) menu.style.left = '4px';
+        }
+        document.addEventListener('contextmenu', (e) => {
+            if (isCurrentPageWhitelisted(whitelist)) return;
+            const el = e.target;
+            const isTextField = el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text');
+            if (!isTextField) { removeKsCustomMenu(); return; }
+            showKsAddToWhitelistMenu(e.clientX, e.clientY);
+        }, true);
+        document.addEventListener('click', removeKsCustomMenu);
+        document.addEventListener('mousedown', (e) => {
+            if (ksCustomMenu && !ksCustomMenu.contains(e.target)) removeKsCustomMenu();
+        });
+        window.addEventListener('blur', removeKsCustomMenu);
+        window.addEventListener('scroll', removeKsCustomMenu, true);
+        window.addEventListener('resize', removeKsCustomMenu);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') removeKsCustomMenu(); });
+	}
 })();
