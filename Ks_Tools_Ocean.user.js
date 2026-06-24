@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS - Otoanaliz Oceanic Compact
 // @namespace    KS_TOOLS_Otoanaliz_Oceanic
-// @version      1.18
+// @version      1.19
 // @description  Düzeltilmiş, modern, kompakt tema.
 // @author       Saygın
 // @match        *://*/*
@@ -12,6 +12,7 @@
 // ==/UserScript==
 (function () {
     'use strict';
+    let loc = (adros) => location.href.includes(adros);
     function removeElements() { document.querySelectorAll('.stage__left').forEach(el => el.remove()); document.querySelectorAll('.car-zone').forEach(el => el.remove()); }
     removeElements();
     const observer = new MutationObserver(() => removeElements()); observer.observe(document.body, { childList: true, subtree: true });
@@ -19,6 +20,138 @@
     const blockedGroups = ["yazdir", "login", "loginfrm", "print", "rapor", "ihbar", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
     const isTargetPage = url.includes("otohasar") && (url.includes("login") || url.includes("loginfrm"));
     if (blockedGroups.some(word => url.includes(word))) { return; }
+	/*****////
+	if (loc('popup_modeller_magdur.php') || loc('popup_modeller.php')) {
+        const tablo = document.querySelector('table[width="350"]');
+        if (tablo) tablo.setAttribute('width', '450');
+
+        const select = document.querySelector('select#MODEL_ID');
+        if (select) select.style.width = '450px';
+    }
+    const overlay = document.createElement('div');
+    overlay.id = 'ks-loading-overlay';
+    Object.assign(overlay.style, {
+        display: 'none',
+        position: 'fixed',
+        top: '0', left: '0',
+        width: '100%', height: '100%',
+        background: 'rgba(15, 25, 50, 0.6)',
+        backdropFilter: 'blur(4px)',
+        zIndex: '99999999999',
+        alignItems: 'center',
+        justifyContent: 'center',
+    });
+
+    overlay.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a2a4a 0%, #2e4a7a 100%);
+            border-radius: 16px;
+            padding: 36px 52px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+        ">
+            <div style="position:relative; width:56px; height:56px;">
+                <div style="
+                    position:absolute; inset:0;
+                    border: 4px solid rgba(255,255,255,0.1);
+                    border-top-color: #5dade2;
+                    border-right-color: #5dade2;
+                    border-radius: 50%;
+                    animation: ks-spin 0.7s linear infinite;
+                "></div>
+                <div style="
+                    position:absolute; inset:8px;
+                    border: 3px solid rgba(255,255,255,0.05);
+                    border-bottom-color: #a9cce3;
+                    border-radius: 50%;
+                    animation: ks-spin 1.2s linear infinite reverse;
+                "></div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+                <span style="
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #fff;
+                    letter-spacing: 1px;
+                ">KAYDEDİLİYOR</span>
+                <span style="
+                    font-size: 11px;
+                    color: rgba(255,255,255,0.5);
+                    letter-spacing: 0.5px;
+                ">Lütfen bekleyiniz...</span>
+            </div>
+            <div style="
+                display: flex;
+                gap: 5px;
+                align-items: center;
+            ">
+                <span style="width:7px;height:7px;border-radius:50%;background:#5dade2;animation:ks-dot 1.2s ease-in-out 0s infinite;display:inline-block;"></span>
+                <span style="width:7px;height:7px;border-radius:50%;background:#5dade2;animation:ks-dot 1.2s ease-in-out 0.2s infinite;display:inline-block;"></span>
+                <span style="width:7px;height:7px;border-radius:50%;background:#5dade2;animation:ks-dot 1.2s ease-in-out 0.4s infinite;display:inline-block;"></span>
+            </div>
+        </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ks-spin { to { transform: rotate(360deg); } }
+        @keyframes ks-dot {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(overlay);
+
+    const showOverlay = () => { overlay.style.display = 'flex'; };
+    const hideOverlay = () => { overlay.style.display = 'none'; };
+
+    const indicator = document.getElementById('indicator_2');
+    if (indicator) {
+        const observer = new MutationObserver(() => {
+            if (indicator.offsetWidth > 0 || indicator.offsetHeight > 0) {
+                showOverlay();
+            } else {
+                hideOverlay();
+            }
+        });
+        observer.observe(indicator, { attributes: true, attributeFilter: ['style'] });
+    }//btnKaydet1
+    const kaydetBtn = document.querySelector('input[name="btnKaydet2"]') || document.querySelector('input[name="Submit"][value=" KAYDET "]');
+    if (kaydetBtn) {
+        kaydetBtn.addEventListener('click', () => {
+            showOverlay();
+        });
+    }
+    	// tw-sack Ajax tamamlanınca overlay kapat
+    const _origOnCompletion = window.oCompletion;
+    window.oCompletion = function(...args) {
+        hideOverlay();
+        return _origOnCompletion?.apply(window, args);
+    };
+
+    // Yedek: XHR bitince de kapat
+    const _origXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(...args) {
+        this.addEventListener('loadend', () => {
+            hideOverlay();
+        });
+        return _origXHROpen.apply(this, args);
+    };
+    const _origAlert = window.alert;
+    window.alert = function(...args) {
+        hideOverlay();
+        return _origAlert.apply(window, args);
+    };
+    const _origConfirm = window.confirm;
+    window.confirm = function(...args) {
+        hideOverlay();
+        return _origConfirm.apply(window, args);
+    };
+	/*****////
     if (url.includes("otohasar") && !url.includes("loginfrm") && !url.includes("eks_hasar_yedpar_yeni_ref") && !url.includes("eks_hasar_yedpar_yeni_liste")) {
         const urls = [
             "https://i.pinimg.com/originals/7f/ae/97/7fae97b0d62464f833f75a7cce0a9902.gif",
@@ -50,6 +183,7 @@
             --primary-light: #e9f7f8;
             --maim: #f0f9ff;
             --accent: #2980b9;
+			--but_accent: #483d70;
             --bg-body: #8fb5c1;
             --reddo: #d00f0f;
             --reddo-light: #f34352;
@@ -245,7 +379,7 @@
         input[type="submit"], input[type="button"],
         input[value="KAYDET"], input[value="Ok"], input[value=" Ok "], input[name="btnALL"],
 		a[href*="sbm_on_rapor=1"], a[href*="index_yangin.php"] {
-            background: var(--accent) !important;
+            background: var(--but_accent) !important;
             height: 22px !important;
             font-size: 10px !important;
             font-weight: 600 !important;
@@ -274,6 +408,7 @@
         /* 5.2 ÖZEL AÇIK RENKLİ BUTONLAR (YENİ KAYIT, MOBİL ONARIM, TEDARİK) */
         input[value="YENİ KAYIT"],
         input[value="MOBİL ONARIM"],
+        input[value="MOBİL ONARIMA GÖNDER"],
         input[value="TEDARİKCİYE GÖNDER"],
         input[value="  TEDARİKCİYE GÖNDER  "],
         input[value="  GÖNDER   "],
@@ -281,6 +416,9 @@
         input[value="GÖNDER"],
         input[value="Ara"],
         input[value=" Ara "],
+        input[value=" Ok "],
+        input[value="Ok"],
+        input[value="TED. SİP. ÖZETİ"],
         input[value="MESAJ GÖNDER"],
         input[value="TRAMER EVRAKLARI"],
         input[value="SBM BİLGİLERİ"],
@@ -302,7 +440,7 @@
         .BTNKIRMIZI:hover, .BUTON_YESIL:hover, #SASI_MDL:hover, input[name="btnALL"]:hover, input[type="submit"]:hover, input[type="button"]:hover, a[href*="sbm_on_rapor=1"]{
 			transform: translateY(-1px) scale(1.02) !important; filter: brightness(1.05) !important; }
 		a.buton01, input[value="Favorilerileri Ayarlar"] {
-            background: var(--accent, #2c3e50) !important;
+            background: var(--but_accent, #2c3e50) !important;
             color: var(--white, #ffffff) !important;
             border: 1px solid rgba(0, 0, 0, 0.2) !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
