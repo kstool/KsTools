@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.77
+// @version      1.78
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -39,8 +39,10 @@
         genel sigorta sayfası giriş gelişmiş versiyon - türkiye sigorta, quick
         ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR ~~ Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need
         HALLOLDU ~~ resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak
+		PİYASA ARAŞTIRMASI YAPIP GELEN EN UYGUN SONUÇLARIN 3 TANESİNİN RESMİNİ ALAN KOD
+
     */
-    const url = location.href.toLowerCase(), KS_DEBUG = true;
+    const url = location.href.toLowerCase(), KS_DEBUG = false;
     let loc = (adros) => location.href.includes(adros);
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["yazdir", "print", "rapor", "ihbar", "kayit", "signin", "sign-in", "sign_in", "sign", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "kimlik", "kart"];
@@ -2713,13 +2715,13 @@
             window.addEventListener('load', function () {
                 setTimeout(function () {
                     var sasiBtn = unsafeWindow.document.getElementById('SASI_MDL');
-					if (!sasiBtn) return;
+                    if (!sasiBtn) return;
                     if (unsafeWindow.document.getElementById('SASI_MDL_DUZELT')) return;
                     var currentPage = location.pathname.split('/').pop();
                     var isMagdur = currentPage.includes('magdur');
                     var popupFile = isMagdur ? 'popup_modeller_magdur.php' : 'popup_modeller.php';
                     var modelYiliEl = unsafeWindow.document.getElementById('HAS_MODEL_YILI') || unsafeWindow.document.getElementById('MODEL_YILI') ||
-						unsafeWindow.document.getElementById('TMP_MODEL_YILI') || unsafeWindow.document.querySelector('[name="HAS_MODEL_YILI"]') || unsafeWindow.document.querySelector('[name="MODEL_YILI"]');
+                        unsafeWindow.document.getElementById('TMP_MODEL_YILI') || unsafeWindow.document.querySelector('[name="HAS_MODEL_YILI"]') || unsafeWindow.document.querySelector('[name="MODEL_YILI"]');
                     if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] modelYiliEl bulundu:', modelYiliEl ? modelYiliEl.id || modelYiliEl.name : 'BULUNAMADI');
                     var ekButon = unsafeWindow.document.createElement('input');
                     ekButon.type = 'button';
@@ -2736,7 +2738,17 @@
                         if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] Tıklama anı modelYili:', modelYili);
                         var originalOnclick = sasiBtn.getAttribute('onclick');
                         var newOnclick = originalOnclick.replace(/popup_modeller[^.]*\.php/, popupFile);
-                        if (isMagdur) { newOnclick = newOnclick.replace('TMP_MODEL_YILI=', 'TMP_MODEL_YILI=' + modelYili); } else { newOnclick = newOnclick.replace( /'\+\$\('#HAS_MODEL_YILI'\)\.val\(\)\+'/g, modelYili ); }
+                        if (isMagdur) { newOnclick = newOnclick.replace('TMP_MODEL_YILI=', 'TMP_MODEL_YILI=' + modelYili); } else { newOnclick = newOnclick.replace(/'\+\$\('#HAS_MODEL_YILI'\)\.val\(\)\+'/g, modelYili); }
+                        // motorNo duplicate temizle
+                        newOnclick = newOnclick.replace(/(popup_ac\(')(.*?)(',)/g, function(match, p1, url, p3) {
+                            try {
+                                var base = url.startsWith('http') ? '' : 'https://x.com';
+                                var urlObj = new URL(base + url);
+                                if (urlObj.searchParams.has('motor_no') && urlObj.searchParams.has('motorNo')) { urlObj.searchParams.delete('motorNo'); }
+                                var cleanUrl = url.startsWith('http') ? urlObj.toString() : urlObj.pathname + '?' + urlObj.searchParams.toString();
+                                return p1 + cleanUrl + p3;
+                            } catch(e) { return match; }
+                        });
                         if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] newOnclick:', newOnclick);
                         unsafeWindow.eval(newOnclick);
                     });
@@ -3686,13 +3698,22 @@
         if (contentArea) {
             contentArea.innerHTML = `<div style="text-align:center;padding-bottom:5px;font-size:11px;width:100%;">Veri Girişi</div>`;
             Object.assign(contentArea.style, { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "8px", width: "100%", boxSizing: "border-box" });
+            const normalizeFiyat = (val) => {
+                if (!val || val.trim() === '') return '1';
+                let v = val.trim();
+                const sonVirgul = v.lastIndexOf(',');
+                const sonNokta = v.lastIndexOf('.');
+                if (sonVirgul > sonNokta) { v = v.replace(/\./g, '').replace(',', '.'); } else { v = v.replace(/,/g, ''); }
+                return isNaN(parseFloat(v)) ? '1' : v;
+            };
             const btnPaste = document.createElement('button');
             btnPaste.className = 'ks-btn';
             btnPaste.style.cssText = "width:100%; padding:4px 2px; font-size:11px; min-height:24px;";
             btnPaste.innerText = "📋 YAPIŞTIR";
             btnPaste.onclick = async () => {
                 try {
-                    const text = await navigator.clipboard.readText(), rows = text.split(/\r?\n/).filter(line => line.trim() !== "");
+                    const text = await navigator.clipboard.readText(),
+                        rows = text.split(/\r?\n/).filter(line => line.trim() !== "");
                     let av = [];
                     for (let j = 0; j < 50; j++) {
                         const k = document.querySelector(`input[name="kod[${j}]"]`), a = document.querySelector(`input[name="ad[${j}]"]`), f = document.querySelector(`input[name="fiyat[${j}]"]`);
@@ -3703,10 +3724,11 @@
                             const cols = row.split('\t');
                             if (av[i].k) { av[i].k.value = cols[0]?.trim() || ""; av[i].k.dispatchEvent(new Event('input', { bubbles: true })); }
                             if (av[i].a) { av[i].a.value = cols[1]?.trim() || ""; av[i].a.dispatchEvent(new Event('input', { bubbles: true })); }
-                            if (av[i].f) { av[i].f.value = (cols[2] && cols[2].trim() !== "") ? cols[2].trim() : "1"; av[i].f.dispatchEvent(new Event('input', { bubbles: true })); }
+                            if (av[i].f) { av[i].f.value = normalizeFiyat(cols[2]); av[i].f.dispatchEvent(new Event('input', { bubbles: true })); }
                         }
                     });
-                    btnPaste.innerText = "✔️ OK"; setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
+                    btnPaste.innerText = "✔️ OK";
+                    setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
                 } catch (err) { if (KS_DEBUG) console.error(err); }
             };
             contentArea.appendChild(btnPaste);
@@ -4240,6 +4262,48 @@
             wrap.appendChild(btn);
             wrap.appendChild(popup);
         };
+		// DÜZENLE butonunu bul
+        const duzenleBtn = document.querySelector('input.BUTON01[value="DÜZENLE"]');
+        if (duzenleBtn) {
+            const excelBtn = document.createElement('input');
+            excelBtn.type = 'Button';
+            excelBtn.value = 'EXCEL AKTAR';
+            excelBtn.className = 'BUTON01';
+            excelBtn.style.width = '100px';
+            excelBtn.style.background = '#27ae60';
+            excelBtn.style.color = 'white';
+            excelBtn.addEventListener('click', () => {
+                const iframe = document.getElementById('sag_ust_frame');
+                if (!iframe) return alert('Tablo bulunamadı!');
+
+                const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const satirlar = iDoc.querySelectorAll('table tr');
+                if (!satirlar.length) return alert('Tablo bulunamadı!');
+
+                // İlk satırı (başlık) atla
+                const veriSatirlari = [...satirlar].slice(1);
+
+                // Geçici tablo oluştur
+                const geciciTablo = iDoc.createElement('table');
+                veriSatirlari.forEach(tr => { const klon = tr.cloneNode(true); const ilkTd = klon.querySelector('td, th'); if (ilkTd) { ilkTd.remove(); } geciciTablo.appendChild(klon); });
+                iDoc.body.appendChild(geciciTablo);
+
+                // Seç ve kopyala
+                const range = iDoc.createRange();
+                range.selectNode(geciciTablo);
+                const sel = iframe.contentWindow.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                iDoc.execCommand('copy');
+                sel.removeAllRanges();
+                iDoc.body.removeChild(geciciTablo);
+
+                alert('Kopyalandı! Excel\'e yapıştırın (Ctrl+V)');
+            });
+            // DÜZENLE'nin soluna ekle
+            duzenleBtn.parentNode.insertBefore(excelBtn, duzenleBtn);
+            duzenleBtn.parentNode.insertBefore(document.createTextNode('\u00A0'), duzenleBtn);
+        }
         setTimeout(patchAdet, 300); setInterval(patchAdet, 1000);
     }
     // Hızlı Çoklu Parça girişi
@@ -4373,18 +4437,15 @@
             RAYIC: ['36', '38'], TRAMER: ['12', '12', '12', '12'], VERGI: ['9'], MASAK: ['12'], MESLEK: ['12']
         };
         //const orient = { ...varsayilan };
-        const ayarlar = (text.includes("MAPFRE") || url.includes("mapfre")) ? mapfre :
-            (text.includes("HEPIYI") || url.includes("hepiyi")) ? hepiyi :
-                (text.includes("ATLAS") || url.includes("atlas")) ? atlas :
-                    (text.includes("ANKARA") || url.includes("ankara")) ? ankara :
-                        (text.includes("ORIENT") || url.includes("orient")) ? orient : varsayilan;
+        const SIRKET_MAP = [ { key: 'mapfre', cfg: mapfre }, { key: 'hepiyi', cfg: hepiyi }, { key: 'atlas', cfg: atlas }, { key: 'ankara', cfg: ankara }, { key: 'orient', cfg: orient }, ];
+        const ayarlar = SIRKET_MAP.find( ({ key }) => text.includes(key.toUpperCase()) || url.includes(key) )?.cfg ?? varsayilan;
         // ── OTO KURALLAR (global — bir kez tanımla) ───────────────────────────────
         const OTO_KURALLAR = [
             { pattern: /ktt[_ ]sorgu\b/i, evrakId: () => ayarlar.TRAMER[3], note: 'TRAMER SONUÇ' },
-            { pattern: /ktt[_ ]sbm\b|tramer|sbm\b/i, evrakId: () => ayarlar.TRAMER[0], note: 'TRAMER EVRAK' },
-            { pattern: /kasko[_ ]hasar|trafik[_ ]hasar/i, evrakId: () => ayarlar.TRAMER[1], note: 'TRAMER EVRAK' },
-            { pattern: /a[gğ][iı]r[_ ]hasar\b/i, evrakId: () => ayarlar.TRAMER[2], note: 'TRAMER EVRAK' },
-            { pattern: /(kasko|traf[ıi]k)[_ ]pol[ıi][cç]e\b/i, evrakId: () => ayarlar.TRAMER[0], note: 'TRAMER EVRAK' },
+            { pattern: /ktt[_ ]sbm\b|tramer|sbm\b/i, evrakId: () => ayarlar.TRAMER[0], note: 'TRAMER SORGU' },
+            { pattern: /kasko[_ ]hasar|trafik[_ ]hasar/i, evrakId: () => ayarlar.TRAMER[1], note: 'GEÇMİŞ HASAR SORGU' },
+            { pattern: /a[gğ][iı]r[_ ]hasar\b/i, evrakId: () => ayarlar.TRAMER[2], note: 'AĞIR HASAR SORGU' },
+            { pattern: /(kasko|traf[ıi]k)[_ ]pol[ıi][cç]e\b/i, evrakId: () => ayarlar.TRAMER[0], note: 'POLİÇE SORGU' },
             { pattern: /poli[cç]e|\bpol\b/i, evrakId: () => ayarlar.POLICE[0], note: 'POLİÇE' },
             { pattern: /mehl/i, evrakId: () => ayarlar.EHLİYET[1], note: 'MAĞDUR EHLİYET' },
             { pattern: /sehl/i, evrakId: () => ayarlar.EHLİYET[2], note: 'SİGORTALI EHLİYET' },
@@ -4411,97 +4472,52 @@
             { pattern: /faal|fa+l[ıi]yet/i, evrakId: () => ayarlar.FAAL[0], note: 'FAALİYET BELGESİ' },
             { pattern: /s[ıi]c[ıi]l/i, evrakId: () => ayarlar.SICIL[0], note: 'SİCİL' },
         ];
-       function otoEvrakSec(fileName, selectEl, noteArea, tipiSel, btnEl) {
-       const normalized = fileName.toLocaleLowerCase('tr-TR').replace(/[_\-\.]/g, ' '),
-           KARSI_PATTERN = /\bkar[şs][ıi]\b/i,
-           isKarsi = KARSI_PATTERN.test(normalized) || KARSI_PATTERN.test(fileName);
-
-       let evrakId = null, noteVal = isKarsi ? 'KARŞI ARAÇ' : '';
-
-       for (const kural of OTO_KURALLAR) {
-           if (kural.pattern.test(normalized) || kural.pattern.test(fileName)) {
-               evrakId = kural.evrakId();
-               noteVal = kural.note || ''; // ← sakla ama henüz yazma
-               break;
-           }
-       }
-
-       // Eşleşme yoksa ve karşı araç da değilse → çık
-       if (evrakId === null && !isKarsi) {
-           if (btnEl) {
-               btnEl.textContent = '⚡ Oto Seç';
-               btnEl.style.background = '#2980b9';
-               btnEl.style.opacity = '1';
-               btnEl.disabled = false;
-           }
-           return false;
-       }
-
-       // Eşleşen evrakId select listesinde var mı?
-       const optionExists = evrakId !== null &&
-           Array.from(selectEl.options).some(o => o.value === String(evrakId));
-
-       if (!optionExists && evrakId !== null) {
-           // Listede yok → DIGER seç, notu koru (eşleşen kural notunu yaz)
-           const digerId = ayarlar.DIGER[0];
-           selectEl.value = digerId;
-           selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-           if (window.jQuery) jQuery(selectEl).trigger('change');
-           if (typeof window.change_select === 'function') { try { window.change_select(selectEl.name); } catch (e) {} }
-           // Not alanına orijinal notu yaz (varsa), yoksa evrak adını yaz
-           const fallbackNote = noteVal || fileName.replace(/\.[^.]+$/, '');
-           if (noteArea && fallbackNote) {
-               noteArea.value = fallbackNote;
-               ['input', 'change'].forEach(ev => noteArea.dispatchEvent(new Event(ev, { bubbles: true })) );
-           }
-           if (tipiSel) {
-               tipiSel.value = '0';
-               tipiSel.dispatchEvent(new Event('change', { bubbles: true }));
-               if (window.jQuery) jQuery(tipiSel).trigger('change');
-           }
-           if (btnEl) {
-               btnEl.textContent = '⚠ DİĞER: ' + (noteVal || '');
-               btnEl.style.background = '#e67e22';
-               btnEl.style.outline = '2px solid #f39c12';
-               btnEl.disabled = true;
-               btnEl.style.cursor = 'default';
-               btnEl.style.opacity = '1';
-           }
-           if (KS_DEBUG) console.log( `[OtoEvrak] "${fileName}" → ID ${evrakId} listede YOK → DİĞER (${digerId}) not: "${fallbackNote}"` );
-           return true;
-       }
-
-       // Normal akış: evrakId listede var
-       if (evrakId !== null && evrakId !== '') {
-           selectEl.value = evrakId;
-           selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-           if (window.jQuery) jQuery(selectEl).trigger('change');
-           if (typeof window.change_select === 'function') {
-               try { window.change_select(selectEl.name); } catch (e) {}
-           }
-       }
-       /*if (noteArea && noteVal) {
-           noteArea.value = noteVal;
-           ['input', 'change'].forEach(ev =>
-               noteArea.dispatchEvent(new Event(ev, { bubbles: true }))
-           );
-       }*/
-       if (tipiSel) {
-           tipiSel.value = '0';
-           tipiSel.dispatchEvent(new Event('change', { bubbles: true }));
-           if (window.jQuery) jQuery(tipiSel).trigger('change');
-       }
-       if (btnEl) {
-           btnEl.textContent = '✓ ' + noteVal;
-           btnEl.style.background = '#27ae60';
-           btnEl.style.outline = '2px solid #1e90ff';
-           btnEl.disabled = true;
-           btnEl.style.cursor = 'default';
-           btnEl.style.opacity = '1';
-       }
-       if (KS_DEBUG) console.log(`[OtoEvrak] "${fileName}" → "${noteVal}" (ID: ${evrakId})`);
-       return true;
-       }
+        function otoEvrakSec(fileName, selectEl, noteArea, tipiSel, btnEl) {
+            const normalized = fileName.toLocaleLowerCase('tr-TR').replace(/[_\-\.]/g, ' '), KARSI_PATTERN = /kar[şs][ıi]/i, isKarsi = KARSI_PATTERN.test(normalized) || KARSI_PATTERN.test(fileName);
+            let evrakId = null, noteVal = '';
+            for (const kural of OTO_KURALLAR) {
+                if (kural.pattern.test(normalized) || kural.pattern.test(fileName)) {
+                    evrakId = kural.evrakId();
+                    noteVal = kural.note || '';
+                    break;
+                }
+            }
+            // Kural yok, karşı araç da yok → çık
+            if (evrakId === null && !isKarsi) {
+                if (btnEl) {
+                    btnEl.textContent = '⚡ Oto Seç';
+                    btnEl.style.background = '#2980b9';
+                    btnEl.style.opacity = '1';
+                    btnEl.disabled = false;
+                }
+                return false;
+            }
+            // Kural yok ama karşı araç var → DİĞER'e yönlendir
+            if (evrakId === null && isKarsi) { evrakId = ayarlar.DIGER[0]; }
+            // evrakId listede var mı? >> Listede yok → DİĞER seç
+            const optionExists = Array.from(selectEl.options).some(o => o.value === String(evrakId));
+            if (!optionExists) { evrakId = ayarlar.DIGER[0]; }
+            selectEl.value = evrakId;
+            selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.jQuery) { jQuery(selectEl).trigger('change'); }
+            if (typeof window.change_select === 'function') { try { window.change_select(selectEl.name); } catch (e) {} }
+            if (tipiSel) { tipiSel.value = '0'; tipiSel.dispatchEvent(new Event('change', { bubbles: true })); if (window.jQuery) { jQuery(tipiSel).trigger('change'); } }
+            // Not mantığı:
+            // - Listede var, karşı araç yok → not yazma
+            // - Listede var, karşı araç var → 'KARŞI ARAÇ' yaz
+            // - Listede yok (DİĞER), karşı araç yok → kural notunu yaz (yoksa dosya adını)
+            // - Listede yok (DİĞER), karşı araç var → 'KARŞI ARAÇ - not' yaz
+            let yazilacakNot = '';
+            if (!optionExists) { const temelNot = noteVal || fileName.replace(/\.[^.]+$/, ''); yazilacakNot = isKarsi ? 'KARŞI ARAÇ - ' + temelNot : temelNot; } else if (isKarsi) { yazilacakNot = 'KARŞI ARAÇ'; }
+            if (noteArea && yazilacakNot) { noteArea.value = yazilacakNot; ['input', 'change'].forEach(ev => noteArea.dispatchEvent(new Event(ev, { bubbles: true })) ); }
+            if (btnEl) {
+                if (!optionExists) { btnEl.textContent = '⚠ DİĞER: ' + yazilacakNot; btnEl.style.background = '#e67e22'; btnEl.style.outline = '2px solid #f39c12'; }
+				else { btnEl.textContent = '✓ ' + (yazilacakNot || noteVal); btnEl.style.background = '#27ae60'; btnEl.style.outline = '2px solid #1e90ff'; }
+                btnEl.disabled = true; btnEl.style.cursor = 'default'; btnEl.style.opacity = '1';
+            }
+            if (KS_DEBUG) console.log(`[OtoEvrak] "${fileName}" → "${yazilacakNot || noteVal}" (ID: ${evrakId})`);
+            return true;
+        }
         // ── STİLLER ───────────────────────────────────────────────────────────────
         GM_addStyle(`
     	        /* ── Toolbar ── */
@@ -4808,7 +4824,7 @@
                 let eslesen = 0;
                 $$('select[name^="EVRAK_ID_"], select[name^="PHOTO_CTG_ID_"]').forEach(sel => {
                     const td = sel.closest('td');
-                    if (!td) return;
+                    if (!td) { return; }
                     const otoBtn = td.querySelector('.ks-oto-btn');
                     if (otoBtn && !otoBtn.disabled) { otoBtn.click(); eslesen++; }
                 });
@@ -4818,7 +4834,6 @@
             });
             row2.appendChild(otoTümBtn);
             row2.appendChild(sep());
-
             // ── Oto kaydır ──
             const otoLabel = document.createElement('label');
             otoLabel.style.cssText = 'display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer;font-weight:600;user-select:none';
@@ -4829,7 +4844,6 @@
             otoLabel.appendChild(otoChk);
             otoLabel.appendChild(document.createTextNode('Oto. kaydır'));
             row2.appendChild(otoLabel);
-
             toolbar.appendChild(row2);
             document.body.insertBefore(toolbar, document.body.firstChild);
             document.body.style.paddingTop = (toolbar.offsetHeight + 10) + 'px';
@@ -4847,12 +4861,7 @@
                 const fileName = tr.getAttribute('fileuploadsatir') || '';
                 canvas.addEventListener('click', () => buyutPencere(fileName, canvas));
                 const span = canvas.closest('span.preview');
-                if (span && !span.querySelector('.ks-zoom-hint')) {
-                    const hint = document.createElement('div');
-                    hint.className = 'ks-zoom-hint';
-                    hint.textContent = '🔍 Büyüt';
-                    span.appendChild(hint);
-                }
+                if (span && !span.querySelector('.ks-zoom-hint')) { const hint = document.createElement('div'); hint.className = 'ks-zoom-hint'; hint.textContent = '🔍 Büyüt'; span.appendChild(hint); }
             });
         };
         // ── EVRAK PANELLERİ ───────────────────────────────────────────────────────
@@ -6055,176 +6064,335 @@
         });
         const init = () => { getPanel(); processNodes(document.body); analyzePolicies(); obs.observe(document.body, { childList: true, subtree: true }); };
         document.readyState === 'complete' ? init() : unsafeWindow.addEventListener('load', init);
+		if (loc('giris/sorgu.sbm'))
+		{
+            function radioTdButon(name, renkAcik, renkKoyu, renkBorderAcik, renkBorderKoyu) {
+            document.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach(radio => {
+                const td = radio.closest('td');
+                if (!td) return;
+                Object.assign(td.style, {
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    padding: '4px 8px',
+                    textAlign: 'center',
+                    verticalAlign: 'middle',
+                    borderRadius: '4px',
+                    minWidth: '50px',
+                    position: 'relative',
+                });
+                radio.style.display = 'none';
+                if (!td.querySelector('.rd-label')) {
+                    const label = document.createElement('span');
+                    label.className = 'rd-label';
+                    label.innerText = 'SEÇ';
+                    Object.assign(label.style, { fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', pointerEvents: 'none', });
+                    td.appendChild(label);
+                }
+                const updateStyleFor = (r) => {
+                    const secili = r.checked;
+                    const t = r.closest('td');
+                    if (!t) return;
+                    const lbl = t.querySelector('.rd-label');
+                    Object.assign(t.style, {
+                        background: secili ? renkKoyu : renkAcik,
+                        boxShadow: secili ? 'inset 0 3px 8px rgba(0,0,0,0.35), inset 0 1px 3px rgba(0,0,0,0.2)' : '0 3px 6px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.1)',
+                        border: secili ? `1px solid ${renkBorderKoyu}` : `1px solid ${renkBorderAcik}`,
+                        outline: secili ? `2px solid ${renkKoyu}` : 'none',
+                        transition: 'all 0.15s ease',
+                    });
+                    if (lbl) { lbl.innerText = secili ? '✓ SEÇİLDİ' : 'SEÇ'; lbl.style.color = secili ? '#fff' : '#2c3e50'; }
+                };
+                // Hover efekti
+                td.addEventListener('mouseenter', () => {
+                    if (!radio.checked) {
+                        td.style.background = renkKoyu;
+                        td.style.boxShadow = '0 4px 10px rgba(0,0,0,0.25)';
+                        td.style.filter = 'brightness(1.1)';
+                        const lbl = td.querySelector('.rd-label');
+                        if (lbl) lbl.style.color = '#fff';
+                    }
+                });
+                td.addEventListener('mouseleave', () => {
+                    if (!radio.checked) {
+                        td.style.background = renkAcik;
+                        td.style.boxShadow = '0 3px 6px rgba(0,0,0,0.2)';
+                        td.style.filter = '';
+                        const lbl = td.querySelector('.rd-label');
+                        if (lbl) lbl.style.color = '#2c3e50';
+                    }
+                });
+                td.addEventListener('click', () => { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); radio.dispatchEvent(new Event('click', { bubbles: true }));
+													document.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach(r => updateStyleFor(r)); });
+                radio.addEventListener('change', () => { document.querySelectorAll(`input[type="radio"][name="${name}"]`) .forEach(r => updateStyleFor(r)); });
+                updateStyleFor(radio);
+            });
+        }
+            radioTdButon('trafikPoliceSec', '#a9dbff', '#2e86c1', '#aed6f1', '#1a5276');
+            radioTdButon('kaskoPoliceSec', '#d5f5e3', '#1e8449', '#a9dfbf', '#145a32');
+            function selectTdButon(selectEl, renkAcik, renkKoyu, renkBorderAcik, renkBorderKoyu) {
+            const container = selectEl.closest('.field-controls') || selectEl.parentElement;
+            if (!container) return;
+            selectEl.style.display = 'none';
+            const grup = document.createElement('div');
+            Object.assign(grup.style, {
+                display: 'flex',
+                flexWrap: 'nowrap',
+                gap: '4px',
+                alignItems: 'center',
+            });
+            const updateButonlar = () => {
+                grup.querySelectorAll('.sel-btn').forEach(btn => {
+                    const secili = btn.dataset.value === selectEl.value;
+                    Object.assign(btn.style, {
+                        background: secili ? renkKoyu : renkAcik,
+                        color: secili ? '#fff' : '#2c3e50',
+                        boxShadow: secili
+                            ? 'inset 0 3px 8px rgba(0,0,0,0.3)'
+                            : '0 3px 6px rgba(0,0,0,0.15)',
+                        border: secili
+                            ? `1px solid ${renkBorderKoyu}`
+                            : `1px solid ${renkBorderAcik}`,
+                        fontWeight: secili ? 'bold' : 'normal',
+                        transform: secili ? 'scale(0.97)' : 'scale(1)',
+                    });
+                    btn.innerText = secili ? '✓ ' + btn.dataset.label : btn.dataset.label;
+                });
+            };
+            [...selectEl.options].forEach(opt => {
+				if (opt.value === '') return;
+                const btn = document.createElement('button');
+                btn.className = 'sel-btn';
+                btn.dataset.value = opt.value;
+                btn.dataset.label = opt.text;
+                btn.innerText = opt.text;
+                btn.type = 'button';
+                Object.assign(btn.style, {
+                    cursor: 'pointer',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    fontWeight: 'normal',
+                    borderRadius: '4px',
+                    transition: 'all 0.15s ease',
+                    whiteSpace: 'nowrap',
+                });
+                btn.addEventListener('mouseenter', () => {
+                    if (btn.dataset.value !== selectEl.value) {
+                        btn.style.background = renkKoyu;
+                        btn.style.color = '#fff';
+                        btn.style.filter = 'brightness(1.1)';
+                    }
+                });
+                btn.addEventListener('mouseleave', () => {
+                    if (btn.dataset.value !== selectEl.value) {
+                        btn.style.background = renkAcik;
+                        btn.style.color = '#2c3e50';
+                        btn.style.filter = '';
+                    }
+                });
+                btn.addEventListener('click', () => {
+                    selectEl.value = opt.value;
+                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (window.jQuery) jQuery(selectEl).trigger('change');
+                    updateButonlar();
+                });
+                grup.appendChild(btn);
+            });
+            container.appendChild(grup);
+            selectEl.addEventListener('change', updateButonlar);
+            updateButonlar();
+        }
+            selectTdButon( document.querySelector('#ihbarPoliceSorguBilgileriForm\\.ihbarlaIlgiliUrun'), '#d6eaf8', '#2e86c1', '#aed6f1', '#1a5276' );
+            selectTdButon( document.querySelector('#ihbarPoliceSorguBilgileriForm\\.eksperiOlunanPlaka'), '#d5f5e3', '#1e8449', '#a9dfbf', '#145a32' );
+		}
     }
     // Sbm Ekran görüntüsü indirme
-    if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) {
-        // ============ Resim indirme (sadece KTT tutanak resimleri listesi sayfası) ============
-        const pjPanel = document.getElementById('pj-panel');
-        if (pjPanel) pjPanel.style.display = 'none';
-        const aapanel = document.querySelector("#pj-panel"); forceLegacyColors(aapanel); html2canvas(aapanel).then(canvas => { document.body.appendChild(canvas); });
-        if (loc("trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
-            const MIN_WIDTH = 300;
-            async function forceDownload(url, fileName) {
-                try {
-                    const response = await fetch(url);
-                    const blob = await response.blob();
-                    const link = document.createElement('a');
-                    link.href = unsafeWindow.URL.createObjectURL(blob);
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    unsafeWindow.URL.revokeObjectURL(link.href);
-                } catch (error) {
-                    if (KS_DEBUG) console.error("Resim indirilemedi:", url, error);
-                }
+if (KS_SYSTEM && SBM && loc("online.sbm.org.tr")) {
+    // ============ Resim indirme (sadece KTT tutanak resimleri listesi sayfası) ============
+    const pjPanel = document.getElementById('pj-panel');
+    if (pjPanel) pjPanel.style.display = 'none';
+    const aapanel = document.querySelector("#pj-panel"); forceLegacyColors(aapanel); html2canvas(aapanel).then(canvas => { document.body.appendChild(canvas); });
+    if (loc("trm-ktt/sirket/listShowTutanakResimleriPage.sbm")) {
+        const MIN_WIDTH = 300;
+        async function forceDownload(url, fileName) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = unsafeWindow.URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                unsafeWindow.URL.revokeObjectURL(link.href);
+            } catch (error) {
+                if (KS_DEBUG) console.error("Resim indirilemedi:", url, error);
             }
-            function initSbmDownloadPanel() {
-                if (document.getElementById('sbm-download-mini-panel')) return;
-                const panel = document.createElement('div');
-                panel.id = 'sbm-download-mini-panel';
-                Object.assign(panel.style, {
-                    position: 'fixed', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.9)',
-                    borderRadius: '4px', padding: '5px', zIndex: '2147483647', display: 'flex',
-                    flexDirection: 'column', gap: '4px', width: '110px', border: '1px solid #555'
-                });
-                const mainBtn = document.createElement('button');
-                mainBtn.innerText = 'RESİMLERİ İNDİR';
-                Object.assign(mainBtn.style, {
-                    background: '#27ae60', border: '0', borderRadius: '2px', color: "white",
-                    cursor: 'pointer', fontWeight: "bold", padding: '6px 2px', fontSize: '10px', width: '100%'
-                });
-                mainBtn.onclick = async () => {
-                    const images = document.querySelectorAll('img');
-                    let count = 0;
-                    for (const img of images) {
-                        if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
-                            const url = img.src;
-                            if (!url || url.startsWith('data:')) continue;
-                            count++;
-                            let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
-                            const urlParams = new URLSearchParams(url.split('?')[1]);
-                            if (urlParams.has('id')) {
-                                fileName = `tutanak_${urlParams.get('id')}.jpg`;
-                            } else if (url.includes('filename=')) {
-                                fileName = url.split('filename=')[1].split('&')[0] + ".jpg";
+        }
+        function initSbmDownloadPanel() {
+            if (document.getElementById('sbm-download-mini-panel')) return;
+            const panel = document.createElement('div');
+            panel.id = 'sbm-download-mini-panel';
+            Object.assign(panel.style, {
+                position: 'fixed', bottom: '5px', right: '5px', background: 'rgba(0,0,0,0.9)',
+                borderRadius: '4px', padding: '5px', zIndex: '2147483647', display: 'flex',
+                flexDirection: 'column', gap: '4px', width: '110px', border: '1px solid #555'
+            });
+            const mainBtn = document.createElement('button');
+            mainBtn.innerText = 'RESİMLERİ İNDİR';
+            Object.assign(mainBtn.style, {
+                background: '#27ae60', border: '0', borderRadius: '2px', color: "white",
+                cursor: 'pointer', fontWeight: "bold", padding: '6px 2px', fontSize: '10px', width: '100%'
+            });
+            mainBtn.onclick = async () => {
+                const images = document.querySelectorAll('img');
+                let count = 0;
+                for (const img of images) {
+                    if (img.naturalWidth >= MIN_WIDTH || img.width >= MIN_WIDTH) {
+                        const url = img.src;
+                        if (!url || url.startsWith('data:')) continue;
+                        count++;
+                        let fileName = `tutanak_resim_${count}_${Date.now()}.jpg`;
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        if (urlParams.has('id')) {
+                            fileName = `tutanak_${urlParams.get('id')}.jpg`;
+                        } else if (url.includes('filename=')) {
+                            fileName = url.split('filename=')[1].split('&')[0] + ".jpg";
+                        }
+                        await forceDownload(url, fileName);
+                    }
+                }
+                mainBtn.innerText = `BİTTİ (${count})`;
+                setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
+            };
+            panel.appendChild(mainBtn);
+            document.body.appendChild(panel);
+        }
+        unsafeWindow.addEventListener('load', initSbmDownloadPanel);
+        setTimeout(initSbmDownloadPanel, 2000);
+    }
+
+    // ============ Ekran görüntüsü indirme (sonuc / detay / KTT listView sayfaları) ============
+    const isSonuc = loc("genelSorguEksper/sonuc.sbm"),
+          isDetay = loc("hasarEksper/detay.sbm"),
+          isListView = loc("listView.sbm");
+
+    let isKTTList = false;
+
+    const takeScreenshot = async () => {
+        const btn = document.getElementById('sbm-ss-btn');
+        const myP = document.getElementById('tramer-panel');
+        if (!btn) return;
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        await new Promise(r => setTimeout(r, 100));
+        btn.style.display = 'none';
+        if (myP) myP.style.display = 'none';
+        const ksGlobal = document.getElementById('ks-global-status-indicator');
+        if (ksGlobal) ksGlobal.style.display = 'none';
+        try {
+            const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, document.documentElement.offsetHeight);
+            const yOffset = isDetay ? 70 : isKTTList ? 0 : 190;
+            const canvas = await html2canvas(document.body, {
+                y: yOffset, x: 0, height: scrollHeight - yOffset, useCORS: false,
+                allowTaint: true, backgroundColor: "#ffffff", scale: 1, logging: false,
+                windowHeight: scrollHeight,
+                onclone: (clonedDoc) => {
+                    clonedDoc.querySelectorAll('#pj-panel, #pj-panel *').forEach(el => { el.style.background = '#333'; el.style.backgroundColor = '#333'; el.style.color = '#fff'; el.style.boxShadow = 'none'; el.style.borderColor = '#555'; });
+                    clonedDoc.body.style.cssText = "background:#fff;height:auto;overflow:visible;";
+                    const removeSelectors = ['.polite__alert', '#ks-global-status-indicator', '.cc-window', '#sbm-ss-btn', '#tramer-panel', '.ui-draggable-handle', ...(isKTTList ? ['.dropdown--user', '#menuArama'] : [])].join(',');
+                    clonedDoc.querySelectorAll(removeSelectors).forEach(e => e.remove());
+                }
+            });
+            let name = "SBM_Rapor";
+            if (isDetay) {
+                const allLabels = [...document.querySelectorAll('td, th, label, span, div')];
+                const getFieldValue = (labelText) => {
+                    for (const el of allLabels) {
+                        if (el.innerText && el.innerText.trim() === labelText) {
+                            const next = el.nextElementSibling;
+                            if (next && next.innerText) return next.innerText.trim();
+                            const parent = el.parentElement;
+                            if (parent) {
+                                const siblings = [...parent.children];
+                                const idx = siblings.indexOf(el);
+                                if (siblings[idx + 1]) return siblings[idx + 1].innerText.trim();
                             }
-                            await forceDownload(url, fileName);
                         }
                     }
-                    mainBtn.innerText = `BİTTİ (${count})`;
-                    setTimeout(() => { mainBtn.innerText = 'RESİMLERİ İNDİR'; }, 3000);
+                    const bodyText = document.body.innerText;
+                    const regex = new RegExp(labelText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]+([^\\n]+)');
+                    const match = bodyText.match(regex);
+                    return match ? match[1].trim() : '';
                 };
-                panel.appendChild(mainBtn);
-                document.body.appendChild(panel);
+                const hasarNo = getFieldValue('Hasar Dosya No:') || getFieldValue('Hasar Dosya No');
+                const kttNo = getFieldValue('Ktt No:') || getFieldValue('Ktt No');
+                if (kttNo && kttNo.length > 1) { name = `${kttNo}_Hasar_Detay`; } else if (hasarNo) { name = `${hasarNo}_Hasar_Detay`; } else { name = "Hasar_Detay"; }
+            } else if (isKTTList) {
+                const ihbarNo = [...document.querySelectorAll('.field--output')].find(el => el.querySelector('.field-label')?.innerText.includes('İhbar No'))?.querySelector('.field-controls')?.innerText.trim();
+                const plakaRaw = document.querySelector('td[aria-describedby$="_plakaNo"], .ui-jqgrid-btable td:nth-child(3)')?.innerText.trim();
+                const dosyaNo = document.querySelector('td[aria-describedby$="_dosyaNo"]')?.innerText.trim() || "KTT_SORGU";
+                name = ihbarNo ? `${ihbarNo}_KTT_SORGU` : (plakaRaw ? `${plakaRaw}_${dosyaNo}` : dosyaNo);
+            } else {
+                const shasiRaw = [...document.querySelectorAll('.fieldset-body b')].find(el => el.innerText.includes('*'))?.innerText.trim();
+                const shasi = shasiRaw ? shasiRaw.replace(/\*/g, '') : '';
+                let rawName = document.querySelector('li.ui-tabs-active a, li[aria-selected="true"] a')?.innerText.trim().replace(/\s+/g, '_') || "SBM_Rapor";
+                const nameMap = { 'KTT': 'KTT_SBM' };
+                name = shasi ? `${shasi}_${nameMap[rawName] || rawName}` : (nameMap[rawName] || rawName);
             }
-            unsafeWindow.addEventListener('load', initSbmDownloadPanel);
-            setTimeout(initSbmDownloadPanel, 2000);
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg', 0.65);
+            link.download = `${name.replace(/\s+/g, '_')}.jpg`;
+            link.click();
+        } catch (err) {
+            if (KS_DEBUG) console.error("SS Hatası:", err);
+        } finally {
+            btn.style.display = 'block';
+            if (myP) myP.style.display = 'block';
+            const ksGlobal = document.getElementById('ks-global-status-indicator');
+            if (ksGlobal) ksGlobal.style.display = 'block';
         }
-        // ============ Ekran görüntüsü indirme (sonuc / detay / KTT listView sayfaları) ============
-        const isSonuc = loc("genelSorguEksper/sonuc.sbm"), isDetay = loc("hasarEksper/detay.sbm"), isListView = loc("listView.sbm");
-        // listView sadece KTT sayfasında çalışsın
-        const isKTTList = isListView && (() => {
+    };
+
+    const initSsBtn = () => {
+        if (document.getElementById('sbm-ss-btn')) return;
+        if (!isSonuc && !isDetay && !isKTTList) return;
+        if (!document.getElementById('sbm-ss-style')) {
+            const style = document.createElement('style');
+            style.id = 'sbm-ss-style';
+            style.innerHTML = '@media print { #sbm-ss-btn, #pj-panel, #ks-global-status-indicator { display: none !important; } }';
+            document.head.appendChild(style);
+        }
+        const btn = document.createElement('button');
+        btn.id = 'sbm-ss-btn';
+        btn.innerText = '📸 Ekran Görüntüsü Al';
+        Object.assign(btn.style, {
+            position: 'fixed', bottom: '10px', right: '10px', zIndex: '1000000',
+            padding: '8px 12px', background: 'black', color: 'white',
+            border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
+        });
+        btn.onclick = takeScreenshot;
+        document.body.appendChild(btn);
+    };
+
+    // isSonuc ve isDetay için hemen başlat
+    if (isSonuc || isDetay) {
+        setTimeout(initSsBtn, 100);
+        setInterval(initSsBtn, 1000);
+    }
+
+    // isKTTList için DOM hazır olunca kontrol et
+    if (isListView) {
+        const checkKTT = () => {
             const mainTitle = document.querySelector('.main-title');
-            return mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı");
-        })();
-        if (isSonuc || isDetay || isKTTList) {
-            if (!document.getElementById('sbm-ss-style')) {
-                const style = document.createElement('style');
-                style.id = 'sbm-ss-style';
-                style.innerHTML = '@media print { #sbm-ss-btn, #pj-panel, #ks-global-status-indicator { display: none !important; } }';
-                document.head.appendChild(style);
+            if (mainTitle && mainTitle.innerText.includes("Kaza Tespit Tutanağı")) {
+                isKTTList = true;
+                initSsBtn();
             }
-            const takeScreenshot = async () => {
-                const btn = document.getElementById('sbm-ss-btn');
-                const myP = document.getElementById('tramer-panel');
-                if (!btn) return;
-                window.scrollTo({ top: 0, behavior: 'instant' });
-                await new Promise(r => setTimeout(r, 100));
-                btn.style.display = 'none';
-                if (myP) myP.style.display = 'none';
-                const ksGlobal = document.getElementById('ks-global-status-indicator');
-                if (ksGlobal) ksGlobal.style.display = 'none';
-                try {
-                    const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, document.documentElement.offsetHeight);
-                    const yOffset = isDetay ? 70 : isKTTList ? 0 : 190;
-                    const canvas = await html2canvas(document.body, {
-                        y: yOffset, x: 0, height: scrollHeight - yOffset, useCORS: false,
-                        allowTaint: true, backgroundColor: "#ffffff", scale: 1, logging: false,
-                        windowHeight: scrollHeight,
-                        onclone: (clonedDoc) => {
-                            clonedDoc.querySelectorAll('#pj-panel, #pj-panel *').forEach(el => { el.style.background = '#333'; el.style.backgroundColor = '#333'; el.style.color = '#fff'; el.style.boxShadow = 'none'; el.style.borderColor = '#555'; });
-                            clonedDoc.body.style.cssText = "background:#fff;height:auto;overflow:visible;";
-                            const removeSelectors = [ '.polite__alert', '#ks-global-status-indicator', '.cc-window', '#sbm-ss-btn', '#tramer-panel', '.ui-draggable-handle', ...(isKTTList ? ['.dropdown--user', '#menuArama'] : []) ].join(',');
-                            clonedDoc.querySelectorAll(removeSelectors).forEach(e => e.remove());
-                        }
-                    });
-                    let name = "SBM_Rapor";
-                    if (isDetay) {
-                        // hasarEksper/detay.sbm → KTT No veya Hasar Dosya No
-                        const allLabels = [...document.querySelectorAll('td, th, label, span, div')];
-                        const getFieldValue = (labelText) => {
-                            for (const el of allLabels) {
-                                if (el.innerText && el.innerText.trim() === labelText) {
-                                    const next = el.nextElementSibling;
-                                    if (next && next.innerText) return next.innerText.trim();
-                                    const parent = el.parentElement;
-                                    if (parent) {
-                                        const siblings = [...parent.children];
-                                        const idx = siblings.indexOf(el);
-                                        if (siblings[idx + 1]) return siblings[idx + 1].innerText.trim();
-                                    }
-                                }
-                            }
-                            const bodyText = document.body.innerText;
-                            const regex = new RegExp(labelText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]+([^\\n]+)');
-                            const match = bodyText.match(regex);
-                            return match ? match[1].trim() : '';
-                        };
-                        const hasarNo = getFieldValue('Hasar Dosya No:') || getFieldValue('Hasar Dosya No');
-                        const kttNo = getFieldValue('Ktt No:') || getFieldValue('Ktt No');
-                        if (kttNo && kttNo.length > 1) { name = `${kttNo}_Hasar_Detay`; } else if (hasarNo) { name = `${hasarNo}_Hasar_Detay`; } else { name = "Hasar_Detay"; }
-                    } else if (isKTTList) {
-                        // listView.sbm KTT → ihbar no veya plaka/dosya no
-                        const ihbarNo = [...document.querySelectorAll('.field--output')].find(el => el.querySelector('.field-label')?.innerText.includes('İhbar No'))?.querySelector('.field-controls')?.innerText.trim();
-                        const plakaRaw = document.querySelector('td[aria-describedby$="_plakaNo"], .ui-jqgrid-btable td:nth-child(3)')?.innerText.trim();
-                        const dosyaNo = document.querySelector('td[aria-describedby$="_dosyaNo"]')?.innerText.trim() || "KTT_SORGU";
-                        name = ihbarNo ? `${ihbarNo}_KTT_SORGU` : (plakaRaw ? `${plakaRaw}_${dosyaNo}` : dosyaNo);
-                    } else {
-                        // genelSorguEksper/sonuc.sbm → şasi + sekme adı
-                        const shasiRaw = [...document.querySelectorAll('.fieldset-body b')].find(el => el.innerText.includes('*'))?.innerText.trim();
-                        const shasi = shasiRaw ? shasiRaw.replace(/\*/g, '') : '';
-                        let rawName = document.querySelector('li.ui-tabs-active a, li[aria-selected="true"] a')?.innerText.trim().replace(/\s+/g, '_') || "SBM_Rapor";
-                        const nameMap = { 'KTT': 'KTT_SBM' };
-                        name = shasi ? `${shasi}_${nameMap[rawName] || rawName}` : (nameMap[rawName] || rawName);
-                    }
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/jpeg', 0.65);
-                    link.download = `${name.replace(/\s+/g, '_')}.jpg`;
-                    link.click();
-                }
-                catch (err) { if (KS_DEBUG) console.error("SS Hatası:", err); }
-                finally {
-                    btn.style.display = 'block';
-                    if (myP) myP.style.display = 'block';
-                    if (ksGlobal) ksGlobal.style.display = 'block';
-                }
-            };
-            const init = () => {
-                if (document.getElementById('sbm-ss-btn')) return;
-                const btn = document.createElement('button');
-                btn.id = 'sbm-ss-btn';
-                btn.innerText = '📸 Ekran Görüntüsü Al';
-                Object.assign(btn.style, {
-                    position: 'fixed', bottom: '10px', right: '10px', zIndex: '1000000',
-                    padding: '8px 12px', background: 'black', color: 'white',
-                    border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px'
-                });
-                btn.onclick = takeScreenshot;
-                document.body.appendChild(btn);
-            };
-            setTimeout(init, 100); setInterval(init, 1000);
-        }
+        };
+        setTimeout(checkKTT, 500);
+        setTimeout(checkKTT, 1500);
+        setTimeout(checkKTT, 3000);
+    }
+
     }
     // Sahibinden Ortalama KM Piyasa sorgusu
     if (KS_SYSTEM && SAHIBINDEN && loc("sahibinden.com") && !location.pathname.includes("/ilan/") && !location.pathname.includes("/kategori/")) {
