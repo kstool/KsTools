@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.79
+// @version      1.80
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -41,6 +41,16 @@
         ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR ~~ Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need
         HALLOLDU ~~ resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak
 		MÜMKÜN DEĞİL JS BLOKLAYIP BOZUYOR ~~ PİYASA ARAŞTIRMASI YAPIP GELEN EN UYGUN SONUÇLARIN 3 TANESİNİN RESMİNİ ALAN KOD
+
+		BULUNDUĞU SAYFAYA GÖRE İÇERİK TABLOSU OLUŞTURACAK BAŞKA SAYFALARDAN VERİ ÇEKECEK BİR YAPI OLUŞTUR
+		EĞER A SAYFASINDAYSA A NIN İÇEİRİKLERİNİ NORMAL OLARAK ÇEKECEK,
+		DEĞİLSE A NIN SAYFASINA GİDİP VERİLERİ ÇEKECEK, AYNI ŞEKİLDE B SAYFASIDA İSE A DAKİ VERİLERİ ÇEKECEK HAFIZADA TUTACAK, BU TARZ Bİ MANTIK KUR
+		if (KS_SYSTEM && ANALIZPANEL && loc("otohasar") && (loc("eks_hasar.php") || loc("eks_hasar_magdur.php")))
+		if (KS_SYSTEM && DONANIM && loc("otohasar") && (loc("eks_magdur_arac_donanim") || loc("eks_arac_donanim")))
+		if (KS_SYSTEM && REFERANS && loc("otohasar") && loc("eks_hasar_yp_list_yp_talep.php"))
+		if (KS_SYSTEM && REFERANS && loc("otohasar") && loc("talep_yp_giris.php"))
+		if (KS_SYSTEM && REFERANS && loc("otohasar") && loc("talep_yp_ayrinti.php"))
+		GİBİ SAYFALARIM VAR İF YAPISI İLE KONTROL EDİYORUM BUNLARI LOC OTO HASAR ÇATISINA TOPLAYACAĞIM VE TEK PANELDE TÜM İÇERİKLERİ GÖSTERECEĞİM SAYFA DEĞİŞİMİ ÖNEMSİZ ŞEKİLDE
     */
     const url = location.href.toLowerCase(), KS_DEBUG = false;
     let loc = (adros) => location.href.includes(adros);
@@ -6152,23 +6162,33 @@
             .ks-dl-wrap { position: relative; display: inline-block; }
             .ks-dl-btn {
                 position: absolute;
-                top: 6px; right: 6px; width: 25px; height: 25px;
+                top: 10px; right: 10px;
+                width: 32px !important;
+                height: 32px !important;
+                min-width: 32px !important;
+                min-height: 32px !important;
+                max-width: 32px !important;
+                max-height: 32px !important;
+                box-sizing: border-box !important;
+                border-radius: 50%;
                 background: rgba(0,0,0,0.55); border: none;
                 cursor: pointer;
                 display: flex; align-items: center; justify-content: center; opacity: 0;
                 transition: opacity 0.18s, background 0.18s, transform 0.15s;
-                z-index: 999;
+                z-index: 9999;
                 padding: 0;
                 backdrop-filter: blur(2px);
+            }
+            .ks-dl-btn svg {
+                width: 24px !important;
+                height: 24px !important;
+                fill: none; pointer-events: none;
+                stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
             }
             .ks-dl-wrap:hover .ks-dl-btn,
             .ks-dl-btn:focus { opacity: 1; }
             .ks-dl-btn:hover { background: rgba(0,0,0,0.8); transform: scale(1.1); }
             .ks-dl-btn:active { transform: scale(0.95); }
-            .ks-dl-btn svg {
-                width: 50px; height: 50px; fill: none; pointer-events: none;
-                stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-            }
             .ks-dl-btn.ks-ok { background: rgba(39,174,96,0.85) !important; opacity: 1 !important; }
             .ks-dl-btn.ks-ok svg { stroke: #fff; }
         `;
@@ -6180,17 +6200,54 @@
         const butonEkle = (img) => {
             if (img.dataset.ksDl) return;
             img.dataset.ksDl = '1';
-            let wrap = img.parentElement;
-            if (!wrap.classList.contains('ks-dl-wrap')) {
-                wrap = document.createElement('div');
-                wrap.className = 'ks-dl-wrap';
-                img.parentNode.insertBefore(wrap, img);
-                wrap.appendChild(img);
-            }
+
             const btn = document.createElement('button');
             btn.className = 'ks-dl-btn';
             btn.title = 'Resmi İndir';
             btn.innerHTML = ikonIndir;
+        btn.style.cssText = `
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            background: rgba(0,0,0,0.65);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 0;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s, background 0.18s, transform 0.15s;
+        `;
+
+            document.body.appendChild(btn);
+
+        img.addEventListener('mouseenter', () => {
+            const rect = img.getBoundingClientRect();
+            btn.style.top = (rect.top + 10) + 'px';
+            btn.style.right = (window.innerWidth - rect.right + 8) + 'px';
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        });
+
+        img.addEventListener('mouseleave', (e) => {
+            if (e.relatedTarget !== btn) {
+                btn.style.opacity = '0';
+                btn.style.pointerEvents = 'none';
+            }
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.opacity = '0';
+            btn.style.pointerEvents = 'none';
+        });
+
             btn.addEventListener('click', e => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -6199,10 +6256,13 @@
                 const ext = src.includes('.png') ? 'png' : src.includes('.gif') ? 'gif' : src.includes('.webp') ? 'webp' : 'jpeg';
                 indir(src, getFileName(ext));
                 btn.innerHTML = ikonOk;
-                btn.classList.add('ks-ok');
-                setTimeout(() => { btn.innerHTML = ikonIndir; btn.classList.remove('ks-ok'); }, 2000);
+                btn.style.background = 'rgba(39,174,96,0.85)';
+                setTimeout(() => {
+                    btn.innerHTML = ikonIndir;
+                    btn.style.background = 'rgba(0,0,0,0.65)';
+                    btn.style.display = 'none';
+                }, 2000);
             });
-            wrap.appendChild(btn);
         };
         // ── ÇIFT TIKLAMA İLE İNDİR ───────────────────────────────────────────────
         document.addEventListener('dblclick', e => {
@@ -6714,24 +6774,146 @@
             } catch (err) { if (KS_DEBUG) console.error("Pano hatası:", err); }
         };
         const injectButtons = () => {
-            const searchBtn = document.getElementById('searchOemCodes');
-            if (searchBtn && !document.getElementById('ks-extra-btns')) {
-                const container = document.createElement('span');
-                container.id = 'ks-extra-btns';
-                container.className = 'ms-2';
-                const btn = (txt, clr, fn) => {
-                    const b = document.createElement('button');
-                    b.type = 'button';
-                    b.className = 'btn btn-sm ms-1';
-                    b.style = `background:${clr}; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:5px 10px;`;
-                    b.textContent = txt;
-                    b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
-                    return b;
-                };
-                container.append(btn('RASGELE DOLDUR', '#dc3545', fillCategoriesRandomly), btn('PANODAN DOLDUR', '#007bff', processClipboard));
-                searchBtn.parentNode.appendChild(container);
+    // ── SP-TABLE KONTROLÜ ─────────────────────────────────────────────
+    const spTable = document.getElementById('sp-table');
+
+    // ── HIZLI GİRİŞ BUTONU YANINA EKLE ──────────────────────────────
+    const quickBtn = document.getElementById('btnQuickEntry');
+    if (quickBtn && !document.getElementById('ks-bulk-price-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'ks-bulk-price-btn';
+        btn.type = 'button';
+		btn.className = 'btn btn-sm btn-success me-1';
+        btn.innerHTML = '<i class="fa fa-clipboard"></i> Excel\'den Fiyat Güncelle';
+        btn.onclick = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Tablo kontrolü
+            if (!document.getElementById('sp-table')) {
+                alert('⚠️ Parça tablosu (sp-table) sayfada bulunamadı!\nÖnce parça tablosunun yüklendiğinden emin olun.');
+                return;
             }
+
+            await runBulkPriceUpdate();
         };
+        quickBtn.parentNode.insertBefore(btn, quickBtn.nextSibling);
+    }
+			const runBulkPriceUpdate = async () => {
+    let text;
+    try {
+        text = await navigator.clipboard.readText();
+    } catch (e) {
+        alert('⚠️ Clipboard okunamadı. Tarayıcı izni gerekiyor.');
+        return;
+    }
+
+    if (!text.trim()) {
+        alert('⚠️ Clipboard boş! Önce Excel\'den tabloyu kopyalayın.');
+        return;
+    }
+
+    const rows = text.trim().split('\n').map(r => r.split('\t').map(c => c.trim()));
+    const firstRow = rows[0];
+    const dataRows = isNaN(parseFloat(firstRow[0])) ? rows.slice(1) : rows;
+
+    const priceMap = {};
+    for (const cols of dataRows) {
+        if (cols.length < 5) continue;
+        const oem = cols[1].toUpperCase();
+        const adet = parseFloat(cols[3].replace(',', '.')) || 1;
+        const birimFiyat = parseFloat(cols[4].replace(/\./g, '').replace(',', '.')) || 0;
+        const toplam = adet * birimFiyat;
+        if (oem && toplam > 0) priceMap[oem] = toplam;
+    }
+
+    if (Object.keys(priceMap).length === 0) {
+        alert('⚠️ Eşleşebilir veri bulunamadı.\nBeklenen sütun sırası: SIRA NO | KOD | İSİM | ADET | BİRİM FİYAT');
+        return;
+    }
+
+    const matches = [];
+    document.querySelectorAll('#sp-table tbody tr').forEach(row => {
+        const oemEl = row.querySelector('.oem-code');
+        const partIdEl = row.querySelector('.part-id');
+        if (!oemEl || !partIdEl) return;
+        const oem = oemEl.textContent.trim().toUpperCase();
+        const partId = partIdEl.value;
+        if (priceMap[oem] !== undefined) matches.push({ oem, partId, price: priceMap[oem] });
+    });
+
+    if (matches.length === 0) {
+        alert('⚠️ Tabloda clipboard\'daki OEM kodlarıyla eşleşen parça bulunamadı.\nOEM kodlarını kontrol edin.');
+        return;
+    }
+
+    const onay = confirm(`✅ ${matches.length} parça eşleşti:\n\n${matches.map(m => `${m.oem} → ${m.price.toLocaleString('tr-TR', {minimumFractionDigits:2})} TL`).join('\n')}\n\nDevam edilsin mi?`);
+    if (!onay) return;
+
+    const bulkBtn = document.getElementById('ks-bulk-price-btn');
+    if (bulkBtn) { bulkBtn.disabled = true; bulkBtn.innerHTML = '⏳ Güncelleniyor...'; }
+
+    const bekle = ms => new Promise(r => setTimeout(r, ms));
+
+    for (let i = 0; i < matches.length; i++) {
+        const { partId, price } = matches[i];
+        if (bulkBtn) bulkBtn.innerHTML = `⏳ ${i + 1}/${matches.length}`;
+
+        if (typeof openPartEdit === 'function') openPartEdit(partId);
+        await bekle(800);
+
+        const expertPriceInput = document.getElementById('expertPrice');
+        if (expertPriceInput && !expertPriceInput.disabled) {
+            expertPriceInput.value = price.toFixed(2).replace('.', ',');
+            expertPriceInput.dataset.expertPrice = price.toFixed(2);
+            expertPriceInput.dispatchEvent(new Event('input', { bubbles: true }));
+            expertPriceInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        const aciklama = document.getElementById('expertDescription');
+        if (aciklama) {
+            const yeniNot = 'Fatura fiyatı düşük';
+            if (!aciklama.value.includes(yeniNot)) {
+                aciklama.value = aciklama.value.trim() ? `${aciklama.value.trim()} | ${yeniNot}` : yeniNot;
+                aciklama.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+
+        await bekle(400);
+        const saveBtn = document.getElementById('sparePartSaveDetail');
+        if (saveBtn) saveBtn.click();
+        await bekle(1000);
+
+        const offcanvas = document.getElementById('offcanvasSparePartDetail');
+        if (offcanvas && offcanvas.classList.contains('show')) {
+            const closeBtn = offcanvas.querySelector('.btn-close');
+            if (closeBtn) { closeBtn.click(); await bekle(400); }
+        }
+    }
+
+    if (bulkBtn) { bulkBtn.disabled = false; bulkBtn.innerHTML = '<i class="fa fa-clipboard"></i> Excel\'den Fiyat Güncelle'; }
+    alert(`✅ ${matches.length} parça başarıyla güncellendi!`);
+};
+
+    // ── ESKİ searchOemCodes BUTONLARI (varsa koru) ───────────────────
+    const searchBtn = document.getElementById('searchOemCodes');
+    if (searchBtn && !document.getElementById('ks-extra-btns')) {
+        const container = document.createElement('span');
+        container.id = 'ks-extra-btns';
+        container.className = 'ms-2';
+        const btn = (txt, clr, fn) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-sm ms-1';
+            b.style = `background:${clr}; color:#fff; font-weight:bold; border:none; border-radius:4px; padding:5px 10px;`;
+            b.textContent = txt;
+            b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+            return b;
+        };
+        container.append(btn('RASGELE DOLDUR', '#dc3545', fillCategoriesRandomly), btn('PANODAN DOLDUR', '#007bff', processClipboard));
+        searchBtn.parentNode.appendChild(container);
+    }
+};
         const run = () => {
             document.querySelectorAll('input.inputDate, input[name*="date" i]').forEach(applyDateLogic);
             injectButtons();
@@ -6770,6 +6952,163 @@
         epObserver.observe(document.body, { childList: true, subtree: true });
         setTimeout(applyExpertPrice, 1000);
         // --- EKSPER FİYATI KÜSÜRAT FIX SON ---
+		// ── PARÇA EKLEME TABLOSU DÜZENLEYİCİ ────────────────────────────────────
+(function fixAddNewSparePartTable() {
+    const injectStyle = () => {
+        const tbl = document.getElementById('tblAddNewSparePart');
+        if (!tbl || tbl.dataset.ksFixed) return;
+        tbl.dataset.ksFixed = '1';
+
+        const style = document.createElement('style');
+        style.textContent = `
+            /* ── GENEL TABLO ── */
+            #tblAddNewSparePart {
+                table-layout: fixed !important;
+                width: 100% !important;
+            }
+
+            /* ── CHECKBOX ── */
+            #tblAddNewSparePart th:nth-child(1),
+            #tblAddNewSparePart td:nth-child(1) {
+                width: 36px !important;
+                text-align: center !important;
+            }
+
+            /* ── PARÇA KODU ── */
+            #tblAddNewSparePart th:nth-child(2),
+            #tblAddNewSparePart td:nth-child(2) {
+                width: 140px !important;
+                word-break: break-all !important;
+                font-size: 12px !important;
+            }
+
+            /* ── PARÇA ADI ── */
+            #tblAddNewSparePart th:nth-child(3),
+            #tblAddNewSparePart td:nth-child(3) {
+                width: 180px !important;
+            }
+            #tblAddNewSparePart td:nth-child(3) input {
+                width: 100% !important;
+                font-size: 12px !important;
+                padding: 3px 5px !important;
+            }
+
+            /* ── ADET ── */
+            #tblAddNewSparePart th:nth-child(4),
+            #tblAddNewSparePart td:nth-child(4) {
+                width: 55px !important;
+                text-align: center !important;
+            }
+            #tblAddNewSparePart td:nth-child(4) input {
+                width: 100% !important;
+                text-align: center !important;
+                padding: 3px 4px !important;
+                font-size: 12px !important;
+            }
+
+            /* ── KATEGORİ — KISALT ── */
+            #tblAddNewSparePart th:nth-child(5),
+            #tblAddNewSparePart td:nth-child(5) {
+                width: 160px !important;
+            }
+            #tblAddNewSparePart td:nth-child(5) .select2-container {
+                width: 100% !important;
+            }
+            #tblAddNewSparePart td:nth-child(5) .select2-selection__rendered {
+                font-size: 11px !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            /* ── ORJ. FİYAT ── */
+            #tblAddNewSparePart th:nth-child(6),
+            #tblAddNewSparePart td:nth-child(6) {
+                width: 110px !important;
+                text-align: right !important;
+            }
+            #tblAddNewSparePart td:nth-child(6) input {
+                width: 100% !important;
+                text-align: right !important;
+                font-size: 12px !important;
+                padding: 3px 5px !important;
+            }
+
+            /* ── HSR NO ── */
+            #tblAddNewSparePart th:nth-child(7),
+            #tblAddNewSparePart td:nth-child(7) {
+                width: 50px !important;
+                text-align: center !important;
+            }
+            #tblAddNewSparePart td:nth-child(7) input {
+                width: 100% !important;
+                text-align: center !important;
+                padding: 3px 4px !important;
+                font-size: 12px !important;
+            }
+
+            /* ── DEĞİŞİM / ONARIM ── */
+            #tblAddNewSparePart th:nth-child(8),
+            #tblAddNewSparePart td:nth-child(8) {
+                width: 140px !important;
+                white-space: nowrap !important;
+            }
+            #tblAddNewSparePart td:nth-child(8) .form-check {
+                margin-bottom: 0 !important;
+            }
+            #tblAddNewSparePart td:nth-child(8) label {
+                font-size: 11px !important;
+            }
+
+            /* ── TEDARİK TERCİHİ ── */
+            #tblAddNewSparePart th:nth-child(9),
+            #tblAddNewSparePart td:nth-child(9) {
+                width: 120px !important;
+            }
+            #tblAddNewSparePart td:nth-child(9) .select2-container {
+                width: 100% !important;
+            }
+            #tblAddNewSparePart td:nth-child(9) .select2-selection__rendered {
+                font-size: 11px !important;
+            }
+
+            /* ── TEDARİK SEBEP ── */
+            #tblAddNewSparePart th:nth-child(10),
+            #tblAddNewSparePart td:nth-child(10) {
+                width: 160px !important;
+            }
+            #tblAddNewSparePart td:nth-child(10) .select2-container {
+                width: 100% !important;
+            }
+            #tblAddNewSparePart td:nth-child(10) .select2-selection__rendered {
+                font-size: 11px !important;
+            }
+
+            /* ── GENEL HÜCRE PADDİNG ── */
+            #tblAddNewSparePart th,
+            #tblAddNewSparePart td {
+                padding: 5px 4px !important;
+                vertical-align: middle !important;
+                font-size: 12px !important;
+            }
+
+            /* ── TAŞMA ÖNLE ── */
+            #divAddNewSparePartResult {
+                overflow-x: auto !important;
+            }
+        `;
+        document.head.appendChild(style);
+    };
+
+    // İlk yükleme
+    setTimeout(injectStyle, 500);
+
+    // Modal/dinamik içerik açılınca da uygula
+    new MutationObserver(() => {
+        const tbl = document.getElementById('tblAddNewSparePart');
+        if (tbl && !tbl.dataset.ksFixed) setTimeout(injectStyle, 300);
+    }).observe(document.body, { childList: true, subtree: true });
+})();
     }
     if (KS_SYSTEM && ONSBM && loc("sdata_edit.php")) {
         const BASE = window.location.origin;
@@ -7241,4 +7580,187 @@
         window.addEventListener('resize', removeKsCustomMenu);
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') removeKsCustomMenu(); });
     }
+    if (KS_SYSTEM && QCASIGORTA && /aaa\.com/.test(location.href))
+	{
+	// ── PARÇA TOPLU FİYAT GÜNCELLEME ─────────────────────────────────────────
+	(function initBulkPriceUpdate() {
+
+	    // ── BUTONU SAYFAYA EKLE ───────────────────────────────────────────────
+	    const btn = document.createElement('button');
+	    btn.id = 'ks-bulk-price-btn';
+	    btn.textContent = '📋 Excel\'den Fiyat Güncelle';
+	    btn.style.cssText = `
+	        position: fixed;
+	        bottom: 20px;
+	        right: 20px;
+	        z-index: 99999;
+	        background: #696cff;
+	        color: #fff;
+	        border: none;
+	        padding: 10px 16px;
+	        border-radius: 8px;
+	        font-size: 13px;
+	        font-weight: 600;
+	        cursor: pointer;
+	        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+	    `;
+	    document.body.appendChild(btn);
+
+	    btn.addEventListener('click', async () => {
+	        // ── 1. CLİPBOARD OKU ─────────────────────────────────────────────
+	        let text;
+	        try {
+	            text = await navigator.clipboard.readText();
+	        } catch (e) {
+	            alert('Clipboard okunamadı. Tarayıcı izni gerekiyor.');
+	            return;
+	        }
+
+	        if (!text.trim()) {
+	            alert('Clipboard boş! Önce Excel\'den tabloyu kopyalayın.');
+	            return;
+	        }
+
+	        // ── 2. PARSE ET ───────────────────────────────────────────────────
+	        // Beklenen sütunlar: SIRA NO | KOD | İSİM | ADET | BİRİM FİYAT
+	        const rows = text.trim().split('\n').map(r => r.split('\t').map(c => c.trim()));
+
+	        // İlk satır başlık mı kontrol et
+	        const firstRow = rows[0];
+	        let dataRows = rows;
+	        if (isNaN(parseFloat(firstRow[0]))) {
+	            dataRows = rows.slice(1); // başlık satırını atla
+	        }
+
+	        // OEM kodu → fiyat map'i oluştur
+	        const priceMap = {};
+	        for (const cols of dataRows) {
+	            if (cols.length < 5) continue;
+	            const oem = cols[1].trim().toUpperCase();
+	            const adet = parseFloat(cols[3].replace(',', '.')) || 1;
+	            const birimFiyat = parseFloat(cols[4].replace(/\./g, '').replace(',', '.')) || 0;
+	            const toplam = adet * birimFiyat;
+	            if (oem && toplam > 0) {
+	                priceMap[oem] = toplam;
+	            }
+	        }
+
+	        const oemList = Object.keys(priceMap);
+	        if (oemList.length === 0) {
+	            alert('Eşleşebilir veri bulunamadı. Sütun sırası: SIRA NO, KOD, İSİM, ADET, BİRİM FİYAT');
+	            return;
+	        }
+
+	        // ── 3. SAYFADA EŞLEŞEN SATIRLARI BUL ────────────────────────────
+	        const matches = [];
+	        document.querySelectorAll('#sp-table tbody tr').forEach(row => {
+	            const oemEl = row.querySelector('.oem-code');
+	            const partIdEl = row.querySelector('.part-id');
+	            if (!oemEl || !partIdEl) return;
+
+	            const oem = oemEl.textContent.trim().toUpperCase();
+	            const partId = partIdEl.value;
+
+	            if (priceMap[oem] !== undefined) {
+	                matches.push({ oem, partId, price: priceMap[oem] });
+	            }
+	        });
+
+	        if (matches.length === 0) {
+	            alert('Tabloda clipboard\'daki OEM kodlarıyla eşleşen parça bulunamadı.');
+	            return;
+	        }
+
+	        const onay = confirm(`${matches.length} parça eşleşti:\n${matches.map(m => `${m.oem} → ${m.price.toLocaleString('tr-TR', {minimumFractionDigits:2})} TL`).join('\n')}\n\nDevam edilsin mi?`);
+	        if (!onay) return;
+
+	        // ── 4. SIRAYLA İŞLE ──────────────────────────────────────────────
+	        btn.disabled = true;
+	        btn.textContent = '⏳ Güncelleniyor...';
+
+	        for (let i = 0; i < matches.length; i++) {
+	            const { partId, price, oem } = matches[i];
+	            btn.textContent = `⏳ ${i + 1}/${matches.length} işleniyor...`;
+
+	            await islemYap(partId, price);
+	            await bekle(1200); // her işlem arası bekle
+	        }
+
+	        btn.disabled = false;
+	        btn.textContent = '📋 Excel\'den Fiyat Güncelle';
+	        alert(`✅ ${matches.length} parça başarıyla güncellendi!`);
+	    });
+
+	    // ── İŞLEM FONKSİYONU ─────────────────────────────────────────────────
+	    async function islemYap(partId, price) {
+	        return new Promise(async (resolve) => {
+	            // Offcanvas'ı aç
+	            if (typeof openPartEdit === 'function') {
+	                openPartEdit(partId);
+	            } else {
+	                resolve(); return;
+	            }
+
+	            // Offcanvas açılmasını bekle
+	            await bekle(800);
+
+	            // Part ID kontrolü
+	            const offcanvasPartId = document.getElementById('offcanvasPartId');
+	            if (!offcanvasPartId || offcanvasPartId.value != partId) {
+	                await bekle(600);
+	            }
+
+	            // EKSPER FİYATI alanını bul ve doldur
+	            const expertPriceInput = document.getElementById('expertPrice');
+	            if (expertPriceInput && !expertPriceInput.disabled) {
+	                const fiyatStr = price.toFixed(2).replace('.', ',');
+	                expertPriceInput.value = fiyatStr;
+
+	                // data-expert-price güncellensin
+	                expertPriceInput.dataset.expertPrice = price.toFixed(2);
+
+	                // Input event'i tetikle (sayfa kendi hesaplamalarını yapsın)
+	                expertPriceInput.dispatchEvent(new Event('input', { bubbles: true }));
+	                expertPriceInput.dispatchEvent(new Event('change', { bubbles: true }));
+	            }
+
+	            // AÇIKLAMA alanına not ekle
+	            const aciklama = document.getElementById('expertDescription');
+	            if (aciklama) {
+	                const mevcutNot = aciklama.value.trim();
+	                const yeniNot = 'Fatura fiyatı düşük';
+	                if (!mevcutNot.includes(yeniNot)) {
+	                    aciklama.value = mevcutNot ? `${mevcutNot} | ${yeniNot}` : yeniNot;
+	                    aciklama.dispatchEvent(new Event('input', { bubbles: true }));
+	                }
+	            }
+
+	            await bekle(400);
+
+	            // GÜNCELLE butonuna tıkla
+	            const saveBtn = document.getElementById('sparePartSaveDetail');
+	            if (saveBtn) {
+	                saveBtn.click();
+	            }
+
+	            // Kayıt tamamlanmasını bekle
+	            await bekle(1000);
+
+	            // Offcanvas kapandıysa devam et, kapanmadıysa kapat
+	            const offcanvas = document.getElementById('offcanvasSparePartDetail');
+	            if (offcanvas && offcanvas.classList.contains('show')) {
+	                const closeBtn = offcanvas.querySelector('.btn-close');
+	                if (closeBtn) closeBtn.click();
+	                await bekle(400);
+	            }
+
+	            resolve();
+	        });
+	    }
+
+	    // ── YARDIMCI ─────────────────────────────────────────────────────────
+	    const bekle = ms => new Promise(r => setTimeout(r, ms));
+
+	})();
+	}
 })();
