@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.83
+// @version      1.84
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -2735,8 +2735,8 @@
                         ekButon.id = 'SASI_MDL_DUZELT';
                         ekButon.value = 'KS MODEL FIX';
                         ekButon.className = 'buton02';
-                        ekButon.style.backgroundColor = '#2e7d32';
-                        ekButon.style.color = '#fff';
+                        ekButon.style.backgroundColor = 'red';
+                        ekButon.style.color = 'black';
                         ekButon.style.marginLeft = '4px';
                         ekButon.addEventListener('click', function () {
                             var modelYili = '';
@@ -3453,8 +3453,8 @@
                             btn.innerText = '📁 KLASÖRÜ AÇ';
                             btn.className = 'BUTON01';
                             btn.style.marginRight = '10px';
-                            btn.style.backgroundColor = '#28a745';
-                            btn.style.color = 'white';
+                            btn.style.backgroundColor = 'orange';
+                            btn.style.color = 'black';
                             btn.style.fontWeight = 'bold';
                             btn.style.cursor = 'pointer';
                             btn.setAttribute('data-created-by', 'kstool-script');
@@ -3879,6 +3879,34 @@
                 contentArea.innerHTML = `<div style="text-align:center;padding-bottom:5px;font-size:11px;">Excel İşlemleri</div>`;
                 Object.assign(contentArea.style, { display: "flex", flexDirection: "column", gap: "4px", padding: "5px" });
                 const btnStyle = "width:100%; padding:4px 2px; font-size:11px; min-height:24px;";
+                // --- 1. EN ÜSTTEKİ OTOMASYON BUTONU ---
+                const btnAutoSelect = document.createElement('button');
+                btnAutoSelect.className = 'ks-btn';
+                btnAutoSelect.style.cssText = btnStyle + "background-color: #28a745 !important; color: white !important; font-weight: bold;";
+                btnAutoSelect.innerText = "📋 PANODAN ALAN AÇ";
+                btnAutoSelect.onclick = async () => {
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        if (!text || !text.trim()) return;
+                        const lineCount = text.split(/\r?\n/).filter(line => line.trim() !== "").length;
+                        const selectElement = document.querySelector('select[name="YP_ADET"]');
+                        if (!selectElement) return;
+                        let found = false;
+                        for (let i = 0; i < selectElement.options.length; i++) {
+                            if (selectElement.options[i].value == lineCount) {
+                                selectElement.selectedIndex = i;
+                                selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found && window.document.frm_yp) {
+                            window.document.frm_yp.action = 'eks_hasar_yp_list_yp_talep.php?act=new&servis_ili=';
+                            window.document.frm_yp.submit();
+                        }
+                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                };
+                // --- 2. ORİJİNAL PASTE BUTONU ---
                 const btnPaste = document.createElement('button');
                 btnPaste.className = 'ks-btn';
                 btnPaste.style.cssText = btnStyle;
@@ -3894,6 +3922,7 @@
                         btnPaste.innerText = "✔️ OK"; setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
                     } catch (err) { if (KS_DEBUG) console.error(err); }
                 };
+                // --- 3. ORİJİNAL COPY BUTONU ---
                 const btnCopy = document.createElement('button');
                 btnCopy.className = 'ks-btn';
                 btnCopy.style.cssText = btnStyle;
@@ -3905,6 +3934,7 @@
                         if (data) { await navigator.clipboard.writeText(data); btnCopy.innerText = "✔️ OK"; setTimeout(() => { btnCopy.innerText = "📤 KOPYALA"; }, 2000); }
                     } catch (err) { if (KS_DEBUG) console.error(err); }
                 };
+                // --- 4. ORİJİNAL GRUPLA BUTONU ---
                 const btnFill = document.createElement('button');
                 btnFill.className = 'ks-btn';
                 btnFill.style.cssText = btnStyle;
@@ -3919,7 +3949,6 @@
                             await new Promise(r => setTimeout(r, 50));
                             const alt = document.querySelector(`select[name="YP_ID_${idx}"]`);
                             if (alt) { alt.value = "0"; alt.dispatchEvent(new Event('change', { bubbles: true })); }
-                            /// TEDARİKÇİ_ID_{idx} kutusunda ilk gerçek seçeneği seç (Seçiniz hariç)
                             const tedarikci = document.querySelector(`select[name="TEDARIKCI_ID_${idx}"]`);
                             if (tedarikci) { const ilkGercek = Array.from(tedarikci.options).find(o => o.value !== "-1"); if (ilkGercek) { tedarikci.value = ilkGercek.value; tedarikci.dispatchEvent(new Event('change', { bubbles: true })); } }
                         }
@@ -3927,8 +3956,23 @@
                         setTimeout(() => { btnFill.innerText = "🚗 GRUPLA"; }, 2000);
                     } catch (err) { if (KS_DEBUG) console.error(err); }
                 };
-                contentArea.append(btnPaste, btnCopy, btnFill);
+                // --- 4. ORİJİNAL GRUPLA BUTONU ---
+                const btnTDRSEND = document.createElement('button');
+                btnTDRSEND.className = 'ks-btn';
+                btnTDRSEND.style.cssText = btnStyle;
+                btnTDRSEND.innerText = "🚗 KOD İSTE";
+                btnTDRSEND.onclick = async () => {
+                    try {
+                        if (window.document.frm_yp) {
+                            window.document.frm_yp.action = 'eks_hasar_yp_list_yp_talep.php?act=new&servis_ili=';
+                            window.document.frm_yp.submit();
+                        }
+                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                };
+                contentArea.append(btnAutoSelect, btnPaste, btnFill, btnTDRSEND, btnCopy);
             }
+            // Sayfa gövdesi yüklendiğinde alt butonu ekle
+            const checkBody = setInterval(() => { if (document.body) { clearInterval(checkBody); } }, 400);
         }
         if (REFERANS && loc("otohasar") && loc("talep_yp_giris.php")) {
             config.width = '150px';
@@ -4016,255 +4060,255 @@
                 /* ===== 1. STYLES ===== */
                 const style = document.createElement("style");
                 style.innerHTML = `
-                :root {
-                    --panel-bg: rgba(25, 25, 25, 0.85);
-                    --accent-blue: #0078d4;
-                    --accent-red: #5d0606;
-                    --transition-speed: 0.4s;
-                    --toggle-loc: 250px;
-                }
-                /*body {
-                    transition: margin-right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-                    margin-right: 260px !important;
-                }
-                body.panel-closed {
-                    margin-right: 0 !important;
-                }*/
-                #tm-panel {
-                    position: fixed; top: 0; right: 0; width: 250px; height: 100vh;
-                    background: var(--panel-bg);
-                    backdrop-filter: blur(${config.blur}) saturate(160%);
-                    -webkit-backdrop-filter: blur(${config.blur}) saturate(160%);
-                    color: #fff; z-index: ${Number(config.zIndex) + 1};
-                    display: flex; flex-direction: column;
-                    padding: 10px 10px; gap: 8px;
-                    box-shadow: -5px 0 25px rgba(0,0,0,0.5);
-                    border-left: 1px solid rgba(255, 255, 255, 0.1);
-                    transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-                    overflow-y: auto;
-                    z-index: 1;
-                }
-                #tm-panel.closed { transform: translateX(calc(var(--toggle-loc) + 15px)); }
-                /* Kapatma / Açma Butonu (Toggle) */
-                #tm-toggle {
-                    position: fixed;
-                    right: calc(var(--toggle-loc) + 15px);
-                    top: 20px;
-                    width: 40px;
-                    height: 50px;
-                    background: var(--panel-bg);
-                    border: 1px solid rgba(255,255,255,0.1);
-                    border-right: none;
-                    border-radius: 8px 0 0 8px;
-                    cursor: pointer;
-                    color: #fff;
-                    z-index: 0;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: -5px 0 25px rgba(0,0,0,0.5);
-                    backdrop-filter: blur(${config.blur});
-                    transition: right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                /* KAPANIRKEN */
-                #tm-panel.closed + #tm-toggle {
-                    right: 0px;
-                }
-                .tm-section-title {
-                    font-size: 10px; text-transform: uppercase; color: #aaa;
-                    letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);
-                    padding-bottom: 4px; margin-top: 4px;
-                }
-                /* 1: Giriş Alanları (Modern & Yüksek Kontrast) */
-                .tm-input-group { display: flex; flex-direction: column; gap: 4px; }
-                #tm-panel input {
-                    width: 100% !important;
-                    padding: 6px;
-                    border-radius: 8px;
-                    border: 1px solid #ccc;
-                    background: #ffffff;
-                    color: #333;
-                    outline: none;
-                    transition: all 0.2s ease-in-out;
-                    box-sizing: border-box;
-                    font-size: 12px;
-                    font-weight: 400;
-                    }
-                #tm-panel input::placeholder { color: #999; }
-                #tm-panel input:focus {
-                    background: #fff;
-                    border-color: var(--accent-blue);
-                    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
-                    transform: translateY(-1px);
-                }
-                #tm-panel input[type="number"] { text-align: center; }
-                .tm-button-grid {
-                    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-                }
-                #tm-panel button {
-                    padding: 6px 8px; border-radius: 6px; border: none;
-                    cursor: pointer; font-size: 11px; font-weight: 600;
-                    color: #fff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    display: flex; align-items: center; justify-content: center;
-                    text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                }
-                #tm-panel button:hover {
-                    transform: translateY(-2px);
-                    filter: brightness(1.1);
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-                }
-                #tm-panel button:active { transform: translateY(0); }
-                .radio-container {
-                    display: flex;
-                    background: #e2e8f0;
-                    padding: 4px;
-                    border-radius: 10px;
-                    border: 0px solid #e2e8f0;
-                }
-                .radio-container label {
-                    flex: 1;
-                    text-align: center;
-                    padding: 2px 2px;
-                    border-radius: 7px;
-                    font-size: 11px;
-                    font-weight: 600;
-                    color: black;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    user-select: none;
-                }
-                .radio-container input { display: none; }
-                .radio-container label:has(input:checked) {
-                    background: var(--accent-blue);
-                    color: white;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                    transform: scale(1.02);
-                }
-                .radio-container label:not(:has(input:checked)):hover { background: rgba(255, 255, 255, 0.5); color: #334155; }
-                .red-alrt-bg { background: #e30707 !important; border: none !important; }
-                .white-text { color: #ffffff !important; font-weight: bold !important; }
-                .radio-container.red-alrt-bg label:has(input:checked) { background: rgba(255, 255, 255, 0.85) !important; color: black !important; }
-                .btn-full { width:100%; height:35px; font-size: 13px !important; }
-                .btn-new    { background: #0078d4 !important; color: #ffffff !important; }
-                .btn-ok     { background: #16a34a !important; color: #ffffff !important; }
-                .btn-czzt   { background: #4baaf3 !important; color: #000000 !important; }
-                .btn-orange { background: #f97316 !important; color: #ffffff !important; }
-                .btn-purple { background: #9333ea !important; color: #ffffff !important; }
-                .btn-rpr    { background: #b91c1c !important; color: #ffffff !important; }
-                .btn-danger { background: #dc2626 !important; color: #ffffff !important; }
-                .btn-info   { background: #0891b2 !important; color: #ffffff !important; }
-                .btn-dork   { background: #4b5563 !important; color: #ffffff !important; }
-                .btn-kord   { background: #be185d !important; color: #ffffff !important; }
-                .btn-lime   { background: #84cc16 !important; color: #000000 !important; }
-                .btn-amber  { background: #f59e0b !important; color: #000000 !important; }
-                .btn-indigo { background: #4f46e5 !important; color: #ffffff !important; }
-                .btn-teal   { background: #0d9488 !important; color: #ffffff !important; }
-                .btn-brown  { background: #c4760f !important; color: #ffffff !important; }
-                .btn-gold   { background: #eab308 !important; color: #000000 !important; }
-                .btn-dark   { background: #1f2937 !important; color: #ffffff !important; }
-                .btn-pork   { background: #b63fd6 !important; color: #ffffff !important; }
-                @keyframes blink { 0% { opacity: 1; filter: brightness(2); } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-                .blinlink { animation: blink 1s infinite;}
-                `;
+                        :root {
+                            --panel-bg: rgba(25, 25, 25, 0.85);
+                            --accent-blue: #0078d4;
+                            --accent-red: #5d0606;
+                            --transition-speed: 0.4s;
+                            --toggle-loc: 250px;
+                        }
+                        /*body {
+                            transition: margin-right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+                            margin-right: 260px !important;
+                        }
+                        body.panel-closed {
+                            margin-right: 0 !important;
+                        }*/
+                        #tm-panel {
+                            position: fixed; top: 0; right: 0; width: 250px; height: 100vh;
+                            background: var(--panel-bg);
+                            backdrop-filter: blur(${config.blur}) saturate(160%);
+                            -webkit-backdrop-filter: blur(${config.blur}) saturate(160%);
+                            color: #fff; z-index: ${Number(config.zIndex) + 1};
+                            display: flex; flex-direction: column;
+                            padding: 10px 10px; gap: 8px;
+                            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+                            border-left: 1px solid rgba(255, 255, 255, 0.1);
+                            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+                            overflow-y: auto;
+                            z-index: 1;
+                        }
+                        #tm-panel.closed { transform: translateX(calc(var(--toggle-loc) + 15px)); }
+                        /* Kapatma / Açma Butonu (Toggle) */
+                        #tm-toggle {
+                            position: fixed;
+                            right: calc(var(--toggle-loc) + 15px);
+                            top: 20px;
+                            width: 40px;
+                            height: 50px;
+                            background: var(--panel-bg);
+                            border: 1px solid rgba(255,255,255,0.1);
+                            border-right: none;
+                            border-radius: 8px 0 0 8px;
+                            cursor: pointer;
+                            color: #fff;
+                            z-index: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+                            backdrop-filter: blur(${config.blur});
+                            transition: right var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+                        }
+                        /* KAPANIRKEN */
+                        #tm-panel.closed + #tm-toggle {
+                            right: 0px;
+                        }
+                        .tm-section-title {
+                            font-size: 10px; text-transform: uppercase; color: #aaa;
+                            letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1);
+                            padding-bottom: 4px; margin-top: 4px;
+                        }
+                        /* 1: Giriş Alanları (Modern & Yüksek Kontrast) */
+                        .tm-input-group { display: flex; flex-direction: column; gap: 4px; }
+                        #tm-panel input {
+                            width: 100% !important;
+                            padding: 6px;
+                            border-radius: 8px;
+                            border: 1px solid #ccc;
+                            background: #ffffff;
+                            color: #333;
+                            outline: none;
+                            transition: all 0.2s ease-in-out;
+                            box-sizing: border-box;
+                            font-size: 12px;
+                            font-weight: 400;
+                            }
+                        #tm-panel input::placeholder { color: #999; }
+                        #tm-panel input:focus {
+                            background: #fff;
+                            border-color: var(--accent-blue);
+                            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+                            transform: translateY(-1px);
+                        }
+                        #tm-panel input[type="number"] { text-align: center; }
+                        .tm-button-grid {
+                            display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+                        }
+                        #tm-panel button {
+                            padding: 6px 8px; border-radius: 6px; border: none;
+                            cursor: pointer; font-size: 11px; font-weight: 600;
+                            color: #fff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                            display: flex; align-items: center; justify-content: center;
+                            text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                        }
+                        #tm-panel button:hover {
+                            transform: translateY(-2px);
+                            filter: brightness(1.1);
+                            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                        }
+                        #tm-panel button:active { transform: translateY(0); }
+                        .radio-container {
+                            display: flex;
+                            background: #e2e8f0;
+                            padding: 4px;
+                            border-radius: 10px;
+                            border: 0px solid #e2e8f0;
+                        }
+                        .radio-container label {
+                            flex: 1;
+                            text-align: center;
+                            padding: 2px 2px;
+                            border-radius: 7px;
+                            font-size: 11px;
+                            font-weight: 600;
+                            color: black;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            user-select: none;
+                        }
+                        .radio-container input { display: none; }
+                        .radio-container label:has(input:checked) {
+                            background: var(--accent-blue);
+                            color: white;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                            transform: scale(1.02);
+                        }
+                        .radio-container label:not(:has(input:checked)):hover { background: rgba(255, 255, 255, 0.5); color: #334155; }
+                        .red-alrt-bg { background: #e30707 !important; border: none !important; }
+                        .white-text { color: #ffffff !important; font-weight: bold !important; }
+                        .radio-container.red-alrt-bg label:has(input:checked) { background: rgba(255, 255, 255, 0.85) !important; color: black !important; }
+                        .btn-full { width:100%; height:35px; font-size: 13px !important; }
+                        .btn-new    { background: #0078d4 !important; color: #ffffff !important; }
+                        .btn-ok     { background: #16a34a !important; color: #ffffff !important; }
+                        .btn-czzt   { background: #4baaf3 !important; color: #000000 !important; }
+                        .btn-orange { background: #f97316 !important; color: #ffffff !important; }
+                        .btn-purple { background: #9333ea !important; color: #ffffff !important; }
+                        .btn-rpr    { background: #b91c1c !important; color: #ffffff !important; }
+                        .btn-danger { background: #dc2626 !important; color: #ffffff !important; }
+                        .btn-info   { background: #0891b2 !important; color: #ffffff !important; }
+                        .btn-dork   { background: #4b5563 !important; color: #ffffff !important; }
+                        .btn-kord   { background: #be185d !important; color: #ffffff !important; }
+                        .btn-lime   { background: #84cc16 !important; color: #000000 !important; }
+                        .btn-amber  { background: #f59e0b !important; color: #000000 !important; }
+                        .btn-indigo { background: #4f46e5 !important; color: #ffffff !important; }
+                        .btn-teal   { background: #0d9488 !important; color: #ffffff !important; }
+                        .btn-brown  { background: #c4760f !important; color: #ffffff !important; }
+                        .btn-gold   { background: #eab308 !important; color: #000000 !important; }
+                        .btn-dark   { background: #1f2937 !important; color: #ffffff !important; }
+                        .btn-pork   { background: #b63fd6 !important; color: #ffffff !important; }
+                        @keyframes blink { 0% { opacity: 1; filter: brightness(2); } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+                        .blinlink { animation: blink 1s infinite;}
+                        `;
                 document.head.appendChild(style);
                 /* ===== 2. PANEL HTML ===== */
                 const isClosed = localStorage.getItem('tm_panel_closed') === 'true';
                 if (isClosed) document.body.classList.add("panel-closed");
                 const panel = document.createElement("div"); panel.id = "tm-panel"; if (isClosed) panel.classList.add("closed");
                 panel.innerHTML = `
-                <div class="ks-tooltip-container">
-                    <button id="bYeni" class="btn-new btn-full">YENİ KAYIT</button>
-                    <div class="ks-tooltip-box">
-                        <strong>Kayıt</strong><br>
-                        Yeni manuel parça girişi için tıklanması zorunludur.
-                    </div>
-                </div>
-                <div class="tm-section-title">PARÇA BİLGİLERİ</div>
-                <div class="tm-input-group">
-                    <input id="tm_kod" placeholder="Parça Kodu">
-                    <input id="tm_ad" placeholder="Parça Adı">
-                    <div style="display:flex; gap:8px;">
-                        <input id="tm_fiyat" type="number" placeholder="Fiyat" step="0.01">
-                        <input id="tm_adet" type="number" placeholder="Adet" value="1" style="width:70px !important;">
-                    </div>
-                </div>
-                <div class="tm-section-title">İŞLEM TİPİ</div>
-                <div class="ks-tooltip-container">
-                    <div class="radio-container">
-                        <label><input type="radio" name="islemTipi" value="degisim" checked> DEĞİŞİM</label>
-                        <label><input type="radio" name="islemTipi" value="onarim" disabled> ONARIM</label>
-                    </div>
-                    <div class="ks-tooltip-box"><strong>Bilgilendirme</strong><br>Onarım bölümü geçici olarak kapalıdır.</div>
-                </div>
-                <div class="ks-tooltip-container">
-                    <div class="radio-container">
-                        <label> <input type="radio" name="kod_secim" value="kodsuz" checked> KODSUZ </label>
-                        <label> <input type="radio" name="kod_secim" value="esdeger"> EŞDEĞER </label>
-                        <label> <input type="radio" name="kod_secim" value="bos"> BOŞ </label>
-                    </div>
-                    <div class="ks-tooltip-box"><strong>Parça Türü</strong><br>Seçim türüne göre otomatik doldurur.</div>
-                </div>
-                <div class="ks-tooltip-container">
-                    <div class="radio-container red-alrt-bg">
-                        <label class="white-text"> <input type="radio" name="kayit_secim" value="kayit" checked> OTOM. KAYDET </label>
-                        <label class="white-text"> <input type="radio" name="kayit_secim" value="nonkayit"> KAYDETME </label>
-                    </div>
-                    <div class="ks-tooltip-box"><strong>Otomatik Kayıt</strong><br>Parçayı kaydetmeye çalışır, <b>10</b> defa dener.
-                        Sorunsuz kayıt işlerken "<b>UYARI Bu Kodlu Parça Bu Dosyaya Zaten Eklenmiş..</b>" şeklinde uyarı alacaksınız
-                        <b>Enter</b>'tuşuna basarak devam edin.</div>
-                </div>
-                <div class="tm-section-title">GİRİŞ TÜRÜ</div>
-                <div class="ks-tooltip-container">
-                    <div class="tm-button-grid">
-                        <button id="b_kpon" class="btn-ok">KAPORTA ÖN</button>
-                        <button id="b_kpar" class="btn-ok">KAPORTA ARKA</button>
-                        <button id="b_kpyn" class="btn-ok">KAPORTA YAN</button>
-                        <button id="b_kptv" class="btn-ok">KAPORTA TAVAN</button>
-                        <button id="b_mek" class="btn-purple">MEKANİK</button>
-                        <button id="b_elk" class="btn-czzt">ELEKTRİK</button>
-                        <button id="b_cam" class="btn-indigo">CAM</button>
-                        <button id="b_doseme" class="btn-gold">DÖŞEME KİLİT</button>
-                        <button id="b_aks" class="btn-brown">AKSESUAR</button>
-                        <button id="b_diger" class="btn-kord">DİĞER</button>
-                        <button id="b_mot" class="btn-orange">MOTORSİKLET</button>
-                        <button id="b_dorse" class="btn-teal">DORSE</button>
-                    </div>
-                    <div style="padding-top:3px; display: grid; grid-template-columns: repeat(3, 2fr); gap: 3px; width: 100%;">
-                        <button id="b_lastık" class="btn-dork">LASTİK</button>
-                        <button id="b_civata" class="btn-dork">CİVATA</button>
-                        <button id="b_conta" class="btn-dork">CONTA</button>
-                        <button id="b_klips" class="btn-dork">KLİPS</button>
-                        <button id="b_amblem" class="btn-dork">AMBLEM</button>
-                        <button id="b_braket" class="btn-dork">BRAKET</button>
-                    </div>
-                    <div class="ks-tooltip-box">
-                        <strong>Otomatik Giriş</strong><br>
-                        Butonlar kategori listelerinden otomatik seçip hızlı giriş yapar. Eğer parça bilgileri (kod, ad, fiyat) bölümü
-                        boş olursa sadece kategori seçer.
-                    </div>
-                </div>
-                <div class="tm-section-title">DİĞER İŞLEMLER</div>
-                <div class="tm-button-grid">
-                    <button id="b_gnlonar" class="btn-rpr">GENEL ONARIM</button>
-                    <button id="b_donyan" class="btn-brown">EŞDEĞERE ÇEVİR</button>
-                </div>
-                <div class="ks-tooltip-container">
-                    <div class="tm-button-grid">
-                        <button id="b_isc_kaporta" class="btn-pork">KAPORTA İŞÇ.</button>
-                        <button id="b_isc_boya" class="btn-pork">BOYA İŞÇ.</button>
-                        <button id="b_isc_mekanik" class="btn-pork">MEKANİK İŞÇ.</button>
-                        <button id="b_isc_elektrik" class="btn-pork">ELEKTRİK İŞÇ.</button>
-                        <button id="b_isc_doseme" class="btn-pork">DÖŞEME TRİM İŞÇ.</button>
-                        <div class="ks-tooltip-box">
-                            <strong>Otomatik Giriş</strong><br>
-                            Genel işçiliklerin parça şeklinde bölünmüş halleridir. Kaydetme gereklidir ve otomatiğe uygun değildir.
+                        <div class="ks-tooltip-container">
+                            <button id="bYeni" class="btn-new btn-full">YENİ KAYIT</button>
+                            <div class="ks-tooltip-box">
+                                <strong>Kayıt</strong><br>
+                                Yeni manuel parça girişi için tıklanması zorunludur.
+                            </div>
                         </div>
-                    </div>
-                </div>
-                `;
+                        <div class="tm-section-title">PARÇA BİLGİLERİ</div>
+                        <div class="tm-input-group">
+                            <input id="tm_kod" placeholder="Parça Kodu">
+                            <input id="tm_ad" placeholder="Parça Adı">
+                            <div style="display:flex; gap:8px;">
+                                <input id="tm_fiyat" type="number" placeholder="Fiyat" step="0.01">
+                                <input id="tm_adet" type="number" placeholder="Adet" value="1" style="width:70px !important;">
+                            </div>
+                        </div>
+                        <div class="tm-section-title">İŞLEM TİPİ</div>
+                        <div class="ks-tooltip-container">
+                            <div class="radio-container">
+                                <label><input type="radio" name="islemTipi" value="degisim" checked> DEĞİŞİM</label>
+                                <label><input type="radio" name="islemTipi" value="onarim" disabled> ONARIM</label>
+                            </div>
+                            <div class="ks-tooltip-box"><strong>Bilgilendirme</strong><br>Onarım bölümü geçici olarak kapalıdır.</div>
+                        </div>
+                        <div class="ks-tooltip-container">
+                            <div class="radio-container">
+                                <label> <input type="radio" name="kod_secim" value="kodsuz" checked> KODSUZ </label>
+                                <label> <input type="radio" name="kod_secim" value="esdeger"> EŞDEĞER </label>
+                                <label> <input type="radio" name="kod_secim" value="bos"> BOŞ </label>
+                            </div>
+                            <div class="ks-tooltip-box"><strong>Parça Türü</strong><br>Seçim türüne göre otomatik doldurur.</div>
+                        </div>
+                        <div class="ks-tooltip-container">
+                            <div class="radio-container red-alrt-bg">
+                                <label class="white-text"> <input type="radio" name="kayit_secim" value="kayit" checked> OTOM. KAYDET </label>
+                                <label class="white-text"> <input type="radio" name="kayit_secim" value="nonkayit"> KAYDETME </label>
+                            </div>
+                            <div class="ks-tooltip-box"><strong>Otomatik Kayıt</strong><br>Parçayı kaydetmeye çalışır, <b>10</b> defa dener.
+                                Sorunsuz kayıt işlerken "<b>UYARI Bu Kodlu Parça Bu Dosyaya Zaten Eklenmiş..</b>" şeklinde uyarı alacaksınız
+                                <b>Enter</b>'tuşuna basarak devam edin.</div>
+                        </div>
+                        <div class="tm-section-title">GİRİŞ TÜRÜ</div>
+                        <div class="ks-tooltip-container">
+                            <div class="tm-button-grid">
+                                <button id="b_kpon" class="btn-ok">KAPORTA ÖN</button>
+                                <button id="b_kpar" class="btn-ok">KAPORTA ARKA</button>
+                                <button id="b_kpyn" class="btn-ok">KAPORTA YAN</button>
+                                <button id="b_kptv" class="btn-ok">KAPORTA TAVAN</button>
+                                <button id="b_mek" class="btn-purple">MEKANİK</button>
+                                <button id="b_elk" class="btn-czzt">ELEKTRİK</button>
+                                <button id="b_cam" class="btn-indigo">CAM</button>
+                                <button id="b_doseme" class="btn-gold">DÖŞEME KİLİT</button>
+                                <button id="b_aks" class="btn-brown">AKSESUAR</button>
+                                <button id="b_diger" class="btn-kord">DİĞER</button>
+                                <button id="b_mot" class="btn-orange">MOTORSİKLET</button>
+                                <button id="b_dorse" class="btn-teal">DORSE</button>
+                            </div>
+                            <div style="padding-top:3px; display: grid; grid-template-columns: repeat(3, 2fr); gap: 3px; width: 100%;">
+                                <button id="b_lastık" class="btn-dork">LASTİK</button>
+                                <button id="b_civata" class="btn-dork">CİVATA</button>
+                                <button id="b_conta" class="btn-dork">CONTA</button>
+                                <button id="b_klips" class="btn-dork">KLİPS</button>
+                                <button id="b_amblem" class="btn-dork">AMBLEM</button>
+                                <button id="b_braket" class="btn-dork">BRAKET</button>
+                            </div>
+                            <div class="ks-tooltip-box">
+                                <strong>Otomatik Giriş</strong><br>
+                                Butonlar kategori listelerinden otomatik seçip hızlı giriş yapar. Eğer parça bilgileri (kod, ad, fiyat) bölümü
+                                boş olursa sadece kategori seçer.
+                            </div>
+                        </div>
+                        <div class="tm-section-title">DİĞER İŞLEMLER</div>
+                        <div class="tm-button-grid">
+                            <button id="b_gnlonar" class="btn-rpr">GENEL ONARIM</button>
+                            <button id="b_donyan" class="btn-brown">EŞDEĞERE ÇEVİR</button>
+                        </div>
+                        <div class="ks-tooltip-container">
+                            <div class="tm-button-grid">
+                                <button id="b_isc_kaporta" class="btn-pork">KAPORTA İŞÇ.</button>
+                                <button id="b_isc_boya" class="btn-pork">BOYA İŞÇ.</button>
+                                <button id="b_isc_mekanik" class="btn-pork">MEKANİK İŞÇ.</button>
+                                <button id="b_isc_elektrik" class="btn-pork">ELEKTRİK İŞÇ.</button>
+                                <button id="b_isc_doseme" class="btn-pork">DÖŞEME TRİM İŞÇ.</button>
+                                <div class="ks-tooltip-box">
+                                    <strong>Otomatik Giriş</strong><br>
+                                    Genel işçiliklerin parça şeklinde bölünmüş halleridir. Kaydetme gereklidir ve otomatiğe uygun değildir.
+                                </div>
+                            </div>
+                        </div>
+                        `;
                 const toggleBtn = document.createElement("div"); toggleBtn.id = "tm-toggle"; toggleBtn.innerHTML = isClosed ? "◀" : "▶"; document.body.appendChild(panel); document.body.appendChild(toggleBtn);
                 // ── BURAYA TAŞI ──
                 const PANEL_W = 260;
@@ -4409,7 +4453,7 @@
                     Object.entries(mapping).forEach(([id, val]) => { const el = $(id); if (el) el.value = val; });
                     const win = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
                     const oldAlert = win.alert;
-                    win.alert = () => {};
+                    win.alert = () => { };
                     try {
                         await Promise.all([selectValue("GRUP_ID", grupId), selectValue("ANA_GRUP", anaGrupId)]);
                         await selectValue("SISTEM_NOTU_ID", "1");
@@ -4442,12 +4486,14 @@
                 $("b_dorse").onclick = async () => { await MainFields(); await SideFields("31", "556"); };
                 $("b_diger").onclick = async () => { await MainFields(); await SideFields("6", ""); };
                 //---------------------------
-                $("b_gnlonar").onclick = async () => { const fiyat = refs.fiyat.value.replace(",", ".");
+                $("b_gnlonar").onclick = async () => {
+                    const fiyat = refs.fiyat.value.replace(",", ".");
                     if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat; if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
                     await selectValue("GRUP_ID", "6"); await selectValue("ANA_GRUP", "495");
                     submitForm();
                 };
-                $("b_donyan").onclick = async () => { const fiyat = refs.fiyat.value.replace(",", ".");
+                $("b_donyan").onclick = async () => {
+                    const fiyat = refs.fiyat.value.replace(",", ".");
                     if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat; if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
                     if (document.getElementById("SISTEM_NOTU_ID")?.value == "-1") await selectValue("SISTEM_NOTU_ID", "11");
                     submitForm();
@@ -6434,12 +6480,14 @@
             const takeScreenshot = async () => {
                 const btn = document.getElementById('sbm-ss-btn');
                 const myP = document.getElementById('tramer-panel');
+        const ksGlobal = document.getElementById('ks-global-status-indicator');
+
                 if (!btn) return;
                 window.scrollTo({ top: 0, behavior: 'instant' });
                 await new Promise(r => setTimeout(r, 100));
+        btn.disabled = true;
                 btn.style.display = 'none';
                 if (myP) myP.style.display = 'none';
-                const ksGlobal = document.getElementById('ks-global-status-indicator');
                 if (ksGlobal) ksGlobal.style.display = 'none';
                 try {
                     const scrollHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, document.documentElement.offsetHeight);
@@ -6449,8 +6497,16 @@
                         allowTaint: true, backgroundColor: "#ffffff", scale: 1, logging: false,
                         windowHeight: scrollHeight,
                         onclone: (clonedDoc) => {
-                            clonedDoc.querySelectorAll('#pj-panel, #pj-panel *').forEach(el => { el.style.background = '#333'; el.style.backgroundColor = '#333'; el.style.color = '#fff'; el.style.boxShadow = 'none'; el.style.borderColor = '#555'; });
-                            clonedDoc.body.style.cssText = "background:#fff;height:auto;overflow:visible;";
+                            clonedDoc.querySelectorAll('#pj-panel, #pj-panel *').forEach(el => {
+                                el.style.background = '#333'; el.style.backgroundColor = '#333'; el.style.color = '#fff'; el.style.boxShadow = 'none'; el.style.borderColor = '#555';
+                            });
+                            clonedDoc.body.style.cssText = "background:#fff; height:auto; overflow:visible; width:max-content !important;";
+                            clonedDoc.querySelectorAll('table, .ui-jqgrid, .ui-jqgrid-view, .ui-jqgrid-bdiv, .fieldset-body, form, div').forEach(el => {
+                                el.style.width = 'auto';
+                                el.style.maxWidth = 'none';
+                                el.style.overflow = 'visible';
+                            });
+                            // ---------------------------
                             const removeSelectors = ['.polite__alert', '#ks-global-status-indicator', '.cc-window', '#sbm-ss-btn', '#tramer-panel', '.ui-draggable-handle', ...(isKTTList ? ['.dropdown--user', '#menuArama'] : [])].join(',');
                             clonedDoc.querySelectorAll(removeSelectors).forEach(e => e.remove());
                         }
@@ -6495,14 +6551,19 @@
                     link.href = canvas.toDataURL('image/jpeg', 0.65);
                     link.download = `${name.replace(/\s+/g, '_')}.jpg`;
                     link.click();
-                } catch (err) {
-                    if (KS_DEBUG) console.error("SS Hatası:", err);
-                } finally {
-                    btn.style.display = 'block';
-                    if (myP) myP.style.display = 'block';
-                    const ksGlobal = document.getElementById('ks-global-status-indicator');
-                    if (ksGlobal) ksGlobal.style.display = 'block';
-                }
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            // --- KRİTİK DÜZELTME ---
+            // İşlem bitince (veya hata verince) butonları ve panelleri güvenle geri getiriyoruz.
+            if (btn) {
+                btn.style.display = 'block';
+                btn.disabled = false;
+            }
+            if (myP) myP.style.display = 'block';
+            if (ksGlobal) ksGlobal.style.display = 'block';
+        }
             };
             const initSsBtn = () => {
                 if (document.getElementById('sbm-ss-btn')) return;
@@ -6524,10 +6585,7 @@
                 btn.onclick = takeScreenshot;
                 document.body.appendChild(btn);
             };
-            if (isSonuc || isDetay) {
-                setTimeout(initSsBtn, 100);
-                setInterval(initSsBtn, 1000);
-            }
+            if (isSonuc || isDetay) { setTimeout(initSsBtn, 100); setInterval(initSsBtn, 1000); }
             if (isListView) {
                 const checkKTT = () => {
                     const mainTitle = document.querySelector('.main-title');
@@ -6581,7 +6639,7 @@
                 const rows = Array.from(document.querySelectorAll('table tbody tr:not(.nativeAd), tr:not(.searchResultsPromoToplist)'))
                     .map(r => ({ f: parseFloat(r.cells[fIdx]?.innerText.replace(/[^\d]/g, '') || 0), k: parseInt(r.cells[kIdx]?.innerText.replace(/[^\d]/g, '') || 0, 10), y: parseInt(r.cells[yIdx]?.innerText.trim() || 0, 10) }))
                     .filter(x => x.f > 1000)
-                    .sort((a, b) => a.f - b.f);
+					.sort((a, b) => a.f - b.f);
                 if (!rows.length) return;
                 const cState = `${rows.length}-${rows[0].f}`;
                 if (lastState === cState) return;
