@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.82
+// @version      1.83
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -1734,7 +1734,7 @@
                 </div>
                 <!-- Sonuçlar -->
         		<div class="pj-dl-all-wrap" id="jpg-dlwrap" style="display: none; gap: 8px; margin-bottom: 10px;">
-        		     <button class="pj-btn pj-btn-gray" id="jpg-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>⬇ Tümünü ZIP İndir</span></button>
+        		     <button class="pj-btn pj-btn-red" id="jpg-dlall" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>⬇ Tümünü ZIP İndir</span></button>
         		     <button class="pj-btn pj-btn-gray" id="jpg-clear-results" style="flex: 1; padding: 8px 4px; white-space: nowrap;"><span>Listeyi Temizle</span></button>
         		</div>
         		 <div class="pj-results" id="jpg-results"></div>
@@ -4588,6 +4588,224 @@
             }
             setTimeout(patchAdet, 300); setInterval(patchAdet, 1000);
         }
+		if (MANUEL && loc("otohasar") && loc("eks_hasar_yedpar_yeni_liste.php")) {
+			if (KS_DEBUG) console.log('[GRUP-EKLE] Script yüklendi. URL:', location.href, 'iframe mi?', window !== window.top);
+            const CONCURRENCY = 3;
+			const CACHE_KEY_PREFIX = 'grup_cache_v1_';
+            const CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 90 gün (istersen değiştir)
+
+            function getCachedInfo(id) {
+                try {
+                    const raw = localStorage.getItem(CACHE_KEY_PREFIX + id);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    if (Date.now() - parsed.t > CACHE_MAX_AGE_MS) return null; // süresi dolmuş
+                    return parsed.data;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function setCachedInfo(id, data) {
+                try {
+                    localStorage.setItem(CACHE_KEY_PREFIX + id, JSON.stringify({ t: Date.now(), data }));
+                } catch (e) {
+                    console.warn('[GRUP-EKLE] localStorage yazılamadı (dolu olabilir):', e);
+                }
+            }
+
+            const cache = {}; // bellek içi (aynı sayfa yüklemesinde tekrar fetch atmasın diye)
+            function colorForGroup(name) {
+                if (!name) return '#f5f5f5';
+                let hash = 0;
+                for (let i = 0; i < name.length; i++) {
+                    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const hue = Math.abs(hash) % 360;
+                return `hsl(${hue}, 65%, 88%)`;
+            }
+            function findRows() {
+                let rows = Array.from(document.querySelectorAll('tr[id^="TR"][name="TR"]'));
+                if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem1 (tr[id^=TR][name=TR]):', rows.length, 'satır bulundu');
+                if (rows.length === 0) {
+                    const checkboxes = document.querySelectorAll('input[name="DID[]"]');
+                    if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem2 - checkbox sayısı:', checkboxes.length);
+                    rows = Array.from(checkboxes).map(chk => chk.closest('tr')).filter(Boolean);
+                    if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem2 (checkbox->closest tr):', rows.length, 'satır bulundu');
+                }
+                return rows;
+            }
+            function getPartIdFromRow(tr) {
+                const chk = tr.querySelector('input[name="DID[]"]');
+                return chk ? chk.value : null;
+            }
+            function getRefUrlFromRow(tr) {
+                const a = tr.querySelector('a[target="_parent"]');
+                return a ? a.href : null;
+            }
+            function extractGroupsFromHtml(htmlText) {
+                const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+                const grupSel = doc.querySelector('#GRUP_ID');
+                const altGrupSel = doc.querySelector('#ANA_GRUP');
+                const veritabaninda = doc.querySelector('#VERITABANINDA');
+                if (grupSel || altGrupSel) {
+                    const grup = grupSel && grupSel.selectedOptions[0] ? grupSel.selectedOptions[0].text.trim() : '';
+                    const altGrup = altGrupSel && altGrupSel.selectedOptions[0] ? altGrupSel.selectedOptions[0].text.trim() : '';
+                    const vtValue = veritabaninda ? veritabaninda.value : null;
+                    if (KS_DEBUG) console.log('[GRUP-EKLE] VERITABANINDA elementi:', veritabaninda, 'değeri:', vtValue, 'tag:', veritabaninda ? veritabaninda.tagName : 'YOK');
+                    return { grup, altGrup, kaynak: vtValue };
+                }
+                return null;
+            }
+            function findInnerFrameUrls(doc, baseUrl) {
+                const frames = Array.from(doc.querySelectorAll('frame, iframe'));
+                return frames.map(f => f.getAttribute('src')).filter(Boolean).map(src => new URL(src, baseUrl).href);
+            }
+            function addCellsToRows(rows) {
+                rows.forEach(tr => {
+                    if (!tr.querySelector('.tm-grup-cell')) {
+                        const td = document.createElement('td');
+                        td.className = 'text tm-grup-cell';
+                        td.align = 'center';
+                        td.style.padding = '2px 4px';
+                        td.style.lineHeight = '1.15';
+                        td.style.maxWidth = '90px';
+                        td.style.width = '90px';
+                        td.textContent = '...';
+                        tr.appendChild(td);
+                    }
+                });
+            }
+            async function fetchGroupInfo(id, refUrl) {
+                if (cache[id]) return cache[id];
+                const persisted = getCachedInfo(id);
+                if (persisted) {
+                    cache[id] = persisted;
+                    return persisted;
+                }
+                try {
+                    const res = await fetch(refUrl, { credentials: 'include' });
+                    const buffer = await res.arrayBuffer();
+                    const html = new TextDecoder('iso-8859-9').decode(buffer);
+                    let result = extractGroupsFromHtml(html);
+                    if (!result) {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const innerUrls = findInnerFrameUrls(doc, refUrl);
+                        if (KS_DEBUG) console.log('[GRUP-EKLE] id=' + id + ' doğrudan select bulunamadı, iç frame sayısı:', innerUrls.length, innerUrls);
+                        for (const innerUrl of innerUrls) {
+                            const res2 = await fetch(innerUrl, { credentials: 'include' });
+                            const html2 = await res2.text();
+                            result = extractGroupsFromHtml(html2);
+                            if (result) { if (KS_DEBUG) console.log('[GRUP-EKLE] id=' + id + ' iç frame\'de bulundu:', innerUrl); break; }
+                        }
+                    }
+                    cache[id] = result || { grup: '?', altGrup: '?' };
+                    if (result && result.kaynak === '1') { setCachedInfo(id, cache[id]); }
+                    if (!result) if (KS_DEBUG) console.warn('[GRUP-EKLE] id=' + id + ' hiçbir yerde GRUP_ID/ANA_GRUP bulunamadı. refUrl:', refUrl);
+                } catch (e) {
+                    if (KS_DEBUG) console.error('[GRUP-EKLE] fetch hatası id=' + id, e);
+                    cache[id] = { grup: 'HATA', altGrup: '' };
+                }
+                return cache[id];
+            }
+            function addHeaderColumn() {
+                const headerRow = document.querySelector('tr[bgcolor="#79C4D8"]');
+                if (KS_DEBUG) console.log('[GRUP-EKLE] Header satırı bulundu mu?', !!headerRow);
+                if (headerRow && !headerRow.querySelector('.tm-grup-header')) {
+                    const th = document.createElement('td');
+                    th.className = 'baslik tm-grup-header';
+                    th.align = 'center';
+                    th.innerHTML = '<b>Grup</b>';
+                    headerRow.appendChild(th);
+                }
+            }
+            function parseCellValue(text) {
+                const cleaned = text.trim();
+                const numMatch = cleaned.replace(/\./g, '').replace(',', '.').match(/^-?\d+(\.\d+)?$/);
+                if (numMatch) return { isNumber: true, value: parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) };
+                return { isNumber: false, value: cleaned.toLocaleUpperCase('tr-TR') };
+            }
+            function addSortingToHeaders() {
+                const headerRow = document.querySelector('tr[bgcolor="#79C4D8"]');
+                if (!headerRow) return;
+                const headerCells = Array.from(headerRow.children);
+                const sortState = { colIndex: null, asc: true };
+                headerCells.forEach((th, colIndex) => {
+                    const text = th.textContent.trim();
+                    if (!text || text === 'Seç') return;
+                    th.style.cursor = 'pointer';
+                    th.style.userSelect = 'none';
+                    if (!th.dataset.sortLabel) { th.dataset.sortLabel = th.innerHTML; }
+                    th.addEventListener('click', () => {
+                        const table = headerRow.closest('table');
+                        if (!table) return;
+                        const rows = Array.from(table.querySelectorAll('tr[name="TR"]'));
+                        if (rows.length === 0) return;
+                        const asc = sortState.colIndex === colIndex ? !sortState.asc : true;
+                        sortState.colIndex = colIndex;
+                        sortState.asc = asc;
+                        headerCells.forEach(h => { if (h.dataset.sortLabel) h.innerHTML = h.dataset.sortLabel; });
+                        th.innerHTML = th.dataset.sortLabel + (asc ? ' ▲' : ' ▼');
+                        const getCellText = (row) => { const cell = row.children[colIndex]; return cell ? cell.textContent : ''; };
+                        rows.sort((a, b) => {
+                            const pa = parseCellValue(getCellText(a));
+                            const pb = parseCellValue(getCellText(b));
+                            let cmp;
+                            if (pa.isNumber && pb.isNumber) { cmp = pa.value - pb.value; } else { cmp = String(pa.value).localeCompare(String(pb.value), 'tr'); }
+                            return asc ? cmp : -cmp;
+                        });
+                        const frag = document.createDocumentFragment();
+                        rows.forEach(row => frag.appendChild(row));
+                        headerRow.parentNode.insertBefore(frag, headerRow.nextSibling);
+                    });
+                });
+            }
+            async function processInBatches(items, worker, concurrency) {
+                let index = 0;
+                async function next() {
+                    if (index >= items.length) return;
+                    const item = items[index++];
+                    await worker(item);
+                    await next();
+                }
+                await Promise.all(Array.from({ length: concurrency }, next));
+            }
+            async function run() {
+                if (KS_DEBUG) console.log('[GRUP-EKLE] run() çalıştı');
+                const rows = findRows();
+                if (rows.length === 0) {
+                    if (KS_DEBUG) console.warn('[GRUP-EKLE] HİÇ SATIR BULUNAMADI - tablo bu sayfada değil ya da farklı yapıda.');
+                    return;
+                }
+                addHeaderColumn();
+                addCellsToRows(rows);
+                const items = rows.map(tr => ({ tr, id: getPartIdFromRow(tr), refUrl: getRefUrlFromRow(tr) })).filter(it => it.id && it.refUrl);
+                if (KS_DEBUG) console.log('[GRUP-EKLE] İşlenecek satır sayısı (id+refUrl olan):', items.length, '/ toplam:', rows.length);
+                await processInBatches(items, async (item) => {
+                    const info = await fetchGroupInfo(item.id, item.refUrl);
+                    const cell = item.tr.querySelector('.tm-grup-cell');
+                    if (cell) {
+                        const fullText = info.altGrup ? `${info.grup} - ${info.altGrup}` : info.grup;
+                        const isKatalog = info.kaynak === '1';
+                        const dotColor = isKatalog ? '#2ecc71' : '#e67e22'; // yeşil / turuncu
+                        const kaynakText = isKatalog ? 'Katalog' : 'Manuel';
+                        cell.innerHTML = `
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="display:block;width:10px;height:6px;border-radius:50%;background:${dotColor};"></span>
+                                <b style="display:block;font-size:9px;line-height:1.2;">${info.grup}</b>
+                            </div>
+                        `;
+                        cell.title = `${fullText} (${kaynakText})`;
+                        cell.style.backgroundColor = colorForGroup(info.grup);
+                        cell.style.padding = '2px 4px';
+                        cell.style.verticalAlign = 'middle';
+                    }
+                }, CONCURRENCY);
+                addSortingToHeaders();
+                if (KS_DEBUG) console.log('[GRUP-EKLE] Tamamlandı.');
+            }
+            if (document.readyState === 'complete') { run(); } else { window.addEventListener('load', run); }
+		}
         // Hızlı Çoklu Parça girişi
         if (MANUEL && loc("otohasar") && loc("eks_hasar_yedpar_multi.php") && !loc("eks_hasar_yedpar_multi_form.php")) {
             config.width = '180px';
