@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.85
+// @version      1.86
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -47,7 +47,7 @@
 		---
         MÜMKÜN DEĞİL JS BLOKLAYIP BOZUYOR ~ PİYASA ARAŞTIRMASI YAPIP GELEN EN UYGUN SONUÇLARIN 3 TANESİNİN RESMİNİ ALAN KOD
     */
-    const url = location.href.toLowerCase(), KS_DEBUG = false;
+    const url = location.href.toLowerCase(), KS_DEBUG = true;
     let loc = (adros) => location.href.includes(adros);
     const hedefSiteler = /otohasar|sahibinden|sigorta|anadolusigorta|akcozum2|sbm|whatsapp/;
     const blockedGroups = ["report", "yazdir", "print", "rapor", "ihbar", "kayit", "signin", "sign-in", "sign_in", "sign", "dilekce", "fatura", "makbuz", "dekont", "invoice", "receipt", "barcode", "bar-code", "kimlik"];
@@ -63,6 +63,22 @@
         'otohasar.ray': '#ed1c24', 'otohasar.unico': '#e30613', 'otohasar.doga': '#009640', 'otohasar.allianz': '#164481'
     };
     const matchedKey = Object.keys(themes).find(key => url.includes(key)); if (matchedKey) config.themeColor = themes[matchedKey];
+	/* ══════════════════════════════════════════════════
+       KONSOL LOG KAYDI YARDIMCISI
+    ══════════════════════════════════════════════════ */
+	function kslog(tit, ...args) {
+	    if (!GM_getValue('ks_debug', false)) return;
+	    const saat = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+	    console.log(`%c[KSTOOLS] %c[${tit}] %c[${saat}] :`, 'color:#e67e22;font-weight:bold', 'color:#2980b9;font-weight:bold', 'color:#999', ...args);
+	}
+	GM_registerMenuCommand(
+	    GM_getValue('ks_debug', false) ? "🐞 Debug Kapat" : "🐞 Debug Aç",
+	    () => {
+	        GM_setValue('ks_debug', !GM_getValue('ks_debug', false));
+	        alert("Debug modu: " + (GM_getValue('ks_debug', false) ? "AÇIK" : "KAPALI") + " (sayfa yenileniyor)");
+	        window.location.reload();
+	    }
+	);
     /* ══════════════════════════════════════════════════
        HASAR ANALİZ — SEDAN ŞEMALİ VERSİYON v1.0
     ══════════════════════════════════════════════════ */
@@ -792,7 +808,7 @@
             el.dataset.wOrigStyle = el.getAttribute('style') || '';
             el.classList.add('ks-unlocked');
             Object.entries(STYLE_PROPS).forEach(([p, v]) => el.style.setProperty(p, v, 'important'));
-        } catch (err) { if (KS_DEBUG) console.warn('[unlockElement] hata:', err, el); }
+        } catch (err) { kslog("UNLOCK",(err, el)); }
     }
     function lockElement(el) {
         if (isExcluded(el)) return;
@@ -804,7 +820,7 @@
             if (orig !== undefined) { el.setAttribute('style', orig); delete el.dataset.wOrigStyle; }
             else { Object.keys(STYLE_PROPS).forEach(p => el.style.removeProperty(p)); }
             el.classList.remove('ks-unlocked');
-        } catch (err) { if (KS_DEBUG) console.warn('[lockElement] hata:', err, el); }
+        } catch (err) { kslog("UNLOCK",(err, el)); }
     }
     function collectElements(root = document) {
         let els = [...root.querySelectorAll(SELECTOR)];
@@ -828,7 +844,7 @@
     }
     function stopObserver() { _observer?.disconnect(); _observer = null; }
     const unlockAllElements = (s) => {
-        const els = collectElements(); els.forEach(s ? unlockElement : lockElement); s ? startObserver() : stopObserver(); window._ksUnlocked = s; if (KS_DEBUG) console.info(`[unlockAllElements] ${s ? 'Unlocked' : 'Locked'} — ${els.length} eleman`);
+        const els = collectElements(); els.forEach(s ? unlockElement : lockElement); s ? startObserver() : stopObserver(); window._ksUnlocked = s; kslog("UNLOCK",(`${s ? 'Unlocked' : 'Locked'} — ${els.length} eleman`));
     };
     Object.defineProperty(window, 'isUnlocked', { get: () => window._ksUnlocked ?? false, set: (v) => unlockAllElements(!!v), configurable: true, });
     /* ══════════════════════════════════════════════════════
@@ -2204,7 +2220,6 @@
                     document.getElementById('ks-version-link').onclick = (e) => { e.stopPropagation(); window.open(GM_info.script.updateURL, '_blank'); };
                     document.getElementById('ks-theme-btn').onclick = (e) => { e.stopPropagation(); window.open('https://github.com/kstool/KsTools/raw/refs/heads/main/Ks_Tools_Ocean.user.js', '_blank'); };
                     document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); openSettingsModal(); };
-                    //document.getElementById('ks-settings-btn').onclick = (e) => { e.stopPropagation(); if (KS_DEBUG) console.log('ayarlar tıklandı, target:', e.target); openSettingsModal(); };
                 };
 
                 kstatus.onmouseleave = () => {
@@ -2520,8 +2535,7 @@
                     }
                 }
                 if (magdurUrl) {
-                    if (KS_DEBUG) console.log("[OtoHasar] Doğru mağdur linki tablodan söküldü:", magdurUrl);
-                    if (KS_DEBUG) console.log("[OtoHasar] Gizli tünel (Iframe) doğru adrese oluşturuluyor...");
+					kslog("OTOHASAR",("Doğru mağdur linki tablodan söküldü:", magdurUrl));
                     const secretIframe = document.createElement('iframe');
                     secretIframe.src = magdurUrl; secretIframe.style.display = 'none'; secretIframe.style.width = '0'; secretIframe.style.height = '0';
                     secretIframe.onload = function () {
@@ -2546,13 +2560,13 @@
                                     } else { window.MAGDUR_DATA[key] = null; }
                                 }
                                 window.MAGDUR_DATA.isLoaded = true;
-                                if (KS_DEBUG) console.log("%c[OtoHasar] Gizli tünelden mağdur verileri başarıyla çekildi! ✅", "color: #00d4ff; font-weight: bold;");
-                                if (KS_DEBUG) console.table(window.MAGDUR_DATA);
-                            } catch (err) { if (KS_DEBUG) console.error("[OtoHasar Iframe Hatası]:", err); } finally { secretIframe.remove(); }
+                                kslog("OTOHASAR",("%c Gizli tünelden mağdur verileri başarıyla çekildi! ✅", "color: #00d4ff; font-weight: bold;"));
+                                kslog("OTOHASAR",(window.MAGDUR_DATA));
+                            } catch (err) { kslog("OTOHASAR",("Iframe Hatası: ", err)); } finally { secretIframe.remove(); }
                         }, 1500);
                     };
                     document.body.appendChild(secretIframe);
-                } else { if (KS_DEBUG) console.error("[OtoHasar Error] Tablo içerisinde mağdur sayfasına ait dinamik link bulunamadı!"); }
+                } else { kslog("OTOHASAR",("Tablo içerisinde mağdur sayfasına ait dinamik link bulunamadı!")); }
             }
             if (panel && panelContent) {
                 const headerTitle = panel.querySelector('.ks-header h4');
@@ -2694,7 +2708,7 @@
                         w.check_form = function () { return true; };
                         w.kaydet_ok = function () {
                             var response = w.ajax1.response;
-                            if (KS_DEBUG) console.log('ZORLA KAYDET RESPONSE:', response);
+							kslog("OTOHASAR KAYIT",("RESPONSE:", response));
                             // Şasi hatası
                             if (response.indexOf('HAS_SASI_NO') !== -1) {
                                 var sasiEl = w.document.getElementById('HAS_SASI_NO');
@@ -2712,7 +2726,7 @@
                                 var yilMatch = response.match(/seçiniz:\s*\\n\\n(\d{4})/);
                                 if (yilMatch) {
                                     var dogruYil = yilMatch[1];
-                                    if (KS_DEBUG) console.log('Doğru model yılı:', dogruYil);
+									kslog("OTOHASAR",("Doğru model yılı:", dogruYil));
                                     w.$('[name="HAS_MODEL_YILI"]').val(dogruYil);
                                     w.$('[name="HAS_MODEL_YILI_AB"]').val(dogruYil);
                                     if (w.document.getElementById('HAS_MODEL_YILI')) w.document.getElementById('HAS_MODEL_YILI').value = dogruYil;
@@ -2724,10 +2738,10 @@
                             // Başarılı veya diğer hatalar
                             var cleanResponse = response.replace(/<!--[\s\S]*?-->/g, '');
                             var orig_alert = w.alert;
-                            w.alert = function (msg) { if (msg.indexOf('Kaydedilmiştir') !== -1) orig_alert(msg); else if (KS_DEBUG) console.log('SUSTURULDU:', msg); };
+                            w.alert = function (msg) { if (msg.indexOf('Kaydedilmiştir') !== -1) orig_alert(msg); else kslog("OTOHASAR",('Susturuldu: ', msg)); };
                             var lines = cleanResponse.split('\n');
                             /* lines.forEach(function(line) { line = line.trim(); if (!line) return; try { eval(line); } catch(ex) { if (KS_DEBUG) console.log('satır atlandı:', line); } }); */
-                            lines.forEach(function (line) { line = line.trim(); if (!line) { return; } try { Function(line)(); } catch (ex) { if (KS_DEBUG) console.log('satır atlandı:', line); } });
+                            lines.forEach(function (line) { line = line.trim(); if (!line) { return; } try { Function(line)(); } catch (ex) { kslog("OTOHASAR",('Satır atlandı: ', line)); } });
                             w.alert = orig_alert;
                             w.$('#indicator_1').hide(); w.$('#indicator_2').hide(); w.$('#btnKaydet1').show(); w.$('#btnKaydet2').show();
                             geriAl();
@@ -2757,9 +2771,9 @@
                         var currentPage = location.pathname.split('/').pop();
                         var isMagdur = currentPage.includes('magdur');
                         var popupFile = isMagdur ? 'popup_modeller_magdur.php' : 'popup_modeller.php';
-                        var modelYiliEl = unsafeWindow.document.getElementById('HAS_MODEL_YILI') || unsafeWindow.document.getElementById('MODEL_YILI') ||
-                            unsafeWindow.document.getElementById('TMP_MODEL_YILI') || unsafeWindow.document.querySelector('[name="HAS_MODEL_YILI"]') || unsafeWindow.document.querySelector('[name="MODEL_YILI"]');
-                        if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] modelYiliEl bulundu:', modelYiliEl ? modelYiliEl.id || modelYiliEl.name : 'BULUNAMADI');
+                        var modelYiliEl = unsafeWindow.document.getElementById('HAS_MODEL_YILI') || unsafeWindow.document.getElementById('MODEL_YILI') || unsafeWindow.document.getElementById('TMP_MODEL_YILI') ||
+							unsafeWindow.document.querySelector('[name="TMP_MODEL_YILI"]') || unsafeWindow.document.querySelector('[name="HAS_MODEL_YILI"]') || unsafeWindow.document.querySelector('[name="MODEL_YILI"]');
+						kslog("OTOHASAR",('modelYiliEl bulundu:', modelYiliEl ? modelYiliEl.id || modelYiliEl.name : 'BULUNAMADI'));
                         var ekButon = unsafeWindow.document.createElement('input');
                         ekButon.type = 'button';
                         ekButon.name = 'SASI_MDL_DUZELT';
@@ -2772,7 +2786,7 @@
                         ekButon.addEventListener('click', function () {
                             var modelYili = '';
                             if (modelYiliEl) { modelYili = modelYiliEl.value || ''; if (modelYili === '0') modelYili = ''; }
-                            if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] Tıklama anı modelYili:', modelYili);
+                            kslog("OTOHASAR",('Tıklama anı modelYili:', modelYili));
                             var originalOnclick = sasiBtn.getAttribute('onclick');
                             var newOnclick = originalOnclick.replace(/popup_modeller[^.]*\.php/, popupFile);
                             if (isMagdur) { newOnclick = newOnclick.replace('TMP_MODEL_YILI=', 'TMP_MODEL_YILI=' + modelYili); } else { newOnclick = newOnclick.replace(/'\+\$\('#HAS_MODEL_YILI'\)\.val\(\)\+'/g, modelYili); }
@@ -2789,11 +2803,11 @@
                             // motorNo duplicate temizle (motor_no zaten varsa motorNo parametresini direkt sil)
                             if (/[?&]motor_no=/.test(newOnclick) && /[?&]motorNo=/.test(newOnclick)) { newOnclick = newOnclick.replace(/&motorNo=[^&'"]*/, ''); }
                             ///--------------------------
-                            if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] newOnclick:', newOnclick);
+                            kslog("OTOHASAR",('newOnclick:', newOnclick));
                             unsafeWindow.eval(newOnclick);
                         });
                         sasiBtn.parentNode.insertBefore(ekButon, sasiBtn.nextSibling);
-                        if (typeof KS_DEBUG !== 'undefined' && KS_DEBUG) console.log('[KS] MODEL FIX eklendi | magdur:', isMagdur);
+                        kslog("OTOHASAR",('MODEL FIX eklendi | magdur:', isMagdur));
                     }, 1500);
                 });
                 /* ── Önbellek Sistemi ── */
@@ -2820,7 +2834,7 @@
                         btnOnbellekYukle.disabled = false;
                         btnOnbellekYukle.style.opacity = '';
                         btnOnbellekYukle.style.cursor = '';
-                        if (KS_DEBUG) console.log('[KS] Önbellek kaydedildi:', count, 'alan, tarih:', tarih);
+                        kslog("OTOHASAR ÖNBELLEK",('Kaydedildi:', count, 'alan, tarih:', tarih));
                         btnOnbellek.textContent = '✅ KAYDEDİLDİ (' + count + ')';
                         setTimeout(function () { btnOnbellek.textContent = '📥 ÖNBELLEK KAYDET'; }, 2000);
                     };
@@ -2836,7 +2850,7 @@
                             if (el.type === 'checkbox' || el.type === 'radio') { el.checked = data[el.name]; } else { el.value = data[el.name]; if (el.tagName === 'SELECT') { w.$(el).trigger('change'); } }
                             yuklendi++;
                         });
-                        if (KS_DEBUG) console.log('[KS] Önbellek yüklendi:', yuklendi, 'alan');
+                        kslog("OTOHASAR ÖNBELLEK",('Yüklendi:', yuklendi, 'alan'));
                         btnOnbellekYukle.textContent = '✅ YÜKLENDİ (' + yuklendi + ')';
                         setTimeout(function () { var raw2 = GM_getValue(onbellekKey, null); if (raw2) { var tarih = JSON.parse(raw2).__tarih__ || '?'; btnOnbellekYukle.textContent = '📤 YÜKLE ' + tarih; } }, 2000);
                     };
@@ -2933,7 +2947,7 @@
                                 }
                                 html += `<div class="ks-tooltip-box">Hasar ile Poliçe arasındaki gün farkını kontrol eder.</div></div></td></tr>`;
                             }
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Tarih kontrolü hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR UPDATEPANEL",('Tarih kontrolü hatası:', err)); }
                         html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`;
                     }
                     // ── 2. SİGORTA ŞEKLİ BADGE ──────────────────────────────
@@ -2950,7 +2964,7 @@
                             else if (upText.includes('KASKO')) dynamicLabel = 'Sigortalı Araç :';
                             sigortaBadge = makeBadge(selectedText, sigortaColor, br);
                             if (ANALIZPANEL_sgs && !magdurpanel) { html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;">Sigorta Şekli:</td><td style="text-align:right;padding:4px 0;">${sigortaBadge}</td></tr>`; }
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Sigorta şekli hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Sigorta şekli hatası:', err)); }
                     }
                     // ── 3. RÜCU ─────────────────────────────────────────────
                     if (ANALIZPANEL_rc && !magdurpanel) {
@@ -2959,7 +2973,7 @@
                             const rucuYok = dom.rucu0?.checked;
                             const rucuStatus = rucuVar ? makeBadge('VAR 🔴', '#ff4d4d', br) : rucuYok ? makeBadge('YOK 🟢', '#2ecc71', br) : makeBadge('BELİRSİZ 🔘', '#ff9500', br);
                             html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Rücu:</td><td style="text-align:right;padding:4px 0;">${rucuStatus}</td></tr>`;
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Rücu hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Rücu hatası:', err)); }
                     }
 
                     // ── 4. PERT ──────────────────────────────────────────────
@@ -2968,7 +2982,7 @@
                             const pertVar = dom.pert?.checked || false;
                             const pertStatus = pertVar ? makeBadge('VAR 🔴', '#ff4d4d', br) : makeBadge('YOK 🟢', '#2ecc71', br);
                             html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Pert:</td><td style="text-align:right;padding:4px 0;">${pertStatus}</td></tr>`;
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Pert hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Pert hatası:', err)); }
                     }
                     // ── Şirket/Şahıs Durumu ──────────────────────────────────
                     if (ANALIZPANEL_mulk && !magdurpanel) {
@@ -2987,7 +3001,7 @@
                             const sirketStatus = makeBadge(durumText, durumColor, br);
                             const fakto = makeBadge(takto, durumColor, br);
                             html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Mülkiyet:</td><td style="text-align:right;padding:4px 0;">${sirketStatus} ${fakto}</td></tr>`;
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Mülkiyet hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Mülkiyet hatası:', err)); }
                     }
                     // ── Ekspertiz Şekli ──────────────────────────────────────
                     if (ANALIZPANEL_uzak && !magdurpanel) {
@@ -2997,7 +3011,7 @@
                             if (ekspertizSelect && ekspertizSelect.value !== "0") { durumText = ekspertizSelect.options[ekspertizSelect.selectedIndex].text; durumColor = (durumText === "Uzaktan") ? "#3498db" : "#e67e22"; }
                             const ekspertizBadge = makeBadge(durumText, durumColor, br);
                             html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Ekspertiz Şekli:</td><td style="text-align:right;padding:4px 0;">${ekspertizBadge}</td></tr>`;
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Ekspertiz şekli hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Ekspertiz şekli hatası:', err)); }
                     }
                     // ── 5. İHBAR TÜRÜ & HASAR ŞEKLİ ────────────────────────
                     if (ANALIZPANEL_hsr && !magdurpanel) {
@@ -3009,7 +3023,7 @@
                                 html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;white-space:nowrap;width:100px;">İhbar Türü:</td>
 							<td style="text-align:right;padding:4px 0;white-space:nowrap;">${makeBadge(txt, color, br)}</td></tr>`;
                             }
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] İhbar türü hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('İhbar hatası:', err)); }
                         try {
                             if (dom.hasarEl && dom.hasarEl.value !== '' && dom.hasarEl.value !== '-1') {
                                 const txt = dom.hasarEl.options[dom.hasarEl.selectedIndex]?.text || '', v = dom.hasarEl.value;
@@ -3017,7 +3031,7 @@
                                 html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;white-space:nowrap;width:100px;">Hasar Şekli:</td>
                                 <td style="text-align:right;padding:4px 0;white-space:nowrap;">${makeBadge(txt, color, br)}</td></tr>`;
                             }
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Hasar şekli hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Hasar şekli hatası:', err)); }
                     }
                     // ── 6. SERVİS TİPİ ──────────────────────────────────────
                     if (ANALIZPANEL_srtp && !magdurpanel) {
@@ -3030,7 +3044,7 @@
                                 html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Servis Tipi:</td>
 							<td style="text-align:right;padding:4px 0;white-space:nowrap;">${turBadge} <span style="color:#444;margin:0 1px;">|</span> ${anlasmaBadge}</td></tr>`;
                             }
-                        } catch (err) { if (KS_DEBUG) console.warn('[updatePanel] Servis tipi hatası:', err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",('Servis tipi hatası:', err)); }
                         html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`;
                     }
                     // ── 7. ALAN LİSTESİ (Servis, Tramer, Sigortalı, Araç) ───
@@ -3077,7 +3091,7 @@
                                 else { valStr = raw; }
                             }
                             html += `<tr><td style="color:white;padding:4px 0;white-space:nowrap;">${f.label}</td><td style="text-align:right;color:${color};font-weight:bold;">${valStr}<span style="margin-left:5px;">${status}</span></td></tr>`;
-                        } catch (err) { if (KS_DEBUG) console.warn(`[updatePanel] Alan hatası (${f.id}):`, err); }
+                        } catch (err) { kslog("OTOHASAR PANEL",(`Alan hatası (${f.id}):`, err)); }
                     });
                     // ── 8. MUALLAK / PİYASA / EKSPER ORAN TABLOSU ───────────
                     if ((ANALIZPANEL_mull || ANALIZPANEL_ryc || ANALIZPANEL_rycorn) && !magdurpanel) { html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`; }
@@ -3142,7 +3156,7 @@
                         const y = extractYear(yRaw), k = parseInt(kStr.replace(/\D/g, ''), 10) || 0;
                         if (!m) return null;
                         return { model: m, year: y, kmMin: k >= 100 ? Math.floor(k * 0.85) : null, kmMax: k >= 100 ? Math.ceil(k * 1.15) : null, };
-                    } catch (err) { if (KS_DEBUG) console.warn('[buildTargetUrl] Hata:', err); return null; }
+                    } catch (err) { kslog("OTOHASAR PİYASA",('Hedef URL hatası (${f.id}):', err)); return null; }
                 }
                 // ─── OTOMATİK ARAMA ──────────────────────────────────────────
                 function startAutomatedSearch(isAnalyze, dom) {
@@ -3172,11 +3186,11 @@
                                     if (data.year) { finalUrl.searchParams.set('a5_min', data.year); }
                                     if (data.kmMin > 1000) { finalUrl.searchParams.set('a4_min', data.kmMin); }
                                     if (isAnalyze) fetchPricesFromShb(finalUrl.toString(), resBox); else unsafeWindow.open(finalUrl.toString(), '_blank');
-                                } catch (err) { if (KS_DEBUG) console.warn('[startAutomatedSearch] Google parse hatası:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Google yanıtı işlenemedi.'; }
+                                } catch (err) { kslog("OTOHASAR PİYASA",('Google parse hatası:', err)); if (isAnalyze && resBox) resBox.innerHTML = '❌ Google yanıtı işlenemedi.'; }
                             },
-                            onerror(err) { if (KS_DEBUG) console.warn('[startAutomatedSearch] İstek hatası:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Ağ hatası oluştu.'; }
+                            onerror(err) { kslog("OTOHASAR PİYASA",('İstek hatası:', err)); if (isAnalyze && resBox) resBox.innerHTML = '❌ Ağ hatası oluştu.'; }
                         });
-                    } catch (err) { if (KS_DEBUG) console.warn('[startAutomatedSearch] Genel hata:', err); if (isAnalyze && resBox) resBox.innerHTML = '❌ Beklenmeyen hata.'; }
+                    } catch (err) { kslog("OTOHASAR PİYASA",('Genel hata:', err)); if (isAnalyze && resBox) resBox.innerHTML = '❌ Beklenmeyen hata.'; }
                 }
                 // ─── FİYAT VERİSİ ÇEKME & GELİŞMİŞ İSTATİSTİK ────────────────
                 function fetchPricesFromShb(url, resBox) {
@@ -3283,9 +3297,9 @@
                                 });
                                 html += `</table></div>`;
                                 resBox.innerHTML = html;
-                            } catch (err) { if (KS_DEBUG) console.warn('[fetchPricesFromShb] Parse hatası:', err); if (resBox) { resBox.innerHTML = '❌ Fiyat verisi işlenemedi.'; } }
+                            } catch (err) { kslog("OTOHASAR PİYASA",('Parse hatası:', err)); if (resBox) { resBox.innerHTML = '❌ Fiyat verisi işlenemedi.'; } }
                         },
-                        onerror(err) { if (KS_DEBUG) console.warn('[fetchPricesFromShb] İstek hatası:', err); if (resBox) { resBox.innerHTML = '❌ Sahibinden.com\'a bağlanılamadı.'; } }
+                        onerror(err) { kslog("OTOHASAR PİYASA",('İstek hatası:', err)); if (resBox) { resBox.innerHTML = '❌ Sahibinden.com\'a bağlanılamadı.'; } }
                     });
                 }
                 // ─── ÖN GİRİŞ ────────────────────────────────────────────────
@@ -3296,24 +3310,24 @@
                     const doluAlanlar = checkFields.filter(id => { const el = getEl(id); return el && el.value && el.value.trim() !== '' && el.value !== '-1'; });
                     if (doluAlanlar.length > 0) { const onay = confirm(`⚠️ Çoğu alan zaten dolu. Otomatik doldurulan alanlar değiştirilecek ve/veya temizlenecektir! \n\nÜzerine yazmak istediğinize emin misiniz?`); if (!onay) return; }
                     const setVal = (idOrName, val) => {
-                        const el = getEl(idOrName); if (!el) { if (KS_DEBUG) console.warn('setVal: bulunamadı ->', idOrName); return; }
+                        const el = getEl(idOrName); if (!el) { kslog("OTOHASAR AUTO",('SetVal: bulunamadı ->', idOrName)); return; }
                         el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
                     };
                     const setValSelect = (name, val) => {
                         const el = [...document.querySelectorAll(`[name="${name}"]`)].find(el => el.tagName === 'SELECT');
-                        if (!el) { if (KS_DEBUG) console.warn('setValSelect: bulunamadı ->', name); return; }
+                        if (!el) { kslog("OTOHASAR AUTO",('SetValSelect: bulunamadı ->', name)); return; }
                         el.value = val; el.dispatchEvent(new Event('change', { bubbles: true }));
                     };
                     const clickCb = (idOrName) => {
                         const el = document.getElementById(idOrName) ?? document.querySelector(`[name="${idOrName}"]`);
-                        if (!el) { if (KS_DEBUG) console.warn('clickCb: bulunamadı ->', idOrName); return; }
+                        if (!el) { kslog("OTOHASAR AUTO",('ClickCb: bulunamadı ->', idOrName)); return; }
                         el.checked = false; el.click(); el.dispatchEvent(new Event('change', { bubbles: true }));
                     };
                     const setSelectText = (idOrName, txt) => {
                         const el = getEl(idOrName);
-                        if (!el) { if (KS_DEBUG) console.warn('setSelectText: bulunamadı ->', idOrName); return; }
+                        if (!el) { kslog("OTOHASAR AUTO",('SetSelectText: bulunamadı ->', idOrName)); return; }
                         const opt = [...el.options].find(o => o.text.trim().includes(txt));
-                        if (!opt) { if (KS_DEBUG) console.warn('setSelectText: option bulunamadı ->', txt); return; }
+                        if (!opt) { kslog("OTOHASAR AUTO",('SetSelectText: option bulunamadı ->', txt)); return; }
                         el.value = opt.value; el.dispatchEvent(new Event('change', { bubbles: true }));
                     };
                     const sigortaSekli = document.getElementById('SIGORTA_SEKLI')?.value;
@@ -3343,7 +3357,9 @@
                     const gun = getValue('IHBAR_TARIHI_GUN'), ay = getValue('IHBAR_TARIHI_AY'), yil = getValue('IHBAR_TARIHI_YIL');
                     setVal('EKSPERTIZ_TARIHLERI', `${gun}/${ay}/${yil}`);
                     ['EKSPERTIZ_TALEP_TARIHI', 'EKSPERTIZ_TARIHI', 'EKSPERTIZ_KESINLESTIRME_TARIHI'].forEach(prefix => { setVal(`${prefix}_GUN`, gun); setVal(`${prefix}_AY`, ay); setVal(`${prefix}_YIL`, yil); });
-                    setSelectText('KANAAT', 'OLUMLUDUR');
+                    // setSelectText('KANAAT', 'OLUMLUDUR'); <- Bu satırı sil, yerine aşağıdakileri yaz:
+                    const kanaatEl = document.querySelector('select[name="KANAAT"]');
+                    if (kanaatEl) { kanaatEl.value = "1"; if (typeof kanaatEl.onchange === 'function') kanaatEl.onchange(); }
                     setVal('DOSYA_SONUCLANDIRMA_DURUMU', '3');
                     if (loc("ankara")) { setVal('COKLU_EKSPER', '125'); setVal('ZABIT_TIPI_TRAMER', 'Anlaşmalı Tutanak'); setVal('TAHMINI_HASAR', '20000'); setVal('EHLIYET_SINIFI', 'B'); }
                     else { setVal('TAHMINI_HASAR', ''); }
@@ -3351,7 +3367,8 @@
                 /* ===== 5. KONTROL VE HIGHLIGHT ===== */
                 function highlightFields() {
                     const getEl = (id) => {
-                        const byId = document.getElementById(id); if (byId && byId.type === 'hidden') { const byName = document.getElementsByName(id); for (let el of byName) { if (el.type !== 'hidden') return el; } } return byId || document.getElementsByName(id)[0];
+                        const byId = document.getElementById(id); if (byId && byId.type === 'hidden') {
+							const byName = document.getElementsByName(id); for (let el of byName) { if (el.type !== 'hidden') return el; } } return byId || document.getElementsByName(id)[0];
                     };
                     const getValue = (id) => getEl(id)?.value || '';
                     const parseNum = (id) => parseFloat(getValue(id).trim().replace(/,/g, '')) || 0;
@@ -3360,7 +3377,8 @@
                     const setBgGroup = (anchorId, condition) => { const td = getEl(anchorId)?.closest('td'); if (td) td.style.backgroundColor = condition ? WARNING_COLOR : ''; };
                     const getElByName = (name) => { const all = document.getElementsByName(name); for (let el of all) { if (el.type !== 'hidden') return el; } return all[0]; };
                     if (magdurpanel) {
-                        const watchFields = ['SURUCU_ADI', 'MAGDUR_AD', 'MAGDUR_SOYAD', 'PLAKA1', 'PLAKA2', 'PLAKA3', 'SASI_NO', 'MOTOR_NO', 'MERNIS_NO_C', 'SURUCU_EHLIYET_NO', 'SURUCU_EHLIYET_SINIFI', 'EHLIYET_TARIHI_GUN', 'EHLIYET_TARIHI_AY', 'EHLIYET_TARIHI_YIL',];
+                        const watchFields = ['SURUCU_ADI', 'MAGDUR_AD', 'MAGDUR_SOYAD', 'PLAKA1', 'PLAKA2', 'PLAKA3', 'SASI_NO', 'MOTOR_NO', 'MERNIS_NO_C', 'SURUCU_EHLIYET_NO', 'SURUCU_EHLIYET_SINIFI', 'EHLIYET_TARIHI_GUN',
+											 'EHLIYET_TARIHI_AY', 'EHLIYET_TARIHI_YIL',];
                         const selectFields = ['MODEL_YILI', 'MARKA_ID', 'ARAC_TIPI', 'MAGDUR_KIMLIK_TIPI', 'SB_ARAC_KULLANIM_TURU', 'RENK'];
                         setBg('MODEL_ADI', getValue('MODEL_ADI').replace(/[()\s]/g, '') === '');
                         setBg('KM', parseNum('KM') < 1);
@@ -3368,13 +3386,17 @@
                         watchFields.forEach(id => setBg(id, getValue(id).trim() === ''));
                         selectFields.forEach(id => setBg(id, getValue(id) === '-1'));
                     } else {
-                        const watchFields = ['EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL', 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI', 'MERNIS_NO', 'KAZA_YERI', 'SB_ARACI_KULLANAN', 'SURUCU_KIMLIK_TIPI_DEGER', 'EKSPERTIZ_TARIHLERI', 'EKSPERTIZ_KESINLESTIRME_TARIHI_GUN', 'EKSPERTIZ_KESINLESTIRME_TARIHI_AY', 'EKSPERTIZ_KESINLESTIRME_TARIHI_YIL', 'KAZA_TARAF1', 'KAZA_TARAF2', 'ARAC_RUHSAT_SERI_NO'];
-                        const selectFields = ['SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI', 'HASAR_SEKLI', 'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI', 'HAS_MARKA_ID', 'KUSUR_ORANI', 'KUSURLU', 'BOLGE', 'HAS_RENK'];
+                        const watchFields = ['EKSPERTIZ_TARIHI_YIL', 'EKSPERTIZ_TALEP_TARIHI_YIL', 'HAS_ARAC_SAHIBI', 'HAS_TRAFIK_TARIHI_YIL', 'TRAMER_IHBAR_NO', 'SERVIS_ADI', 'SURUCU_YIL', 'EHLIYET_NO', 'EHLIYET_TARIHI_YIL',
+											 'MILLI_R_NO', 'EKSPERTIZ_SURESI', 'EHLIYET_SINIFI', 'ONARIM_SURESI', 'MERNIS_NO', 'KAZA_YERI', 'SB_ARACI_KULLANAN', 'SURUCU_KIMLIK_TIPI_DEGER', 'EKSPERTIZ_TARIHLERI',
+											 'EKSPERTIZ_KESINLESTIRME_TARIHI_GUN', 'EKSPERTIZ_KESINLESTIRME_TARIHI_AY', 'EKSPERTIZ_KESINLESTIRME_TARIHI_YIL', 'KAZA_TARAF1', 'KAZA_TARAF2', 'ARAC_RUHSAT_SERI_NO'];
+                        const selectFields = ['SB_ARAC_KULLANIM_TURU', 'HASAR_ILCESI', 'KANAAT', 'EHLIYET_YERI', 'EHLIYET_YERI_ILCE', 'KAZA_SEKLI', 'DOLU_HASARI', 'FAR_AYNA_HASARI', 'HAS_MODEL_YILI', 'HASAR_SEKLI',
+											  'KAZA_IHBAR_TURU', 'SURUCU_KIMLIK_TIPI', 'HAS_MARKA_ID', 'KUSUR_ORANI', 'KUSURLU', 'BOLGE', 'HAS_RENK'];
                         const tdGroups = [
                             { anchor: 'SB_SIGORTALI_ADI_C', fields: ['SB_SIGORTALI_ADI_C', 'SB_SIGORTALI_ADI'], selects: ['SIRKETMI'] },
                             { anchor: 'SURUCU_KIMLIK_TIPI_DEGER', fields: ['SURUCU_KIMLIK_TIPI_DEGER'], selects: ['SURUCU_KIMLIK_TIPI'] },
                         ];
-                        tdGroups.forEach(({ anchor, fields, selects }) => { const fieldBosMu = fields.some(id => getValue(id).trim() === ''), selectBosMu = selects.some(id => ['', '-1'].includes(getValue(id))); setBgGroup(anchor, fieldBosMu || selectBosMu); });
+                        tdGroups.forEach(({ anchor, fields, selects }) => {
+							const fieldBosMu = fields.some(id => getValue(id).trim() === ''), selectBosMu = selects.some(id => ['', '-1'].includes(getValue(id))); setBgGroup(anchor, fieldBosMu || selectBosMu); });
                         setBg('UZAKTAN_EKSPERTIZ', getValue('UZAKTAN_EKSPERTIZ') === '0');
                         setBg('HAS_MODEL_ADI', getValue('HAS_MODEL_ADI').replace(/[()\s]/g, '') === '');
                         setBg('TAHMINI_HASAR', parseNum('TAHMINI_HASAR') < 1000);
@@ -3532,7 +3554,7 @@
                         newRow.innerHTML = `<td class="koyu">Tramer Dosya No:</td><td class="acik" colspan="3"><input type="text" onkeyup="numbersOnly(this);" name="TRAMER_DOSYA_NO" value=""></td>`;
                         hasarBaslikRow.parentNode.insertBefore(newRow, hasarBaslikRow.nextSibling);
                         window.__TRAMER_FIELD_INJECTED__ = true;
-                        if (KS_DEBUG) console.info('[kstool] Tramer Dosya No alanı sayfaya sonradan (dynamic) eklendi.');
+						kslog("OTOHASAR AUTO",("Tramer Dosya No alanı sayfaya sonradan (dynamic) eklendi."));
                     }
                 }
             });
@@ -3605,7 +3627,7 @@
                 const el = document.querySelector(selector);
                 if (!el || !araText) { return false; }
                 const opt = Array.from(el.options).find(o => o.text.trim() === araText.trim());
-                if (!opt) { if (KS_DEBUG) console.warn(`[VeriDoldur] setSelectByText: "${araText}" bulunamadı →`, selector); return false; }
+                if (!opt) { kslog("OTOHASAR SBM",(` setSelectByText: "${araText}" bulunamadı →`)); return false; }
                 el.value = opt.value;
                 el.dispatchEvent(new Event('change'));
                 return true;
@@ -3684,13 +3706,13 @@
                         motorNo = docEks.querySelector('input[name="HAS_MOTOR_NO"]')?.value || docEks.querySelector('input[name="MOTOR_NO"]')?.value || '';
                         modelYili = docEks.querySelector('#HAS_MODEL_YILI')?.value || docEks.querySelector('#MODEL_YILI')?.value || '';
                     }
-                    if (modelYili && modelYili !== '-1' && modelYili !== '0') { setField('input[name="MODEL_YILI"]', modelYili); }
+                    //if (modelYili && modelYili !== '-1' && modelYili !== '0') { setField('input[name="MODEL_YILI"]', modelYili); } yıl hata verince dosya imzalanamıyormuş ? peki
+                    //setField('input[name="SASI_NO"]', sasiNo);
+                    //setField('input[name="MOTOR_NO"]', motorNo);
                     setField('input[name="MAGDUR_KIMLIK_NO"]', mernisNo);
                     const magdurKimlikTuru = mernisNo.length === 11 ? '1' : '2';
                     setSelect('select[name="MAGDUR_KIMLIK_TURU"]', magdurKimlikTuru);
                     document.querySelector('input[name="MAGDUR_KIMLIK_NO"]')?.dispatchEvent(new Event('blur'));
-                    setField('input[name="SASI_NO"]', sasiNo);
-                    setField('input[name="MOTOR_NO"]', motorNo);
                     // ── Kaynak 3: Vergi / TC kimlik alanları ─────────────────────────
                     const vergiNo = docEks.querySelector('input[name="VERGI_NO"]')?.value ?? '';
                     if (vergiNo) {
@@ -3721,8 +3743,7 @@
                     /*const extraHtml = await fetchPage(`${BASE}/eks/sayfa.php?id=${id}`), docExtra  = parseHtml(extraHtml);
                     setField('input[name="HEDEF_ALAN"]', docExtra.querySelector('#KAYNAK_ID')?.value); */
                     butonDurum(btn, 'tamam'); setTimeout(() => butonDurum(btn, 'bekliyor'), 2500); setTimeout(() => highlightSdata(), 500);
-                } catch (err) {
-                    if (KS_DEBUG) console.error('[VeriDoldur]', err); alert(err.message); butonDurum(btn, 'hata'); setTimeout(() => butonDurum(btn, 'bekliyor'), 3000);
+                } catch (err) { kslog("OTOHASAR SBM",(" :",err)); alert(err.message); butonDurum(btn, 'hata'); setTimeout(() => butonDurum(btn, 'bekliyor'), 3000);
                 }
             });
             function highlightSdata() {
@@ -3935,7 +3956,7 @@
                             window.document.frm_yp.action = 'eks_hasar_yp_list_yp_talep.php?act=new&servis_ili=';
                             window.document.frm_yp.submit();
                         }
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 // --- 2. ORİJİNAL PASTE BUTONU ---
                 const btnPaste = document.createElement('button');
@@ -3951,7 +3972,7 @@
                         if (lines.length !== fields.length && lines.length > 0) { if (!confirm(`Sayı Uyuşmazlığı!\nExcel: ${lines.length}\nKutu: ${fields.length}\nDevam?`)) return; }
                         lines.forEach((line, i) => { if (i < fields.length) { fields[i].value = line; fields[i].dispatchEvent(new Event('input', { bubbles: true })); } });
                         btnPaste.innerText = "✔️ OK"; setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 // --- 3. ORİJİNAL COPY BUTONU ---
                 const btnCopy = document.createElement('button');
@@ -3963,7 +3984,7 @@
                         const rows = Array.from(document.querySelectorAll('tr')).filter(tr => tr.querySelector('td')?.classList.contains('acik') && tr.querySelectorAll('td').length >= 6);
                         let data = rows.map(tr => Array.from(tr.querySelectorAll('td.acik')).slice(0, 6).map(td => td.innerText.trim()).join('\t')).join('\n');
                         if (data) { await navigator.clipboard.writeText(data); btnCopy.innerText = "✔️ OK"; setTimeout(() => { btnCopy.innerText = "📤 KOPYALA"; }, 2000); }
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 // --- 4. ORİJİNAL GRUPLA BUTONU ---
                 const btnFill = document.createElement('button');
@@ -3985,7 +4006,7 @@
                         }
                         btnFill.innerText = "✔️ BİTTİ";
                         setTimeout(() => { btnFill.innerText = "🚗 GRUPLA"; }, 2000);
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 // --- 4. ORİJİNAL GRUPLA BUTONU ---
                 const btnTDRSEND = document.createElement('button');
@@ -3998,7 +4019,7 @@
                             window.document.frm_yp.action = 'eks_hasar_yp_list_yp_talep.php?act=new&servis_ili=';
                             window.document.frm_yp.submit();
                         }
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 contentArea.append(btnAutoSelect, btnPaste, btnFill, btnTDRSEND, btnCopy);
             }
@@ -4049,7 +4070,7 @@
                         });
                         btnPaste.innerText = "✔️ OK";
                         setTimeout(() => { btnPaste.innerText = "📋 YAPIŞTIR"; }, 2000);
-                    } catch (err) { if (KS_DEBUG) console.error(err); }
+                    } catch (err) { kslog("OTOHASAR REFERANS",(" :",err)); }
                 };
                 contentArea.appendChild(btnPaste);
             }
@@ -4355,7 +4376,7 @@
                         if (isClosed) { el.style.marginRight = 'auto'; el.style.marginLeft = 'auto'; } else { el.style.marginRight = `${margin}px`; el.style.marginLeft = `${margin / 6}px`; }
                     });
                 };
-                document.querySelectorAll('*').forEach(el => { if (el.offsetWidth > 600 && el.offsetWidth < window.innerWidth) if (KS_DEBUG) console.log(el.tagName, el.id, el.className, el.offsetWidth); });
+                document.querySelectorAll('*').forEach(el => { if (el.offsetWidth > 600 && el.offsetWidth < window.innerWidth) kslog("OTOHASAR MANUEL",(el.tagName, el.id, el.className, el.offsetWidth)); });
                 applyMargin();
                 /* ===== 3. PANEL LOGIC (Kapatma/Açma) ===== */
                 toggleBtn.onclick = () => {
@@ -4384,7 +4405,7 @@
                         await waitFor(() => s.options && Array.from(s.options).some(o => o.value == val), 2000); s.value = val;
                         const eventConfig = { bubbles: true, cancelable: true };
                         s.dispatchEvent(new Event("change", eventConfig)); s.dispatchEvent(new Event("input", eventConfig));
-                    } catch (err) { if (KS_DEBUG) console.error(`❌ seçim hatası (${id}):`, err.message); }
+                    } catch (err) { kslog("OTOHASAR MANUEL",("seçim hatası (${id}):", err.message)); }
                 };
                 const degisonar = () => {
                     const selectedRadio = document.querySelector('input[name="islemTipi"]:checked'); if (!selectedRadio) { return; }
@@ -4464,7 +4485,7 @@
                 }
                 loadSelections();
                 document.addEventListener('change', function (event) {
-                    if (event.target.type === 'radio' && groups.includes(event.target.name)) { GM_setValue('saved_' + event.target.name, event.target.value); if (KS_DEBUG) console.log(`[Hafıza] ${event.target.name} güncellendi: ${event.target.value}`); }
+                    if (event.target.type === 'radio' && groups.includes(event.target.name)) { GM_setValue('saved_' + event.target.name, event.target.value); kslog("OTOHASAR MANUEL",(`${event.target.name} güncellendi: ${event.target.value}`)); }
                 });
                 /* ===== 5. EVENT HANDLERS ===== */
                 refs.bYeni.onclick = () => {
@@ -4666,11 +4687,10 @@
             setTimeout(patchAdet, 300); setInterval(patchAdet, 1000);
         }
 		if (MANUEL && loc("otohasar") && loc("eks_hasar_yedpar_yeni_liste.php")) {
-			if (KS_DEBUG) console.log('[GRUP-EKLE] Script yüklendi. URL:', location.href, 'iframe mi?', window !== window.top);
-            const CONCURRENCY = 3;
+			kslog("OTOHASAR MANUEL",('Script yüklendi. URL:', location.href, 'iframe mi?', window !== window.top));
+			const CONCURRENCY = 3;
 			const CACHE_KEY_PREFIX = 'grup_cache_v1_';
             const CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000; // 90 gün (istersen değiştir)
-
             function getCachedInfo(id) {
                 try {
                     const raw = localStorage.getItem(CACHE_KEY_PREFIX + id);
@@ -4682,15 +4702,7 @@
                     return null;
                 }
             }
-
-            function setCachedInfo(id, data) {
-                try {
-                    localStorage.setItem(CACHE_KEY_PREFIX + id, JSON.stringify({ t: Date.now(), data }));
-                } catch (e) {
-                    if (KS_DEBUG) console.warn('[GRUP-EKLE] localStorage yazılamadı (dolu olabilir):', e);
-                }
-            }
-
+            function setCachedInfo(id, data) { try { localStorage.setItem(CACHE_KEY_PREFIX + id, JSON.stringify({ t: Date.now(), data })); } catch (e) { kslog("OTOHASAR MANUEL",('LocalStorage yazılamadı (dolu olabilir):', e)); } }
             const cache = {}; // bellek içi (aynı sayfa yüklemesinde tekrar fetch atmasın diye)
             function colorForGroup(name) {
                 if (!name) return '#f5f5f5';
@@ -4703,23 +4715,17 @@
             }
             function findRows() {
                 let rows = Array.from(document.querySelectorAll('tr[id^="TR"][name="TR"]'));
-                if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem1 (tr[id^=TR][name=TR]):', rows.length, 'satır bulundu');
+				kslog("OTOHASAR MANUEL",(' : ', rows.length, 'satır bulundu'));
                 if (rows.length === 0) {
                     const checkboxes = document.querySelectorAll('input[name="DID[]"]');
-                    if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem2 - checkbox sayısı:', checkboxes.length);
+                    kslog("OTOHASAR MANUEL",('checkbox sayısı:', checkboxes.length));
                     rows = Array.from(checkboxes).map(chk => chk.closest('tr')).filter(Boolean);
-                    if (KS_DEBUG) console.log('[GRUP-EKLE] Yöntem2 (checkbox->closest tr):', rows.length, 'satır bulundu');
+                    kslog("OTOHASAR MANUEL",(' (checkbox->closest tr):', rows.length, 'satır bulundu'));
                 }
                 return rows;
             }
-            function getPartIdFromRow(tr) {
-                const chk = tr.querySelector('input[name="DID[]"]');
-                return chk ? chk.value : null;
-            }
-            function getRefUrlFromRow(tr) {
-                const a = tr.querySelector('a[target="_parent"]');
-                return a ? a.href : null;
-            }
+            function getPartIdFromRow(tr) { const chk = tr.querySelector('input[name="DID[]"]'); return chk ? chk.value : null; }
+            function getRefUrlFromRow(tr) { const a = tr.querySelector('a[target="_parent"]'); return a ? a.href : null; }
             function extractGroupsFromHtml(htmlText) {
                 const doc = new DOMParser().parseFromString(htmlText, 'text/html');
                 const grupSel = doc.querySelector('#GRUP_ID');
@@ -4729,15 +4735,12 @@
                     const grup = grupSel && grupSel.selectedOptions[0] ? grupSel.selectedOptions[0].text.trim() : '';
                     const altGrup = altGrupSel && altGrupSel.selectedOptions[0] ? altGrupSel.selectedOptions[0].text.trim() : '';
                     const vtValue = veritabaninda ? veritabaninda.value : null;
-                    if (KS_DEBUG) console.log('[GRUP-EKLE] VERITABANINDA elementi:', veritabaninda, 'değeri:', vtValue, 'tag:', veritabaninda ? veritabaninda.tagName : 'YOK');
+                    kslog("OTOHASAR MANUEL",('Element:', veritabaninda, 'değeri:', vtValue, 'tag:', veritabaninda ? veritabaninda.tagName : 'YOK'));
                     return { grup, altGrup, kaynak: vtValue };
                 }
                 return null;
             }
-            function findInnerFrameUrls(doc, baseUrl) {
-                const frames = Array.from(doc.querySelectorAll('frame, iframe'));
-                return frames.map(f => f.getAttribute('src')).filter(Boolean).map(src => new URL(src, baseUrl).href);
-            }
+            function findInnerFrameUrls(doc, baseUrl) { const frames = Array.from(doc.querySelectorAll('frame, iframe')); return frames.map(f => f.getAttribute('src')).filter(Boolean).map(src => new URL(src, baseUrl).href); }
             function addCellsToRows(rows) {
                 rows.forEach(tr => {
                     if (!tr.querySelector('.tm-grup-cell')) {
@@ -4756,10 +4759,7 @@
             async function fetchGroupInfo(id, refUrl) {
                 if (cache[id]) return cache[id];
                 const persisted = getCachedInfo(id);
-                if (persisted) {
-                    cache[id] = persisted;
-                    return persisted;
-                }
+                if (persisted) { cache[id] = persisted; return persisted; }
                 try {
                     const res = await fetch(refUrl, { credentials: 'include' });
                     const buffer = await res.arrayBuffer();
@@ -4768,33 +4768,23 @@
                     if (!result) {
                         const doc = new DOMParser().parseFromString(html, 'text/html');
                         const innerUrls = findInnerFrameUrls(doc, refUrl);
-                        if (KS_DEBUG) console.log('[GRUP-EKLE] id=' + id + ' doğrudan select bulunamadı, iç frame sayısı:', innerUrls.length, innerUrls);
+                        kslog("OTOHASAR MANUEL",('ID=' + id + ' doğrudan select bulunamadı, iç frame sayısı:', innerUrls.length, innerUrls));
                         for (const innerUrl of innerUrls) {
-                            const res2 = await fetch(innerUrl, { credentials: 'include' });
-                            const html2 = await res2.text();
+                            const res2 = await fetch(innerUrl, { credentials: 'include' }), html2 = await res2.text();
                             result = extractGroupsFromHtml(html2);
-                            if (result) { if (KS_DEBUG) console.log('[GRUP-EKLE] id=' + id + ' iç frame\'de bulundu:', innerUrl); break; }
+							if (result) { kslog("OTOHASAR MANUEL",('ID=' + id + ' iç frame\'de bulundu:', innerUrl)); break; }
                         }
                     }
                     cache[id] = result || { grup: '?', altGrup: '?' };
                     if (result && result.kaynak === '1') { setCachedInfo(id, cache[id]); }
-                    if (!result) if (KS_DEBUG) console.warn('[GRUP-EKLE] id=' + id + ' hiçbir yerde GRUP_ID/ANA_GRUP bulunamadı. refUrl:', refUrl);
-                } catch (e) {
-                    if (KS_DEBUG) console.error('[GRUP-EKLE] fetch hatası id=' + id, e);
-                    cache[id] = { grup: 'HATA', altGrup: '' };
-                }
+                    if (!result) kslog("OTOHASAR MANUEL",('ID=' + id + ' hiçbir yerde GRUP_ID/ANA_GRUP bulunamadı. refUrl:', refUrl));
+                } catch (e) { kslog("OTOHASAR MANUEL",('Fetch hatası id=' + id, e)); cache[id] = { grup: 'HATA', altGrup: '' }; }
                 return cache[id];
             }
             function addHeaderColumn() {
                 const headerRow = document.querySelector('tr[bgcolor="#79C4D8"]');
-                if (KS_DEBUG) console.log('[GRUP-EKLE] Header satırı bulundu mu?', !!headerRow);
-                if (headerRow && !headerRow.querySelector('.tm-grup-header')) {
-                    const th = document.createElement('td');
-                    th.className = 'baslik tm-grup-header';
-                    th.align = 'center';
-                    th.innerHTML = '<b>Grup</b>';
-                    headerRow.appendChild(th);
-                }
+				kslog("OTOHASAR MANUEL",(' Header satırı bulundu mu?', !!headerRow));
+                if (headerRow && !headerRow.querySelector('.tm-grup-header')) { const th = document.createElement('td'); th.className = 'baslik tm-grup-header'; th.align = 'center'; th.innerHTML = '<b>Grup</b>'; headerRow.appendChild(th); }
             }
             function parseCellValue(text) {
                 const cleaned = text.trim();
@@ -4848,16 +4838,13 @@
                 await Promise.all(Array.from({ length: concurrency }, next));
             }
             async function run() {
-                if (KS_DEBUG) console.log('[GRUP-EKLE] run() çalıştı');
+ 				kslog("OTOHASAR MANUEL",('Run() çalıştı'));
                 const rows = findRows();
-                if (rows.length === 0) {
-                    if (KS_DEBUG) console.warn('[GRUP-EKLE] HİÇ SATIR BULUNAMADI - tablo bu sayfada değil ya da farklı yapıda.');
-                    return;
-                }
+                if (rows.length === 0) { kslog("OTOHASAR MANUEL",('Hiç satır bulunamadı - tablo bu sayfada değil ya da farklı yapıda.')); return; }
                 addHeaderColumn();
                 addCellsToRows(rows);
                 const items = rows.map(tr => ({ tr, id: getPartIdFromRow(tr), refUrl: getRefUrlFromRow(tr) })).filter(it => it.id && it.refUrl);
-                if (KS_DEBUG) console.log('[GRUP-EKLE] İşlenecek satır sayısı (id+refUrl olan):', items.length, '/ toplam:', rows.length);
+                kslog("OTOHASAR MANUEL",('İşlenecek satır sayısı (id+refUrl olan):', items.length, '/ toplam:', rows.length));
                 await processInBatches(items, async (item) => {
                     const info = await fetchGroupInfo(item.id, item.refUrl);
                     const cell = item.tr.querySelector('.tm-grup-cell');
@@ -4879,7 +4866,7 @@
                     }
                 }, CONCURRENCY);
                 addSortingToHeaders();
-                if (KS_DEBUG) console.log('[GRUP-EKLE] Tamamlandı.');
+				kslog("OTOHASAR MANUEL",('Tamamlandı.'));
             }
             if (document.readyState === 'complete') { run(); } else { window.addEventListener('load', run); }
 		}
@@ -5001,7 +4988,7 @@
             const ankara = {
                 EHLİYET: ['1', '1', '1', '1'], RUHSAT: ['7', '7', '7', '7'], KTT: ['38', '11'],
                 BEYAN: ['6'], ZABIT: ['5', '73', '61'], POLICE: ['3'], IMZA: ['8'],
-                SICIL: ['95'], SKAYIT: ['86'], GAZETE: ['95'], FAAL: ['94'],
+                SICIL: ['95'], SKAYIT: [''], GAZETE: ['95'], FAAL: ['94'],
                 IRSALIYE: ['26'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['6'],
                 MUTABAKAT: ['28'], MUVAFAKAT: ['48'], IBRA: ['33', '65'], ALKOL: ['4'],
                 RAYIC: ['78', '76'], TRAMER: ['86', '86', '86', '22'], VERGI: ['9', '50'], MASAK: ['81'], MESLEK: [''], KANTAR: ['']
@@ -5095,7 +5082,7 @@
                     else { btnEl.textContent = '✓ ' + (yazilacakNot || noteVal); btnEl.style.background = '#27ae60'; btnEl.style.outline = '2px solid #1e90ff'; }
                     btnEl.disabled = true; btnEl.style.cursor = 'default'; btnEl.style.opacity = '1';
                 }
-                if (KS_DEBUG) console.log(`[OtoEvrak] "${fileName}" → "${yazilacakNot || noteVal}" (ID: ${evrakId})`);
+				kslog("OTOHASAR MANUEL",(`[OtoEvrak] "${fileName}" → "${yazilacakNot || noteVal}" (ID: ${evrakId})`));
                 return true;
             }
             // ── STİLLER ───────────────────────────────────────────────────────────────
@@ -5615,10 +5602,10 @@
                     const ext = mime === 'image/png' ? 'png' : 'jpg';
                     const yeniAd = file.name.replace(/\.[^.]+$/, '') + '.' + ext;
                     const yeniDosya = new File([best], yeniAd, { type: mime, lastModified: Date.now() });
-                    if (KS_DEBUG) console.log(`[KS Sıkıştırma] ${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(yeniDosya.size/1024).toFixed(0)}KB`);
+                    kslog("PDF JPG",(`${file.name}: ${(file.size/1024).toFixed(0)}KB → ${(yeniDosya.size/1024).toFixed(0)}KB`));
                     return yeniDosya;
                 } catch (err) {
-                    if (KS_DEBUG) console.warn('[KS Sıkıştırma] Hata, orijinal dosya kullanılacak:', file.name, err);
+                    kslog("OTOHASAR MANUEL",('Hata, orijinal dosya kullanılacak:', file.name, err));
                     return file;
                 }
             }
@@ -5722,17 +5709,12 @@
                         padding:5px 6px; border-radius:4px; font-size:11px; font-weight:700;
                         text-align:center; background:rgba(220,53,69,0.2); border:1px solid #dc3545;
                         color:#ff8585; margin-bottom:6px; animation:ksBlink 1s infinite;
-                    `;
+                    	`;
                         uyariDiv.innerHTML = '⚠ KASKO + MAĞDUR<br>EVRAĞI ÇAKIŞIYOR!';
-                        if (statusHeader && statusHeader.parentNode) {
-                            statusHeader.parentNode.insertBefore(uyariDiv, statusHeader.nextSibling);
-                        }
+                        if (statusHeader && statusHeader.parentNode) { statusHeader.parentNode.insertBefore(uyariDiv, statusHeader.nextSibling); }
                         if (statusHeader) { statusHeader.innerText = '⚠ KASKO - MAĞDUR HATASI'; statusHeader.style.color = '#dc3545'; }
-                        if (KS_DEBUG) console.warn('[OtoHasar] KASKO dosyasında mağdur evrakı tespit edildi! Dosya ID:', dosyaId);
-                    } catch (err) {
-                        kaskoCheckDone = true;
-                        if (KS_DEBUG) console.warn('[checkSigortaMagdur] Fetch hatası:', err);
-                    }
+						kslog("OTOHASAR RESİM",('KASKO dosyasında mağdur evrakı tespit edildi! Dosya ID:', dosyaId));
+                    } catch (err) { kaskoCheckDone = true; kslog("OTOHASAR RESİM",('Fetch hatası:', err)); }
                 }
                 checkSigortaMagdur();
             }
@@ -6221,22 +6203,22 @@
             // Alert Override
             w.alert = function (message) {
                 notificationCounts[message] = (notificationCounts[message] || 0) + 1;
-                if (notificationCounts[message] > MAX_ALLOWED) { if (KS_DEBUG) console.warn("[kstool] Alert engellendi:", message); showTopNotification(message, notificationCounts[message]); return; }
+                if (notificationCounts[message] > MAX_ALLOWED) { kslog("OTOHASAR BİLDİRİM",("Alert engellendi:", message)); showTopNotification(message, notificationCounts[message]); return; }
                 return rawAlert(message);
             };
             // Confirm Override
             w.confirm = function (message) {
                 notificationCounts[message] = (notificationCounts[message] || 0) + 1;
-                if (notificationCounts[message] > MAX_ALLOWED) { if (KS_DEBUG) console.warn("[kstool] Confirm otomatik onaylandı:", message); showTopNotification(message, notificationCounts[message]); return true; }
+                if (notificationCounts[message] > MAX_ALLOWED) { kslog("OTOHASAR BİLDİRİM",("Confirm otomatik onaylandı:", message)); showTopNotification(message, notificationCounts[message]); return true; }
                 return rawConfirm(message);
             };
             // Prompt Override
             w.prompt = function (message, defaultValue) {
                 notificationCounts[message] = (notificationCounts[message] || 0) + 1;
-                if (notificationCounts[message] > MAX_ALLOWED) { if (KS_DEBUG) console.warn("[kstool] Prompt otomatik geçildi:", message); showTopNotification(message, notificationCounts[message]); return defaultValue || ""; }
+                if (notificationCounts[message] > MAX_ALLOWED) { kslog("OTOHASAR BİLDİRİM",("Prompt otomatik geçildi:", message)); showTopNotification(message, notificationCounts[message]); return defaultValue || ""; }
                 return rawPrompt(message, defaultValue);
             };
-            if (KS_DEBUG) console.log("kstool: Bildirim kontrolü ve override işlemleri tamamlandı.");
+			kslog("OTOHASAR BİLDİRİM",("Bildirim kontrolü ve override işlemleri tamamlandı."));
         }
         // Giriş Sayfa oto doldurucu
         if (LOGIN && loc("otohasar") && loc("loginfrm.php")) {
@@ -6247,7 +6229,7 @@
             const runner = setInterval(fillAction, 250); window.addEventListener('load', () => { setTimeout(() => clearInterval(runner), 4000); });
             document.addEventListener('readystatechange', () => { if (document.readyState === 'complete') fillAction(); });
         }
-        // Sbm Hızlı Seçim
+        // Sbm Hızlı Seçim KSLOG BURADA KALDI
         if (SBM && loc("online.sbm.org.tr") && loc("trm-police/genelSorguEksper")) {
             GM_addStyle(`
 	        #hizli-secim-paneli {
@@ -6302,16 +6284,8 @@
             ].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
             const dispatch = (el, ...events) => events.forEach(ev => { el.dispatchEvent(new Event(ev, { bubbles: true })); if (window.jQuery) jQuery(el).trigger(ev); });
             const init = setInterval(() => {
-                const selectBox = document.getElementById('sigortaSirketKod');
-                const urunKoduBox = document.getElementById('urunKodu');
-                const hasarInput = document.getElementById('hasarDosyaNo');
-                const fieldsetBody = document.querySelector('#sorgu-fieldset .fieldset-body');
-                // Enter → Arama
-                if (hasarInput && !hasarInput.dataset.listenerAdded) {
-                    hasarInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.querySelector('.js-btn--search')?.click(); } });
-                    hasarInput.dataset.listenerAdded = '1';
-                }
-                // Panel
+                const selectBox = document.getElementById('sigortaSirketKod'), urunKoduBox = document.getElementById('urunKodu'), hasarInput = document.getElementById('hasarDosyaNo'), fieldsetBody = document.querySelector('#sorgu-fieldset .fieldset-body');
+                if (hasarInput && !hasarInput.dataset.listenerAdded) { hasarInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.querySelector('.js-btn--search')?.click(); } }); hasarInput.dataset.listenerAdded = '1'; }
                 if (!selectBox || !fieldsetBody || document.getElementById('hizli-secim-paneli')) return;
                 const container = Object.assign(document.createElement('div'), { id: 'hizli-secim-paneli' });
                 SIRKETLER.forEach(s => {
@@ -6331,6 +6305,123 @@
                 fieldsetBody.insertBefore(container, fieldsetBody.firstChild);
                 clearInterval(init);
             }, 1000);
+			//-------- POLİÇE ARALIK KONTROLÜ ---------//
+            const HEADER_TEXT_TARGET = 'Poliçe Bitiş Tarihi', NEW_HEADER_TEXT = 'Poliçe Arası Boşluk', PROCESSED_FLAG = 'data-bosluk-eklendi';
+            function parseTRDate(str) {
+              if (!str) return null;
+              str = str.trim();
+              const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+              if (!m) return null;
+              const [, dd, mm, yyyy, hh, min] = m;
+              return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min));
+            }
+            function formatFark(ms) {
+              if (ms === null) return '-';
+              if (ms === 0) return 'Boşluk yok';
+              if (ms < 0) {
+                const absMs = Math.abs(ms);
+                const gun = Math.floor(absMs / 86400000);
+                const saat = Math.floor((absMs % 86400000) / 3600000);
+                if (gun === 0) return `Çakışma (${saat} saat)`;
+                if (saat === 0) return `Çakışma (${gun} gün)`;
+                return `Çakışma (${gun} gün ${saat} saat)`;
+              }
+              const gun = Math.floor(ms / 86400000);
+              const saat = Math.floor((ms % 86400000) / 3600000);
+              if (gun === 0) return `${saat} saat boşluk`;
+              if (saat === 0) return `${gun} gün boşluk`;
+              return `${gun} gün ${saat} saat boşluk`;
+            }
+            function findColumnIndex(headerCells, text) { for (let i = 0; i < headerCells.length; i++) { if (headerCells[i].textContent.trim() === text) return i; } return -1; }
+            function normalizeTr(text) { if (!text) return ''; return text.replace(/İ/g, 'i').replace(/I/g, 'i').toLowerCase(); }
+            function icerirIptal(text) { return normalizeTr(text).includes('iptal'); }
+            function baslangicindanIptalMi(text) { const n = normalizeTr(text); return n.includes('iptal') && n.includes('başlangıc'); }
+            function processTable(table) {
+              if (!table || table.getAttribute(PROCESSED_FLAG) === '1') return;
+              const headerRow = table.querySelector('thead tr');
+              const bodyRows = Array.from(table.querySelectorAll('tbody tr'));
+              if (!headerRow || bodyRows.length === 0) return;
+              const headerCells = Array.from(headerRow.children);
+              const idxBitis = findColumnIndex(headerCells, HEADER_TEXT_TARGET);
+              if (idxBitis === -1) return;
+              const idxPoliceNo = findColumnIndex(headerCells, 'Poliçe No');
+              const idxYenilemeNo = findColumnIndex(headerCells, 'Yenileme No');
+              const idxZeyilNo = findColumnIndex(headerCells, 'Zeyil No');
+              const idxZeyilTuru = findColumnIndex(headerCells, 'Zeyil Türü');
+              const idxBaslama = findColumnIndex(headerCells, 'Poliçe Başlama Tarihi');
+              const idxZeyilBaslama = findColumnIndex(headerCells, 'Zeyil Başlama Tarihi');
+              if ([idxPoliceNo, idxYenilemeNo, idxZeyilNo, idxZeyilTuru, idxBaslama, idxZeyilBaslama].includes(-1)) { if (KS_DEBUG) console.warn('[SBM Boşluk] Beklenen sütunlardan biri bulunamadı, script durduruldu.'); return; }
+              const rows = bodyRows.map((tr) => {
+                const tds = Array.from(tr.children);
+                return {
+                  tr,
+                  policeNo: tds[idxPoliceNo]?.textContent.trim() || '',
+                  yenilemeNo: tds[idxYenilemeNo]?.textContent.trim() || '0',
+                  zeyilNo: parseInt(tds[idxZeyilNo]?.textContent.trim() || '0', 10),
+                  zeyilTuru: tds[idxZeyilTuru]?.textContent.trim() || '',
+                  baslama: parseTRDate(tds[idxBaslama]?.textContent),
+                  bitis: parseTRDate(tds[idxBitis]?.textContent),
+                  zeyilBaslama: parseTRDate(tds[idxZeyilBaslama]?.textContent),
+                  bitisTd: tds[idxBitis],
+                };
+              });
+              const groups = new Map();
+              for (const r of rows) { const key = `${r.policeNo}::${r.yenilemeNo}`; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(r); }
+              const policies = [];
+              for (const [grupAnahtari, recs] of groups) {
+                const anaKayit = recs.find((r) => r.zeyilNo === 0) || recs[0];
+                const iptalKaydi = recs.find((r) => icerirIptal(r.zeyilTuru));
+                let efektifBitis = anaKayit.bitis;
+                if (iptalKaydi && iptalKaydi.zeyilBaslama) { efektifBitis = iptalKaydi.zeyilBaslama; }
+                policies.push({
+                  grupAnahtari,
+                  efektifBaslama: anaKayit.baslama,
+                  efektifBitis,
+                  iptalNedeni: iptalKaydi ? iptalKaydi.zeyilTuru : null,
+                  tamBaslangicIptal: iptalKaydi ? baslangicindanIptalMi(iptalKaydi.zeyilTuru) : false,
+                  gosterilecekTr: anaKayit.tr, // Değeri bu satıra yazacağız
+                  tumSatirlar: recs.map((r) => r.tr),
+                });
+              }
+              const siraliPolice = policies.filter((p) => p.efektifBaslama && !p.tamBaslangicIptal).sort((a, b) => a.efektifBaslama - b.efektifBaslama);
+              const farklar = new Map();
+              for (let i = 0; i < siraliPolice.length; i++) {
+                const mevcut = siraliPolice[i];
+                const sonraki = siraliPolice[i + 1];
+                if (!sonraki || !mevcut.efektifBitis) { farklar.set(mevcut.grupAnahtari, '-'); continue; }
+                const fark = sonraki.efektifBaslama - mevcut.efektifBitis;
+                if (fark < 0 && mevcut.iptalNedeni) { farklar.set(mevcut.grupAnahtari, `İptal edilmiş (${mevcut.iptalNedeni})`); } else { farklar.set(mevcut.grupAnahtari, formatFark(fark)); }
+              }
+              for (const p of policies) { if (p.tamBaslangicIptal) { farklar.set(p.grupAnahtari, `İptal edilmiş (${p.iptalNedeni})`); } }
+              const th = document.createElement('th');
+              th.textContent = NEW_HEADER_TEXT;
+              headerRow.insertBefore(th, headerCells[idxBitis].nextSibling);
+              for (const p of policies) {
+                const metin = farklar.get(p.grupAnahtari) || '-';
+                for (const tr of p.tumSatirlar) {
+                  const tds = Array.from(tr.children);
+                  const bitisTd = tds[idxBitis];
+                  const referansClass = bitisTd.className;
+                  const yeniTd = document.createElement('td');
+                  yeniTd.className = referansClass;
+                  yeniTd.textContent = tr === p.gosterilecekTr ? metin : '';
+                  yeniTd.style.whiteSpace = 'nowrap';
+                  yeniTd.style.overflow = 'hidden';
+                  yeniTd.style.textOverflow = 'ellipsis';
+                  yeniTd.style.padding = bitisTd.style.padding || '';
+                  if (/^İptal edilmiş/.test(yeniTd.textContent)) { yeniTd.style.color = '#7f8c8d'; }
+                  else if (/Çakışma/.test(yeniTd.textContent)) { yeniTd.style.color = '#d35400'; }
+                  else if (/boşluk$/.test(yeniTd.textContent) && !/^0/.test(yeniTd.textContent)) { yeniTd.style.color = '#c0392b'; yeniTd.style.fontWeight = 'bold'; }
+                  else if (yeniTd.textContent === 'Boşluk yok') { yeniTd.style.color = '#27ae60'; }
+                  bitisTd.insertAdjacentElement('afterend', yeniTd);
+                }
+              }
+              table.setAttribute(PROCESSED_FLAG, '1');
+            }
+            function scanAndProcess() { document.querySelectorAll('table#policeModel, table[name="policeModels"]').forEach(processTable); }
+            scanAndProcess();
+            const observer = new MutationObserver(() => { clearTimeout(window.__sbmBoslukTimeout); window.__sbmBoslukTimeout = setTimeout(scanAndProcess, 300); });
+            observer.observe(document.body, { childList: true, subtree: true });
         }
         // Sbm 3lü sayı bölme
         if (SBM && loc("online.sbm.org.tr") && (loc("trm-ktt/sirket/listView") || loc("trm-ktt/giris"))) {
@@ -6341,10 +6432,13 @@
                 if (p) return p;
                 const style = document.createElement('style');
                 style.textContent = `
-    	        @media print { #sbm-num-panel { position:absolute!important; top:5px; font-size:17px!important; } }
-				@media print { #pj-panel, #ks-global-status-indicator { display: none !important; } }
-    	        #sbm-num-panel .copy { cursor:pointer; transition:opacity .2s; }
-    	        #sbm-num-panel .copy:active { opacity:.5; }`;
+                @media print {
+                    #pj-panel, #ks-global-status-indicator, #sbm-ss-btn, #sbm-download-mini-panel, #tramer-panel {
+                        display: none !important;
+                    }
+                }
+                #sbm-num-panel .copy { cursor:pointer; transition:opacity .2s; }
+                #sbm-num-panel .copy:active { opacity:.5; }`;
                 document.head.appendChild(style);
                 p = Object.assign(document.createElement('div'), { id: 'sbm-num-panel' });
                 Object.assign(p.style, {
@@ -6724,7 +6818,7 @@
                 if (!document.getElementById('sbm-ss-style')) {
                     const style = document.createElement('style');
                     style.id = 'sbm-ss-style';
-                    style.innerHTML = '@media print { #sbm-ss-btn, #pj-panel, #ks-global-status-indicator { display: none !important; } }';
+                    style.innerHTML = '@media print { #sbm-ss-btn, #pj-panel, #ks-global-status-indicator, #sbm-download-mini-panel, #tramer-panel { display: none !important; } }';
                     document.head.appendChild(style);
                 }
                 const btn = document.createElement('button');
@@ -7699,95 +7793,53 @@
         }
         // Yazıyı hafızada tutma sistemi
         if (ONBELLEK) {
-            function log(...args) { if (KS_DEBUG) console.log('[KS-YAZIM]', ...args); }
-            function warn(...args) { if (KS_DEBUG) console.warn('[KS-YAZIM]', ...args); }
             const currentHost = window.location.hostname, currentPath = window.location.pathname, currentPathKey = currentHost + currentPath;
-            log('Script başladı. Host:', currentHost, '| Path anahtarı:', currentPathKey);
-            function isCurrentPageWhitelisted(list) { for (const entry of list) { if (entry === currentPathKey) { return true; } if (currentPathKey.startsWith(entry + '/')) { return true; } } return false; }
+            kslog("ÖNBELLEK",('Script başladı. Host:', currentHost, '| Path anahtarı:', currentPathKey));
+            function shortLabel(str, maxLen = 40) { if (!str || str.length <= maxLen) return str; const half = Math.floor((maxLen - 3) / 2); return str.slice(0, half) + '...' + str.slice(-half); }
+            const shortPathKey = shortLabel(currentPathKey);
+            function isCurrentPageWhitelisted(list) { return list.some(entry => currentPathKey === entry || currentPathKey.startsWith(entry + '/')); }
             // ------------------------------------------------------------------
             // GÜVENLİ DEPOLAMA KATMANI
             // ------------------------------------------------------------------
             const memoryStore = {};
             let storageMode = 'unknown';
-            function testLocalStorage() {
-                try { const testKey = '__ks_yazim_test__'; localStorage.setItem(testKey, '1'); const ok = localStorage.getItem(testKey) === '1'; localStorage.removeItem(testKey); return ok; }
-                catch (e) { warn('localStorage testi başarısız:', e.message); return false; }
-            }
-            if (testLocalStorage()) { storageMode = 'localStorage'; } else { storageMode = 'memory'; warn('localStorage kullanılamıyor. Hafıza modunda çalışılacak (sayfa yenilenince veri kaybolur).'); }
-            log('Depolama modu:', storageMode);
-            function storageGet(key) {
-                if (storageMode === 'localStorage') { try { return localStorage.getItem(key); } catch (e) { warn('storageGet hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
-                return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
-            }
-            function storageSet(key, value) {
-                if (storageMode === 'localStorage') { try { localStorage.setItem(key, value); return; } catch (e) { warn('storageSet hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
-                memoryStore[key] = value;
-            }
-            function storageRemove(key) {
-                if (storageMode === 'localStorage') { try { localStorage.removeItem(key); return; } catch (e) { warn('storageRemove hata, hafızaya düşülüyor:', e.message); storageMode = 'memory'; } }
-                delete memoryStore[key];
-            }
+            function testLocalStorage() { try { const k = '__ks_yazim_test__'; localStorage.setItem(k, '1'); const ok = localStorage.getItem(k) === '1'; localStorage.removeItem(k); return ok; }
+										 catch (e) { kslog("ÖNBELLEK",('localStorage testi başarısız:', e.message)); return false; } }
+			storageMode = testLocalStorage() ? 'localStorage' : 'memory';
+            if (storageMode === 'memory') kslog("ÖNBELLEK",('localStorage kullanılamıyor. Hafıza modunda çalışılacak (sayfa yenilenince veri kaybolur).'));
+			kslog("ÖNBELLEK",('Depolama modu:', storageMode));
+            function storageGet(key) { if (storageMode === 'localStorage') { try { return localStorage.getItem(key); } catch (e) { kslog("ÖNBELLEK",('storageGet hata, hafızaya düşülüyor:', e.message)); } }
+        							  return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null; }
+            function storageSet(key, value) { if (storageMode === 'localStorage') { try { localStorage.setItem(key, value); return; } catch (e) { kslog("ÖNBELLEK",('storageSet hata, hafızaya düşülüyor:', e.message)); } } memoryStore[key] = value; }
+            function storageRemove(key) { if (storageMode === 'localStorage') { try { localStorage.removeItem(key); return; } catch (e) { kslog("ÖNBELLEK",('storageRemove hata, hafızaya düşülüyor:', e.message)); storageMode = 'memory'; } } delete memoryStore[key]; }
             // ------------------------------------------------------------------
-            // WHITELIST / MENÜ MANTIĞI
+            // WHITELIST / MENÜ MANTIĞI (ekleme/kaldırma tek yerden yönetiliyor)
             // ------------------------------------------------------------------
+            let whitelist = GM_getValue('whitelist', []);
+            function addToWhitelist() { let list = GM_getValue('whitelist', []); if (!list.includes(currentPathKey)) { list.push(currentPathKey); GM_setValue('whitelist', list); whitelist = list; kslog("ÖNBELLEK",('Whitelist\'te eklendi:', currentPathKey)); } }
+            function removeFromWhitelist() { let list = GM_getValue('whitelist', []).filter(item => item !== currentPathKey); GM_setValue('whitelist', list); whitelist = list; kslog("ÖNBELLEK",('Whitelist\'ten kaldırıldı:', currentPathKey));}
             function updateMenuCommands() {
-                let whitelist = GM_getValue('whitelist', []);
-                const isWhitelisted = isCurrentPageWhitelisted(whitelist);
-                log('Whitelist durumu:', whitelist, '-> bu sayfa whitelist\'te mi?', isWhitelisted);
-                if (!isWhitelisted) {
-                    GM_registerMenuCommand("🟢 " + currentPathKey + " Ekle", function () {
-                        let list = GM_getValue('whitelist', []);
-                        if (!list.includes(currentPathKey)) {
-                            list.push(currentPathKey);
-                            GM_setValue('whitelist', list);
-                            log('Whitelist\'e eklendi:', currentPathKey, '-> yeni liste:', GM_getValue('whitelist', []));
-                            alert(currentPathKey + " beyaz listeye eklendi. Sayfa yenileniyor...");
-                            window.location.reload();
-                        }
-                    });
-                } else {
-                    GM_registerMenuCommand("🔴 " + currentPathKey + " Kaldır", function () {
-                        let list = GM_getValue('whitelist', []);
-                        list = list.filter(item => item !== currentPathKey);
-                        GM_setValue('whitelist', list);
-                        log('Whitelist\'ten kaldırıldı:', currentPathKey);
-                        alert(currentPathKey + " beyaz listeden kaldırıldı. Sayfa yenileniyor...");
-                        window.location.reload();
-                    });
-                }
+                const listed = isCurrentPageWhitelisted(GM_getValue('whitelist', []));
+                kslog("ÖNBELLEK",('Whitelist durumu -> bu sayfa whitelist\'te mi?', listed));
+                if (!listed) { GM_registerMenuCommand("🟢 " + shortPathKey + " Ekle", () => { addToWhitelist(); alert(shortPathKey + " beyaz listeye eklendi. Sayfa yenileniyor..."); window.location.reload(); }); }
+				else { GM_registerMenuCommand("🔴 " + shortPathKey + " Kaldır", () => { removeFromWhitelist(); alert(shortPathKey + " beyaz listeden kaldırıldı. Sayfa yenileniyor..."); window.location.reload(); }); }
             }
             updateMenuCommands();
-            let whitelist = GM_getValue('whitelist', []);
             let cacheFeatureActive = false;
             // --- ÖNBELLEK VE ROZET MANTIĞI ---
             function initCacheFeature() {
-                if (cacheFeatureActive) { log('Önbellek özelliği zaten aktif, tekrar başlatılmadı.'); return; }
+                if (cacheFeatureActive) { kslog("ÖNBELLEK",('Önbellek özelliği zaten aktif, tekrar başlatılmadı.')); return; }
                 cacheFeatureActive = true;
-                log('Önbellek özelliği aktive ediliyor (whitelist onayı ile).');
+				kslog("ÖNBELLEK",('Önbellek özelliği aktive ediliyor (whitelist onayı ile).'));
                 const STORAGE_PREFIX = 'text_cache_';
-                //const pageKey = btoa(window.location.origin + window.location.pathname);
                 const pageKey = btoa(window.location.origin + window.location.pathname + window.location.search);
-                //const params = new URLSearchParams(window.location.search);
-                //const recordId = params.get('id') || params.get('dosya_id') || params.get('hasar_id') || params.get('evrak_id') || 'default';
-                //const pageKey = btoa( window.location.origin + window.location.pathname + '_record_' + recordId );
-                function getElementKey(el) {
-                    const ident = el.name || el.id || ('idx' + Array.prototype.indexOf.call(
-                        document.querySelectorAll('textarea, input[type="text"]'), el
-                    ));
-                    return STORAGE_PREFIX + pageKey + '_' + ident;
-                }
+                function getElementKey(el) { const ident = el.name || el.id || ('idx' + Array.prototype.indexOf.call( document.querySelectorAll('textarea, input[type="text"]'), el )); return STORAGE_PREFIX + pageKey + '_' + ident; }
                 function findAllTargetInputs() {
-                    const candidates = document.querySelectorAll('textarea, input[type="text"]');
-                    const result = [];
-                    for (const el of candidates) {
+                    return Array.from(document.querySelectorAll('textarea, input[type="text"]')).filter(el => {
                         const style = window.getComputedStyle(el);
                         const visible = style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
-                        const usable = !el.disabled && !el.readOnly;
-                        if (visible && usable) {
-                            result.push(el);
-                        }
-                    }
-                    return result;
+                        return visible && !el.disabled && !el.readOnly;
+                    });
                 }
                 function getOrCreateBadge(target) {
                     let badge = target._ksBadge;
@@ -7796,26 +7848,16 @@
                     badge.className = 'txt-cache-status-badge';
                     target._ksBadge = badge;
                     Object.assign(badge.style, {
-                        position: 'fixed',
-                        fontSize: '11px',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        zIndex: '999999',
-                        fontFamily: 'sans-serif',
-                        opacity: '0.95',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        transition: 'background-color 0.2s, color 0.2s',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        whiteSpace: 'nowrap',
-                        pointerEvents: 'auto'
+                        position: 'fixed', fontSize: '11px', padding: '4px 8px', borderRadius: '4px',
+                        zIndex: '999999', fontFamily: 'sans-serif', opacity: '0.95',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)', transition: 'background-color 0.2s, color 0.2s',
+                        cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', pointerEvents: 'auto'
                     });
                     document.body.appendChild(badge);
                     function positionBadge() {
                         const rect = target.getBoundingClientRect();
                         const badgeWidth = badge.offsetWidth || 160;
-                        let top = rect.bottom + 4;
-                        let left = rect.right - badgeWidth;
+                        let top = rect.bottom + 4, left = rect.right - badgeWidth;
                         if (left < 4) left = 4;
                         if (top + 24 > window.innerHeight) top = rect.top - 28;
                         if (left + badgeWidth > window.innerWidth) left = window.innerWidth - badgeWidth - 4;
@@ -7825,53 +7867,28 @@
                     positionBadge();
                     window.addEventListener('scroll', positionBadge, { passive: true, capture: true });
                     window.addEventListener('resize', positionBadge);
-                    if (window.ResizeObserver) {
-                        new ResizeObserver(positionBadge).observe(target);
-                    }
+                    if (window.ResizeObserver) new ResizeObserver(positionBadge).observe(target);
                     badge._reposition = positionBadge;
-                    badge.addEventListener('mouseenter', () => {
-                        if (target.value.trim() !== '') {
-                            badge.textContent = '↺ Orijinale Dön';
-                            badge.style.backgroundColor = '#c0392b';
-                            badge.style.color = '#fff';
-                        }
-                    });
-                    badge.addEventListener('mouseleave', () => { updateBadgeState(target, target._ksCurrentState || ''); });
+                    badge.addEventListener('mouseenter', () => { if (target.value.trim() !== '') { badge.textContent = '↺ Orijinale Dön'; badge.style.backgroundColor = '#c0392b'; badge.style.color = '#fff'; } });
+                    badge.addEventListener('mouseleave', () => updateBadgeState(target, target._ksCurrentState || ''));
                     badge.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        const confirmReset = confirm("Önbelleğe alınan veriyi silip kutuyu ilk (boş) haline getirmek istiyor musunuz?");
-                        if (confirmReset) {
-                            storageRemove(getElementKey(target));
-                            target.value = '';
-                            badge.style.display = 'none';
-                            target._ksCurrentState = '';
-                        }
+                        if (confirm("Önbelleğe alınan veriyi silip kutuyu ilk (boş) haline getirmek istiyor musunuz?")) { storageRemove(getElementKey(target)); target.value = ''; badge.style.display = 'none'; target._ksCurrentState = ''; }
                     });
                     return badge;
                 }
+                const BADGE_STATES = { typing: ['⏳ Değişiklikler bekleniyor...', '#f39c12'], saved: [null, '#27ae60'], loaded: ['● Önbellekten yüklendi', '#2980b9'] };
                 function updateBadgeState(target, state) {
                     const badge = getOrCreateBadge(target);
                     if (target.value.trim() === '') { badge.style.display = 'none'; return; }
                     badge.style.display = 'block';
                     target._ksCurrentState = state;
                     if (badge.matches(':hover')) return;
-                    switch (state) {
-                        case 'typing':
-                            badge.textContent = '⏳ Değişiklikler bekleniyor...';
-                            badge.style.backgroundColor = '#f39c12';
-                            badge.style.color = '#fff';
-                            break;
-                        case 'saved':
-                            badge.textContent = storageMode === 'memory' ? '✓ Kaydedildi (sadece bu oturum)' : '✓ Önbelleğe kaydedildi';
-                            badge.style.backgroundColor = '#27ae60';
-                            badge.style.color = '#fff';
-                            break;
-                        case 'loaded':
-                            badge.textContent = '● Önbellekten yüklendi';
-                            badge.style.backgroundColor = '#2980b9';
-                            badge.style.color = '#fff';
-                            break;
-                    }
+                    const cfg = BADGE_STATES[state];
+                    if (!cfg) return;
+                    badge.textContent = state === 'saved' ? (storageMode === 'memory' ? '✓ Kaydedildi (sadece bu oturum)' : '✓ Önbelleğe kaydedildi') : cfg[0];
+                    badge.style.backgroundColor = cfg[1];
+                    badge.style.color = '#fff';
                 }
                 function handleInput(target) {
                     updateBadgeState(target, 'typing');
@@ -7880,55 +7897,19 @@
                     if (target.value.trim() === '') { storageRemove(key); return; }
                     target._ksSaveTimeout = setTimeout(() => {
                         storageSet(key, target.value);
-                        log('Kaydedildi. Eleman:', target.name || target.id, '| Anahtar:', key, '| Mod:', storageMode, '| Uzunluk:', target.value.length);
+                         kslog("ÖNBELLEK",('Kaydedildi:', target.name || target.id, '| Mod:', storageMode, '| Uzunluk:', target.value.length));
                         updateBadgeState(target, 'saved');
                     }, 2000);
                 }
-                function loadCache() {
-                    const targets = findAllTargetInputs();
-                    if (targets.length === 0) {
-                        warn('Sayfada düzenlenebilir/görünür bir textarea veya input[type="text"] bulunamadı.');
-                        return;
-                    }
-                    for (const target of targets) {
-                        const key = getElementKey(target);
-                        const savedText = storageGet(key);
-                        if (savedText && savedText.trim() !== '' && !target.value) {
-                            target.value = savedText;
-                            updateBadgeState(target, 'loaded');
-                            log('Önbellekten yüklendi. Eleman:', target.name || target.id, '| Anahtar:', key);
-                        }
-                    }
-                }
-                if (document.readyState === 'complete') { loadCache(); } else { window.addEventListener('load', loadCache); }
-                setInterval(() => {
-                    const targets = findAllTargetInputs();
-                    for (const target of targets) {
-                        if (target._ksBadge) continue;
-                        const key = getElementKey(target);
-                        const savedText = storageGet(key);
-                        if (savedText && savedText.trim() !== '' && !target.value) {
-                            target.value = savedText;
-                            updateBadgeState(target, 'loaded');
-                        }
-                    }
-                }, 1500);
-                document.addEventListener('input', (e) => {
-                    if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && e.target.type === 'text')) {
-                        handleInput(e.target);
-                    }
-                });
-                document.addEventListener('focusout', (e) => {
-                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-                        const badge = e.target._ksBadge;
-                        if (badge && e.target.value.trim() === '') {
-                            badge.style.display = 'none';
-                        }
-                    }
-                });
-                if (findAllTargetInputs().length === 0) { warn('Sayfada düzenlenebilir/görünür bir textarea veya input[type="text"] bulunamadı.'); }
+                function tryLoadInto(target) { const savedText = storageGet(getElementKey(target)); if (savedText && savedText.trim() !== '' && !target.value) { target.value = savedText; updateBadgeState(target, 'loaded'); return true; } return false; }
+                function loadCache() { const targets = findAllTargetInputs(); if (targets.length === 0) { kslog("ÖNBELLEK",('Sayfada düzenlenebilir/görünür bir textarea veya input[type="text"] bulunamadı.')); return; } targets.forEach(tryLoadInto); }
+                if (document.readyState === 'complete') loadCache(); else window.addEventListener('load', loadCache);
+                setInterval(() => { findAllTargetInputs().forEach(target => { if (!target._ksBadge) tryLoadInto(target); }); }, 1500);
+                document.addEventListener('input', (e) => { if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && e.target.type === 'text')) handleInput(e.target); });
+                document.addEventListener('focusout', (e) => { const badge = e.target._ksBadge; if ((e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') && badge && e.target.value.trim() === '') { badge.style.display = 'none'; } });
             }
-            if (isCurrentPageWhitelisted(whitelist)) { initCacheFeature(); } else { log('Bu sayfa whitelist\'te değil. Sağ-tık menüsünden veya kstool menüsünden ekleyebilirsin.'); }
+            if (isCurrentPageWhitelisted(whitelist)) initCacheFeature();
+            else kslog("ÖNBELLEK",('Bu sayfa whitelist\'te değil. Sağ-tık menüsünden veya kstool menüsünden ekleyebilirsin.'));
             // ------------------------------------------------------------------
             // SAĞ TIK (CONTEXT MENU) İLE WHITELIST'E EKLEME
             // ------------------------------------------------------------------
@@ -7939,36 +7920,16 @@
                 const menu = document.createElement('div');
                 ksCustomMenu = menu;
                 Object.assign(menu.style, {
-                    position: 'fixed',
-                    left: x + 'px',
-                    zIndex: '2147483647',
-                    background: '#ffffff',
-                    color: '#1a1a1a',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-                    fontFamily: 'sans-serif',
-                    fontSize: '13px',
-                    padding: '4px 0',
-                    minWidth: '220px',
-                    userSelect: 'none'
+                    position: 'fixed', left: x + 'px', zIndex: '2147483647', background: '#fff', color: '#1a1a1a',
+                    border: '1px solid #ccc', borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    fontFamily: 'sans-serif', fontSize: '13px', padding: '4px 0', minWidth: '220px', userSelect: 'none'
                 });
                 const item = document.createElement('div');
-                item.textContent = '🟢 ' + currentPathKey + ' için Yazım Denetimi\'ni etkinleştir';
-                Object.assign(item.style, {
-                    padding: '8px 14px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                });
+                item.textContent = '🟢 ' + shortPathKey + ' için Yazım Denetimi\'ni etkinleştir';
+                Object.assign(item.style, { padding: '8px 14px', cursor: 'pointer', whiteSpace: 'nowrap' });
                 item.addEventListener('mouseenter', () => { item.style.backgroundColor = '#f0f0f0'; });
                 item.addEventListener('mouseleave', () => { item.style.backgroundColor = 'transparent'; });
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    let list = GM_getValue('whitelist', []);
-                    if (!list.includes(currentPathKey)) { list.push(currentPathKey); GM_setValue('whitelist', list); whitelist = list; log('Sağ-tık menüsü ile whitelist\'e eklendi:', currentPathKey); }
-                    removeKsCustomMenu();
-                    initCacheFeature();
-                });
+                item.addEventListener('click', (e) => { e.stopPropagation(); addToWhitelist(); removeKsCustomMenu(); initCacheFeature(); });
                 menu.appendChild(item);
                 document.body.appendChild(menu);
                 const menuHeight = menu.offsetHeight;
@@ -7987,9 +7948,7 @@
                 showKsAddToWhitelistMenu(e.clientX, e.clientY);
             }, true);
             document.addEventListener('click', removeKsCustomMenu);
-            document.addEventListener('mousedown', (e) => {
-                if (ksCustomMenu && !ksCustomMenu.contains(e.target)) removeKsCustomMenu();
-            });
+            document.addEventListener('mousedown', (e) => { if (ksCustomMenu && !ksCustomMenu.contains(e.target)) removeKsCustomMenu(); });
             window.addEventListener('blur', removeKsCustomMenu);
             window.addEventListener('scroll', removeKsCustomMenu, true);
             window.addEventListener('resize', removeKsCustomMenu);
