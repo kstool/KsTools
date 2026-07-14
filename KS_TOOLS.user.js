@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.86
+// @version      1.87
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -72,8 +72,7 @@
 	    console.log(`%c[KSTOOLS] %c[${tit}] %c[${saat}] :`, 'color:#e67e22;font-weight:bold', 'color:#2980b9;font-weight:bold', 'color:#999', ...args);
 	}
 	GM_registerMenuCommand(
-	    GM_getValue('ks_debug', false) ? "🐞 Debug Kapat" : "🐞 Debug Aç",
-	    () => {
+	    GM_getValue('ks_debug', false) ? "🐞 Debug Kapat" : "🐞 Debug Aç", () => {
 	        GM_setValue('ks_debug', !GM_getValue('ks_debug', false));
 	        alert("Debug modu: " + (GM_getValue('ks_debug', false) ? "AÇIK" : "KAPALI") + " (sayfa yenileniyor)");
 	        window.location.reload();
@@ -2267,7 +2266,7 @@
                         { key: 'KS_IMG', icon: '🖼️', title: 'Resim Yükleme', desc: 'Toplu evrak kategorisi', sub: false },
                         { key: 'KS_NTF', icon: '🔕', title: 'Bildirim Engel', desc: '3+ tekrarlı popup engeli', sub: false },
                         { key: 'KS_ONSBM', icon: '🏦', title: 'Ön SBM Giriş Bilgileri', desc: 'Otoanaliz içerisindeki SBM Bilgileri bölümünü otomatik dolduran buton ekler.', sub: false },
-                        { key: 'KS_FILE', icon: '📁', title: 'Dosyanın Klasörünü Açar', desc: 'Aracın arşivinin klasörünü açan buton ekler, ihbar butonunun yanına.', sub: false },
+                        { key: 'KS_FILE', icon: '📁', title: 'Ekstra Özellikler', desc: 'Aracın arşivinin klasörünü açan buton, Mağdur eksik plaka değerine 0, Parça kodunu yapıştır ve ara butonu, Tramer no girme alanlarını ekler.', sub: false },
                     ]
                 },
                 {
@@ -2740,7 +2739,7 @@
                             var orig_alert = w.alert;
                             w.alert = function (msg) { if (msg.indexOf('Kaydedilmiştir') !== -1) orig_alert(msg); else kslog("OTOHASAR",('Susturuldu: ', msg)); };
                             var lines = cleanResponse.split('\n');
-                            /* lines.forEach(function(line) { line = line.trim(); if (!line) return; try { eval(line); } catch(ex) { if (KS_DEBUG) console.log('satır atlandı:', line); } }); */
+                            /* lines.forEach(function(line) { line = line.trim(); if (!line) return; try { eval(line); } catch(ex) { kslog("OTOHASAR",('satır atlandı:', line)); } }); */
                             lines.forEach(function (line) { line = line.trim(); if (!line) { return; } try { Function(line)(); } catch (ex) { kslog("OTOHASAR",('Satır atlandı: ', line)); } });
                             w.alert = orig_alert;
                             w.$('#indicator_1').hide(); w.$('#indicator_2').hide(); w.$('#btnKaydet1').show(); w.$('#btnKaydet2').show();
@@ -2759,7 +2758,7 @@
                             sasiBtn.setAttribute('onclick',
                                 "popup('popup_modeller.php?uygun=1&id='+$('#HAS_MARKA_ID').val()+'&HAS_MODEL_YILI='+$('#HAS_MODEL_YILI').val()+'&sasi='+$('#HAS_SASI_NO').val()+'&motor_no='+$('#HAS_MOTOR_NO').val(),'modeller',330,600)"
                             );
-                            if (KS_DEBUG) console.log('[KS] Uygun modeller tıklamas düzeltildi - motorNo kaldırıldı');
+							kslog("OTOHASAR",("Uygun modeller tıklamas düzeltildi - motorNo kaldırıldı"));
                         }, 1500);
                     });
                 }*/
@@ -3480,11 +3479,7 @@
         }
         // Klasör Aç butonu + Tramer Dosya No alanı
         if (OTOFILE && loc("otohasar")) {
-            const ayIsimleri = {
-                "01": "1. Ocak", "02": "2. Şubat", "03": "3. Mart", "04": "4. Nisan", "05": "5. Mayıs", "06": "6. Haziran",
-                "07": "7. Temmuz", "08": "8. Ağustos", "09": "9. Eylül", "10": "10. Ekim", "11": "11. Kasım", "12": "12. Aralık"
-            };
-
+            const ayIsimleri = { "01": "1. Ocak", "02": "2. Şubat", "03": "3. Mart", "04": "4. Nisan", "05": "5. Mayıs", "06": "6. Haziran", "07": "7. Temmuz", "08": "8. Ağustos", "09": "9. Eylül", "10": "10. Ekim", "11": "11. Kasım", "12": "12. Aralık" };
             function turkceBuyukHarf(metin) { return metin.toString().replace(/i/g, "İ").replace(/ı/g, "I").replace(/ş/g, "Ş").replace(/ç/g, "Ç").replace(/ğ/g, "Ğ").replace(/ü/g, "Ü").replace(/ö/g, "Ö").toUpperCase().trim(); }
             function magdurDataHazir() { return !!(window.MAGDUR_DATA && window.MAGDUR_DATA.isLoaded !== false && window.MAGDUR_DATA.mgPLAKA1 && window.MAGDUR_DATA.mgPLAKA1.toString().trim() !== ""); }
             window.addEventListener('load', function () {
@@ -3603,16 +3598,29 @@
                     yapistirButon.style.marginLeft = "5px";
                     yapistirButon.addEventListener("click", function () {
                         if (navigator.clipboard && navigator.clipboard.readText) {
-                            navigator.clipboard.readText().then(function (text) {
-                                var temizMetin = text.replace(/\s+/g, "");
-                                parcaKoduInput.value = temizMetin;
-                                araButonu.click();
-                            }).catch(function (err) { alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin."); });
+                            navigator.clipboard.readText().then(function (text) { var temizMetin = text.replace(/\s+/g, ""); parcaKoduInput.value = temizMetin; araButonu.click(); kslog("OTOHASAR SEARCH AND DESTROY",("Aratılan temizlenmiş değer: " & temizMetin)); })
+								.catch(function (err) { alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin."); });
                         } else { alert("Tarayıcınız panoya erişimi desteklemiyor."); }
                     });
                     araButonu.parentNode.insertBefore(yapistirButon, araButonu.nextSibling);
                 }
             }
+			if (loc("eks_hasar_magdur.php")) {
+				if (typeof window.sb_ederken === 'function') {
+				    const orijinal_sb_ederken = window.sb_ederken;
+				    window.sb_ederken = function() { const plakaInput = document.getElementById('PLAKA1');
+				        if (plakaInput) { let val = plakaInput.value.trim(); if (val.length === 1) { plakaInput.value = '0' + val; } }
+				        orijinal_sb_ederken();
+				    };
+				} else {
+				    document.addEventListener('click', function(e) {
+				        const target = e.target;
+				        if (target && target.type === 'button' && target.value.trim() === 'KAYDET') { const plakaInput = document.getElementById('PLAKA1');
+				            if (plakaInput) { let val = plakaInput.value.trim(); if (val.length === 1) { plakaInput.value = '0' + val; } }
+				        }
+				    }, true);
+				}
+			}
         }
         // SBM oto doldurma sistemi
         if (ONSBM && loc("sdata_edit.php")) {
@@ -6229,7 +6237,7 @@
             const runner = setInterval(fillAction, 250); window.addEventListener('load', () => { setTimeout(() => clearInterval(runner), 4000); });
             document.addEventListener('readystatechange', () => { if (document.readyState === 'complete') fillAction(); });
         }
-        // Sbm Hızlı Seçim KSLOG BURADA KALDI
+        // Sbm Hızlı Seçim
         if (SBM && loc("online.sbm.org.tr") && loc("trm-police/genelSorguEksper")) {
             GM_addStyle(`
 	        #hizli-secim-paneli {
@@ -6350,7 +6358,7 @@
               const idxZeyilTuru = findColumnIndex(headerCells, 'Zeyil Türü');
               const idxBaslama = findColumnIndex(headerCells, 'Poliçe Başlama Tarihi');
               const idxZeyilBaslama = findColumnIndex(headerCells, 'Zeyil Başlama Tarihi');
-              if ([idxPoliceNo, idxYenilemeNo, idxZeyilNo, idxZeyilTuru, idxBaslama, idxZeyilBaslama].includes(-1)) { if (KS_DEBUG) console.warn('[SBM Boşluk] Beklenen sütunlardan biri bulunamadı, script durduruldu.'); return; }
+              if ([idxPoliceNo, idxYenilemeNo, idxZeyilNo, idxZeyilTuru, idxBaslama, idxZeyilBaslama].includes(-1)) { kslog("SBM",("Beklenen sütunlardan biri bulunamadı, script durduruldu.")); return; }
               const rows = bodyRows.map((tr) => {
                 const tds = Array.from(tr.children);
                 return {
@@ -6669,7 +6677,7 @@
                         document.body.removeChild(link);
                         unsafeWindow.URL.revokeObjectURL(link.href);
                     } catch (error) {
-                        if (KS_DEBUG) console.error("Resim indirilemedi:", url, error);
+						kslog("SBM",("Resim indirilemedi:", url, error));
                     }
                 }
                 function initSbmDownloadPanel() {
@@ -7258,9 +7266,9 @@
                     if (widgetEl) {
                         try {
                             const instance = window.jQuery ? window.jQuery(widgetEl).dxSelectBox("instance") : null;
-                            if (instance) { instance.option("value", targetValue); if (KS_DEBUG) console.log(`Başarılı: ${nameAttr} -> ${targetValue}`); }
+                            if (instance) { instance.option("value", targetValue); kslog("SBM",(`Başarılı: ${nameAttr} -> ${targetValue}`)); }
                             else { hiddenInput.value = targetValue; hiddenInput.dispatchEvent(new Event('change', { bubbles: true })); }
-                        } catch (e) { if (KS_DEBUG) console.error("Seçim yapılamadı: ", e); }
+                        } catch (e) { kslog("SBM",("Seçim yapılamadı: ", e)) }
                     }
                 }
             }
@@ -7273,13 +7281,13 @@
                         const instance = $widget.dxSelectBox("instance");
                         if (instance) {
                             instance.option("value", targetId); if (instance.validate) instance.validate();
-                            if (KS_DEBUG) console.log(`${nameAttr} başarıyla set edildi (ID: ${targetId})`); return;
+                             kslog("SBM",(`${nameAttr} başarıyla set edildi (ID: ${targetId})`)); return;
                         }
                     }
                     inputEl.value = targetId;
                     const events = ['change', 'input', 'blur', 'focusout'];
                     events.forEach(e => inputEl.dispatchEvent(new Event(e, { bubbles: true })));
-                } catch (err) { if (KS_DEBUG) console.error("DevEx Hatası:", err); }
+                } catch (err) { kslog("SBM",("DevEx Hatası:", err)); }
             }
             function formDoldur(tipID) {
                 // Formdaki 4 ana kutuyu da ID'leri ile mühürle
@@ -7510,7 +7518,7 @@
             setInterval(cleanupToasts, 3000);
             const startObserver = setInterval(() => {
                 const target = document.querySelector('.dx-toast-stack');
-                if (target) { cleanupToasts(); obssserver.observe(target, { childList: true }); clearInterval(startObserver); if (KS_DEBUG) console.log("Toast Observer aktif edildi."); }
+                if (target) { cleanupToasts(); obssserver.observe(target, { childList: true }); clearInterval(startObserver); kslog("SBM",("Toast Observer aktif edildi.")); }
             }, 2000);
         }
         // Quick - Corpus - Anadolu Sigorta
@@ -7577,7 +7585,7 @@
                             setVal('partName', data.ad); setVal('partQty', data.miktar); setVal('partPrice', data.fiyat); fillCategoriesRandomly(tr);
                         }
                     });
-                } catch (err) { if (KS_DEBUG) console.error("Pano hatası:", err); }
+                } catch (err) { kslog("QCA",("Pano hatası:", err)); }
             };
             const injectButtons = () => {
                 // ── SP-TABLE KONTROLÜ ─────────────────────────────────────────────
